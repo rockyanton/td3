@@ -1,3 +1,0 @@
-Next at t=0
-(0) [0x0000fffffff0] f000:fff0 (unk. ctxt): mov ax, 0x0000            ; b80000
-(0).[0] [0x0000fffffff0] f000:fff0 (unk. ctxt): mov ax, 0x0000            ; b80000
