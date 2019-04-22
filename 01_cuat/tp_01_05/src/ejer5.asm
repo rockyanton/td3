@@ -3,15 +3,15 @@ section .reset
 USE16
     mov ax,0
     jmp ax
-    times 16-($-arranque) db 0
+    times 16-($-arranque) db 0    ;salto a inicio16
 
 section .init
   gdt:
-    db 0,0,0,0,0,0,0,0 ; Descriptor nulo
+    db 0,0,0,0,0,0,0,0                ; Descriptor nulo
     ds_sel equ $-gdt
-    db 0xFF,0xFF,0,0,0,0x92,0xCF,0
+    db 0xFF,0xFF,0,0,0,0x92,0xCF,0    ; Selector de datos
     cs_sel equ $-gdt
-    db 0xFF,0xFF,0,0,0,0x9A,0xCF,0
+    db 0xFF,0xFF,0,0,0,0x9A,0xCF,0    ; Selector de codigo
 
     long_gdt equ $-gdt
 
@@ -21,9 +21,9 @@ section .init
     dd gdt
 
   inicio:
-    cli
+    cli                   ; Deshabilito las interrupciones
     db 0x66               ; Requerido para direcciones mayores
-    lgdt [cs:img_gdtr]    ;que 0x00FFFFFFF.
+    lgdt [cs:img_gdtr]    ; que 0x00FFFFFFF.
     mov eax, cr0          ;Habiltación bit de modo protegido.
     or eax,1
     mov cr0, eax
