@@ -7,7 +7,7 @@
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++ DEFINES MODIFICABLES ++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++ DEFINICIONES +++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # Carpeta donde se encuentran los archivos fuente (.asm)
@@ -36,11 +36,6 @@ CFLAGS = -f elf32
 # "-z max-page-size=0x01000": Tamaño maximo de pagina
 # "-m elf_i386": Emula un procesador i386
 LFLAGS = -z max-page-size=0x01000 -m elf_i386
-
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++ DEFINES NO EDITABLES ++++++++++++++++++++++++++++++++
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # Compilador
 COMPILER = nasm
@@ -104,7 +99,7 @@ compilar: clean $(OUTPUT_BIN)
 	@echo	''
 	@echo	'-----> Generando listados de hexadecimales y ELFs'
 
-	hexdump -C $(OUTPUT_BIN) > ./$(CARPETA_TXT)/$(OUTPUT_NAME)_hexdump.txt
+	#hexdump -C $(OUTPUT_BIN) > ./$(CARPETA_TXT)/$(OUTPUT_NAME)_hexdump.txt
 	#objdump $(ODFLAGS) $(OUTPUT_ELF) > ./$(CARPETA_TXT)/$(OUTPUT_NAME)_objdump.txt
 	#readelf -a $(OUTPUT_ELF) > ./$(CARPETA_TXT)/$(OUTPUT_NAME)_readelf.txt
 
@@ -112,10 +107,6 @@ compilar: clean $(OUTPUT_BIN)
 	@echo	''
 	@echo	'LISTO! n_n'
 	@echo	''
-
-#.PHONY: copyBios
-#copyBios:
-#	$(COPY_BIOS)
 
 
 .PHONY: crearEstructura
@@ -131,8 +122,5 @@ clean:
 	rm -f *.o
 	rm -f ./$(CARPETA_BIN)/*.bin
 	rm -f ./$(CARPETA_ELF)/*.elf
-	rm -f ./$(CARPETA_OBJ)/*.o
-	rm -f ./$(CARPETA_TXT)/*.txt
-	rm -f ./$(CARPETA_LST)/*.lst
-	rm -f ./$(CARPETA_BIN)/*.log
-	rm -f ./$(CARPETA_BIN)/*.ini
+	rm -f ./*.log
+	rm -f ./*.ini
