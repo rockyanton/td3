@@ -18,5 +18,4 @@ doc/*.o
 doc/*.bin
 doc/*.elf
 doc/*.html
-*.log
-*.ini
+log/*
