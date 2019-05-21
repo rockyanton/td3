@@ -16,6 +16,9 @@ CARPETA_BIN = bin
 # Nombre del archivo binario final (.bin)
 OUTPUT_BIN = bios.bin
 
+# Nombre del archivo de configuracion del bochs (.cfg)
+BOCHS_CFG = bochs.cfg
+
 # Flags del compilador
 # "-f elf32": Formato de salida elf 32 bits
 CFLAGS = -f elf32
@@ -48,7 +51,7 @@ OBJ = $(subst $(CARPETA_SRC)/,$(CARPETA_BIN)/,$(SRC:.asm=.elf))
 all: $(OUTPUT_BIN)
 
 	@echo	'==> Ejecutando bochs'
-	bochs -qf ./run.cfg
+	bochs -qf ./$(BOCHS_CFG)
 	@echo	'==> Limpiando temporales'
 	rm *.ini
 	rm *.log
