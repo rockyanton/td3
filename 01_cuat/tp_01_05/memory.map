@@ -1,0 +1,37 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ram              0x0000000000000000 0x00000000ffff0000 xrw
+rom              0x00000000ffff0000 0x000000000000fff0 xr
+rom_reset        0x00000000fffffff0 0x0000000000000010 xr
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x000000001fffb000                __INICIO_PILA = 0x1fffb000
+                0x0000000000004000                __SIZE_PILA = 0x4000
+                0x000000001ffff000                __FIN_PILA = (__INICIO_PILA + __SIZE_PILA)
+
+.init           0x00000000ffff0000       0xa0
+ *(.init)
+ .init          0x00000000ffff0000       0xa0 bin/main.elf
+
+.rutinas        0x0000000000000000       0x15 load address 0x00000000ffff00a0
+                0x0000000000000000                __COPY_RAM = .
+                0x00000000ffff00a0                __COPY_ROM = LOADADDR (.rutinas)
+ bin/copy.elf(.copy)
+ .copy          0x0000000000000000       0x15 bin/copy.elf
+                0x0000000000000000                copy
+                0x0000000000000015                __COPY_LENGHT = SIZEOF (.rutinas)
+
+.nucleo         0x0000000000300000        0x0
+                0x0000000000300000                __COPY_RAM_2 = .
+
+.reset          0x00000000fffffff0       0x10
+ *(.reset)
+ .reset         0x00000000fffffff0       0x10 bin/main.elf
+                0x0000000000400000                __COPY_RAM_3 = 0x400000
+LOAD bin/copy.elf
+LOAD bin/main.elf
+OUTPUT(bios.bin binary)
