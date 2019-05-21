@@ -14,7 +14,7 @@ USE16
     times 16-($-arranque) db 0    ; Relleno con ceros hasta el final
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++++ INICIALIZACION +++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++ INICIALIZACION MODO REAL +++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 section .init
 
@@ -46,15 +46,18 @@ section .init
     jmp dword cs_sel:modo_proteg    ; Voy a la sección de código en modo protegido
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++ MODO PROTEGIDO +++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++ INICIALIZACION MODO PROTEGIDO +++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;--------- Variables externas ------------
-EXTERN __COPY_ROM
-EXTERN __COPY_LENGHT
 EXTERN __FIN_PILA
+EXTERN __NUCLEO_ROM
+EXTERN __NUCLEO_RAM
+EXTERN __NUCLEO_LENGHT
+EXTERN __COPY_ROM
+EXTERN __RUTINAS_ROM
+EXTERN __RUTINAS_RAM
+EXTERN __RUTINAS_LENGHT
 EXTERN copy
-EXTERN __COPY_RAM_2
-EXTERN __COPY_RAM_3
 
 USE32
   modo_proteg:
@@ -67,34 +70,37 @@ USE32
     mov esp, __FIN_PILA ; La pila se carga al revés (es decreciente)
     breakpoint
 
-    ;--------- Paso la rutina copy a RAM (se copia a si misma) ------------
-    push __COPY_ROM     ; Pusheo ORIGEN
-    push copy           ; Pusheo DESTINO
-    push __COPY_LENGHT  ; Pusheo LARGO
-    call __COPY_ROM     ; LLamo a la rutina en ROM
-    pop eax             ; Saco los 3 push que hice antes
+    ;--------- Paso el NUCLEO a RAM (se copia a si mismo con la rutina copy) ------------
+    push __NUCLEO_ROM     ; Pusheo ORIGEN
+    push __NUCLEO_RAM     ; Pusheo DESTINO
+    push __NUCLEO_LENGHT  ; Pusheo LARGO
+    call __COPY_ROM       ; LLamo a la rutina en ROM
+    pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
     breakpoint
 
-    ;--------- Copio la rutina copy (en RAM) a la direccion 0x00300000 ------------
-    push copy           ; Pusheo ORIGEN
-    push __COPY_RAM_2   ; Pusheo DESTINO
-    push __COPY_LENGHT  ; Pusheo LARGO
-    call copy           ; LLamo a la rutina en ROM
-    pop eax             ; Saco los 3 push que hice antes
+    ;--------- Copio las RUTINAS a RAM ------------
+    push __RUTINAS_ROM    ; Pusheo ORIGEN
+    push __RUTINAS_RAM    ; Pusheo DESTINO
+    push __RUTINAS_LENGHT ; Pusheo LARGO
+    call copy             ; LLamo a la rutina en ROM
+    pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
     breakpoint
 
+    jmp cs_sel:main
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;--------- Variables externas ------------
+EXTERN rutina_teclado
+
+  main:
     ;--------- Copio la rutina copy a la direccion 0x00400000 ------------
-    push copy           ; Pusheo ORIGEN
-    push __COPY_RAM_3   ; Pusheo DESTINO
-    push __COPY_LENGHT  ; Pusheo LARGO
-    call copy
-    pop eax             ; Saco los 3 push que hice antes
-    pop eax
-    pop eax
+    call rutina_teclado
     breakpoint
 
     ;--------- Terminado, cuelgo el procesador ------------------
