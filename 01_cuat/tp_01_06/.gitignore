@@ -20,3 +20,5 @@ doc/*.elf
 doc/*.html
 *.log
 *.ini
+*.bin
+*.map
