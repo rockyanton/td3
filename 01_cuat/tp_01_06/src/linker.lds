@@ -3,8 +3,16 @@
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /*--------- STACK ------------*/
 __INICIO_PILA = 0x1FFFE000;
-__SIZE_PILA = 0x4000;
-__FIN_PILA = __INICIO_PILA + __SIZE_PILA;   /* Tamaño de pila = 16k */
+__FIN_PILA = 0x1FFFFF0;    /* La termino al final de la RAM */
+__SIZE_PILA = __FIN_PILA - __INICIO_PILA;
+
+/*------ TABLA DE DÍGITOS ------*/
+__INICIO_TABLA_DE_DIGITOS = 0x00310000;
+__SIZE_TABLA_DE_DIGITOS = 64K;
+__FIN_TABLA_DE_DIGITOS = __INICIO_TABLA_DE_DIGITOS + __SIZE_TABLA_DE_DIGITOS;
+
+/*------ TABLA DE DÍGITOS ------*/
+__DATOS_PROGRAMA = 0x003E0000;
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /*+++++++++++++++++++++++++++++++  MEMORY +++++++++++++++++++++++++++++++++++++*/

@@ -68,7 +68,6 @@ USE32
 
     ;--------- Cargo la dirección del stack (pila) ------------
     mov esp, __FIN_PILA ; La pila se carga al revés (es decreciente)
-    breakpoint
 
     ;--------- Paso el NUCLEO a RAM (se copia a si mismo con la rutina copy) ------------
     push __NUCLEO_ROM     ; Pusheo ORIGEN
@@ -78,7 +77,6 @@ USE32
     pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
-    breakpoint
 
     ;--------- Copio las RUTINAS a RAM ------------
     push __RUTINAS_ROM    ; Pusheo ORIGEN
@@ -88,7 +86,6 @@ USE32
     pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
-    breakpoint
 
     jmp cs_sel:main
 
@@ -100,6 +97,7 @@ EXTERN rutina_teclado
 
   main:
     ;--------- Copio la rutina copy a la direccion 0x00400000 ------------
+    breakpoint
     call rutina_teclado
     breakpoint
 
