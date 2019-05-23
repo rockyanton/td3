@@ -102,3 +102,6 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
     check_exit:
       popad
       ret
+
+section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
+  resb 64*1024  ; Reservo Los 64k de la tabla (1024 x 64 bytes)
