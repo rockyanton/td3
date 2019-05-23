@@ -20,30 +20,30 @@ section .init
 
   jmp inicio    ; Salto a la rutina de inicialización
 
-  ;--------- GDT ------------
-  gdt:
+  ;--------- GDT Primaria (básica) ------------
+  gdt_prim:
     db 0,0,0,0,0,0,0,0                ; Descriptor nulo
-    ds_sel equ $-gdt
+    ds_sel_prim equ $-gdt_prim
     db 0xFF,0xFF,0,0,0,0x92,0xCF,0    ; Selector de datos
-    cs_sel equ $-gdt
+    cs_sel_prim equ $-gdt_prim
     db 0xFF,0xFF,0,0,0,0x9A,0xCF,0    ; Selector de codigo
 
-    long_gdt equ $-gdt    ; Largo de la gdt
+    long_gdt_prim equ $-gdt_prim    ; Largo de la gdt
 
-  img_gdtr:               ; Escribo primero la longitud y luego la GDT
-    dw long_gdt - 1       ; dw me agrega 1 byte en cero antes: 0x0017 (3 elementos de 8 bytes: 23 -> 0x17)
-    dd gdt
+  img_gdtr_prim:               ; Escribo primero la longitud y luego la GDT
+    dw long_gdt_prim - 1       ; dw me agrega 1 byte en cero antes: 0x0017 (3 elementos de 8 bytes: 23 -> 0x17)
+    dd gdt_prim
 
   ;--------- Rutina de inicialización ------------
   inicio:
     cli                   ; Deshabilito las interrupciones
     db 0x66               ; Requerido para direcciones mayores que 0x00FFFFFFF.
-    lgdt [cs:img_gdtr]    ; Cargo la GDTR
+    lgdt [cs:img_gdtr_prim]    ; Cargo la GDTR
     mov eax, cr0          ; Copio el registro de
     or eax,1              ; Habilito el bit de modo protegido
     mov cr0, eax          ; Guardo los cambios -> Activo el modo protegido
 
-    jmp dword cs_sel:modo_proteg    ; Voy a la sección de código en modo protegido
+    jmp dword cs_sel_prim:modo_proteg    ; Voy a la sección de código en modo protegido
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++ INICIALIZACION MODO PROTEGIDO +++++++++++++++++++++++++++
@@ -57,12 +57,15 @@ EXTERN __COPY_ROM
 EXTERN __RUTINAS_ROM
 EXTERN __RUTINAS_RAM
 EXTERN __RUTINAS_LENGHT
+EXTERN __TABLAS_DE_SISTEMA_ROM
+EXTERN __TABLAS_DE_SISTEMA_RAM
+EXTERN __TABLAS_DE_SISTEMA_LENGHT
 EXTERN copy
 
 USE32
   modo_proteg:
     ;--------- Cargo los selectores ------------
-    mov ax,ds_sel
+    mov ax,ds_sel_prim
     mov ds, ax
     mov ss, ax
 
@@ -87,7 +90,16 @@ USE32
     pop eax
     pop eax
 
-    jmp cs_sel:main
+    ;--------- Copio las RUTINAS a RAM ------------
+    push __TABLAS_DE_SISTEMA_ROM    ; Pusheo ORIGEN
+    push __TABLAS_DE_SISTEMA_RAM    ; Pusheo DESTINO
+    push __TABLAS_DE_SISTEMA_LENGHT ; Pusheo LARGO
+    call copy                       ; LLamo a la rutina en ROM
+    pop eax                         ; Saco los 3 push que hice antes
+    pop eax
+    pop eax
+
+    jmp cs_sel_prim:main
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
