@@ -19,3 +19,17 @@ section .tablas_de_sistema
     dd gdt
 
   ;--------- IDT ------------
+  GLOBAL img_idtr
+  idt:
+     TIMES 0x20 dq 0x0
+     ;dw handler_timer
+     ;dw cs_sel
+     ;db 0x0
+     ;db 0x8E
+     ;dw 0xFFFF
+
+  long_idt equ $-idt
+
+  img_idtr:
+     dw long_idt-1
+     dd idt

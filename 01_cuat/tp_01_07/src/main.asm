@@ -61,6 +61,9 @@ EXTERN __TABLAS_DE_SISTEMA_ROM
 EXTERN __TABLAS_DE_SISTEMA_RAM
 EXTERN __TABLAS_DE_SISTEMA_LENGHT
 EXTERN copy
+EXTERN img_gdtr
+EXTERN ds_sel
+EXTERN cs_sel
 
 USE32
   modo_proteg:
@@ -90,7 +93,7 @@ USE32
     pop eax
     pop eax
 
-    ;--------- Copio las RUTINAS a RAM ------------
+    ;--------- Copio las TABLAS DE SISTEAMA a RAM ------------
     push __TABLAS_DE_SISTEMA_ROM    ; Pusheo ORIGEN
     push __TABLAS_DE_SISTEMA_RAM    ; Pusheo DESTINO
     push __TABLAS_DE_SISTEMA_LENGHT ; Pusheo LARGO
@@ -99,18 +102,24 @@ USE32
     pop eax
     pop eax
 
-    jmp cs_sel_prim:main
+    ;--------- Cargo la GDT de RAM y los selectores ------------
+    lgdt [cs:img_gdtr]    ; Cargo la GDTR
+    mov ax,ds_sel
+    mov ds, ax
+    mov ss, ax
+
+    jmp cs_sel:main
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;--------- Variables externas ------------
-EXTERN rutina_teclado
+EXTERN rutina_teclado_polling
 
   main:
     ;--------- Copio la rutina copy a la direccion 0x00400000 ------------
     breakpoint
-    call rutina_teclado
+    call rutina_teclado_polling
     breakpoint
 
     ;--------- Terminado, cuelgo el procesador ------------------
