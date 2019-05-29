@@ -22,7 +22,26 @@
 %define Keyboard_Key_D  0x20
 %define Keyboard_Key_E  0x12
 %define Keyboard_Key_F  0x21
+%define Keyboard_Key_G  0x22
+%define Keyboard_Key_H  0x23
+%define Keyboard_Key_I  0x17
+%define Keyboard_Key_J  0x24
+%define Keyboard_Key_K  0x25
+%define Keyboard_Key_L  0x26
+%define Keyboard_Key_M  0x32
+%define Keyboard_Key_N  0x31
+%define Keyboard_Key_O  0x18
+%define Keyboard_Key_P  0x19
+%define Keyboard_Key_Q  0x10
+%define Keyboard_Key_R  0x13
 %define Keyboard_Key_S  0x1F
+%define Keyboard_Key_T  0x14
+%define Keyboard_Key_U  0x16
+%define Keyboard_Key_V  0x2F
+%define Keyboard_Key_W  0x11
+%define Keyboard_Key_X  0x2D
+%define Keyboard_Key_Y  0x15
+%define Keyboard_Key_Z  0x2C
 
 %define ASCII_0   0x30
 %define ASCII_1   0x31
