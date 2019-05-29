@@ -16,7 +16,7 @@ USE16
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++ INICIALIZACION MODO REAL +++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-section .init
+section .init_start
 
   jmp inicio    ; Salto a la rutina de inicialización
 
@@ -88,22 +88,21 @@ USE32
     push __RUTINAS_ROM    ; Pusheo ORIGEN
     push __RUTINAS_RAM    ; Pusheo DESTINO
     push __RUTINAS_LENGHT ; Pusheo LARGO
-    call copy             ; LLamo a la rutina en ROM
+    call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
 
-    ;--------- Copio las TABLAS DE SISTEAMA a RAM ------------
-    push __TABLAS_DE_SISTEMA_ROM    ; Pusheo ORIGEN
-    push __TABLAS_DE_SISTEMA_RAM    ; Pusheo DESTINO
-    push __TABLAS_DE_SISTEMA_LENGHT ; Pusheo LARGO
-    call copy                       ; LLamo a la rutina en ROM
-    pop eax                         ; Saco los 3 push que hice antes
+    ;--------- Copio la GDT a RAM (y los selectores) ------------
+    push gdt_prim     ; Pusheo ORIGEN
+    push gdt          ; Pusheo DESTINO
+    push long_gdt     ; Pusheo LARGO
+    call copy         ; LLamo a la rutina en RAM
+    pop eax           ; Saco los 3 push que hice antes
     pop eax
     pop eax
 
-    ;--------- Cargo la GDT de RAM y los selectores ------------
-    lgdt [cs:img_gdtr]    ; Cargo la GDTR
+    lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
     mov ax,ds_sel
     mov ds, ax
     mov ss, ax

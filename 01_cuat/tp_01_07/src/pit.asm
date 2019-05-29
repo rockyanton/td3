@@ -10,7 +10,7 @@
 %define PIT_8253_CMD_OPMODE_OFFSET  1
 %define PIT_8253_LOHI_ACCESS_MODE   0x30
 
-SECTION .pit_init progbits
+SECTION .init progbits
 GLOBAL _pit_configure
 USE32
 _pit_configure:

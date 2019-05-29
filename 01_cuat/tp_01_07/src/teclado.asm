@@ -61,7 +61,7 @@ EXTERN __FIN_TABLA_DE_DIGITOS
 
 ;--------- Parámetros globales ------------
 GLOBAL rutina_teclado     ; Para poder usar esa etiqueta en otro archivo
-section .teclado
+section .keyboard
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 
   ;--------- Rutina de teclado ------------

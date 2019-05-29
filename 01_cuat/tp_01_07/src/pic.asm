@@ -10,7 +10,7 @@
 
 %define PIC_8259_EOI               0x20
 
-SECTION .pic_init progbits
+SECTION .init progbits
 GLOBAL _pic_configure
 USE32
 _pic_configure:
