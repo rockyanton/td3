@@ -57,10 +57,8 @@ EXTERN __COPY_ROM
 EXTERN __RUTINAS_ROM
 EXTERN __RUTINAS_RAM
 EXTERN __RUTINAS_LENGHT
-EXTERN __TABLAS_DE_SISTEMA_ROM
-EXTERN __TABLAS_DE_SISTEMA_RAM
-EXTERN __TABLAS_DE_SISTEMA_LENGHT
 EXTERN copy
+EXTERN gdt
 EXTERN img_gdtr
 EXTERN ds_sel
 EXTERN cs_sel
@@ -94,20 +92,21 @@ USE32
     pop eax
 
     ;--------- Copio la GDT a RAM (y los selectores) ------------
-    push gdt_prim     ; Pusheo ORIGEN
-    push gdt          ; Pusheo DESTINO
-    push long_gdt     ; Pusheo LARGO
-    call copy         ; LLamo a la rutina en RAM
-    pop eax           ; Saco los 3 push que hice antes
+    push gdt_prim       ; Pusheo ORIGEN
+    push gdt            ; Pusheo DESTINO
+    push long_gdt_prim  ; Pusheo LARGO
+    call copy           ; LLamo a la rutina en RAM
+    pop eax             ; Saco los 3 push que hice antes
     pop eax
     pop eax
 
-    lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
-    mov ax,ds_sel
-    mov ds, ax
-    mov ss, ax
+    ; CUANDO CARGO LA GDT SE REINICIA!!!!
+    ;lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
+    ;mov ax,ds_sel
+    ;mov ds, ax
+    ;mov ss, ax
 
-    jmp cs_sel:main
+    jmp cs_sel_prim:main
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
@@ -117,7 +116,6 @@ EXTERN rutina_teclado_polling
 
   main:
     ;--------- Copio la rutina copy a la direccion 0x00400000 ------------
-    breakpoint
     call rutina_teclado_polling
     breakpoint
 

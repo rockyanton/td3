@@ -39,9 +39,7 @@ SECTIONS
   /*------TABLAS DE SISTEMA-------*/
   .tablas_de_sistema_out 0x00100000 :                             /* El vector "." de VMA le digo que arranque en 0x00100000 */
   { __TABLAS_DE_SISTEMA_RAM = .;                                  /* Cargo el valor anterior en la etiqueta __TABLAS_DE_SISTEMA_RAM (VALOR EN VMA) */
-    /*__TABLAS_DE_SISTEMA_ROM = LOADADDR(.tablas_de_sistema_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
     *(.tablas_de_sistema)}                                        /* Que copie la sección .tablas_de_sistema de todos los archivos ensamblado */
-  /*} AT >rom                                                     /* Le pido que me cargue todo eso en ROM (LMA) */
   __TABLAS_DE_SISTEMA_LENGHT = SIZEOF(.tablas_de_sistema_out);    /* Le pido el largo de la seccion de .tablas_de_sistema_out */
 
   /*------------NUCLEO------------*/

@@ -60,12 +60,12 @@ EXTERN __INICIO_TABLA_DE_DIGITOS
 EXTERN __FIN_TABLA_DE_DIGITOS
 
 ;--------- Parámetros globales ------------
-GLOBAL rutina_teclado     ; Para poder usar esa etiqueta en otro archivo
+GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
 section .keyboard
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 
   ;--------- Rutina de teclado ------------
-  rutina_teclado:
+  rutina_teclado_polling:
     pushad
     mov esi, __INICIO_TABLA_DE_DIGITOS - 1    ; Tabla donde voy a copiar los datos
     mov edi, esi
