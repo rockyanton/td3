@@ -33,6 +33,7 @@ SECTIONS
     { __RUTINAS_RAM = .;                        /* Cargo el valor anterior en la etiqueta __RUTINAS_RAM (VALOR EN VMA) */
       __RUTINAS_ROM = LOADADDR(.rutinas_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/teclado.elf(.keyboard);               /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
+      bin/handlers.elf(.handlers);              /* Que copie la sección .handlers del archivo handlers.elf ensamblado */
     } AT >rom                                   /* Le pido que me cargue todo eso en ROM (LMA) */
     __RUTINAS_LENGHT = SIZEOF(.rutinas_out);    /* Le pido el largo de la seccion de .rutinas_out */
 
