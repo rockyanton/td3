@@ -137,6 +137,29 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
         jmp save_data         ; Voy a la funcion para guardarlo
       not_key_f:
 
+      cmp al, Keyboard_Key_Y  ; Comparo si es F
+      jnz not_key_y           ; Si no es me sigo
+        pushad                ; Guardo los registros
+        xor ebx, ebx          ; Pongo ebx en 0
+        div ebx               ; Divido por 0
+        popad                 ; Traigo de nuevo los registros
+      not_key_y:
+
+      cmp al, Keyboard_Key_U  ; Comparo si es F
+      jnz not_key_u           ; Si no es me sigo
+        breakpoint
+      not_key_u:
+
+      cmp al, Keyboard_Key_I  ; Comparo si es F
+      jnz not_key_i           ; Si no es me sigo
+        breakpoint
+      not_key_i:
+
+      cmp al, Keyboard_Key_O  ; Comparo si es F
+      jnz not_key_o           ; Si no es me sigo
+        breakpoint
+      not_key_o:
+
       jmp check_buffer        ; Si no es ninguno de los anteriores vuelvo a esperar
 
     save_data:

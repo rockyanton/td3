@@ -55,7 +55,7 @@ SECTIONS
   /*------TABLA DE DIGITOS-------*/
   .tabla_de_digitos_out 0x00310000 :              /* El vector "." de VMA le digo que arranque en 0x00310000 */
     { __INICIO_TABLA_DE_DIGITOS = .;              /* Cargo el valor anterior en la etiqueta __INICIO_TABLA_DE_DIGITOS (VALOR EN VMA) */
-      bin/teclado.elf(.tabla_de_digitos_out);     /* Que copie la sección .tabla_de_digitos del archivo teclado ensamblado */
+      bin/teclado.elf(.tabla_de_digitos);     /* Que copie la sección .tabla_de_digitos del archivo teclado ensamblado */
     }
     __SIZE_TABLA_DE_DIGITOS = SIZEOF(.tabla_de_digitos_out);    /* Le pido el largo de la seccion de .tabla_de_digitos */
     __FIN_TABLA_DE_DIGITOS = __INICIO_TABLA_DE_DIGITOS + __SIZE_TABLA_DE_DIGITOS;   /* Resto para obtener el final de la tabla */

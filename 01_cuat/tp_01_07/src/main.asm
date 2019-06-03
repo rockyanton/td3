@@ -21,6 +21,9 @@ section .init_start
   jmp inicio    ; Salto a la rutina de inicialización
 
   ;--------- GDT Primaria (básica) ------------
+  GLOBAL cs_sel_prim
+  GLOBAL ds_sel_prim
+
   gdt_prim:
     db 0,0,0,0,0,0,0,0                ; Descriptor nulo
     ds_sel_prim equ $-gdt_prim
@@ -62,6 +65,9 @@ EXTERN gdt
 EXTERN img_gdtr
 EXTERN ds_sel
 EXTERN cs_sel
+EXTERN init_idt
+EXTERN img_idtr
+EXTERN _pic_configure
 
 USE32
   modo_proteg:
@@ -92,21 +98,30 @@ USE32
     pop eax
 
     ;--------- Copio la GDT a RAM (y los selectores) ------------
-    push gdt_prim       ; Pusheo ORIGEN
-    push gdt            ; Pusheo DESTINO
-    push long_gdt_prim  ; Pusheo LARGO
-    call copy           ; LLamo a la rutina en RAM
-    pop eax             ; Saco los 3 push que hice antes
-    pop eax
-    pop eax
+    ;push gdt_prim       ; Pusheo ORIGEN
+    ;push gdt            ; Pusheo DESTINO
+    ;push long_gdt_prim  ; Pusheo LARGO
+    ;call copy           ; LLamo a la rutina en RAM
+    ;pop eax             ; Saco los 3 push que hice antes
+    ;pop eax
+    ;pop eax
 
-    ; CUANDO CARGO LA GDT SE REINICIA!!!!
+    ; CUANDO CARGO LA GDT EN RAM SE REINICIA!!!!
     ;lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
     ;mov ax,ds_sel
     ;mov ds, ax
     ;mov ss, ax
 
-    jmp cs_sel_prim:main
+    ;--------- Inicializo y cargo la IDT ------------
+    breakpoint
+    call init_idt
+    breakpoint
+    lidt [cs:img_idtr]
+    breakpoint
+
+    ;--------- Inicializo el PIC ------------
+    call _pic_configure
+    breakpoint
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
