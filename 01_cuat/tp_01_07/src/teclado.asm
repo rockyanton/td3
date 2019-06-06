@@ -139,8 +139,10 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
 
       cmp al, Keyboard_Key_Y  ; Comparo si es F
       jnz not_key_y           ; Si no es me sigo
+        breakpoint
         pushad                ; Guardo los registros
         xor ebx, ebx          ; Pongo ebx en 0
+        breakpoint
         div ebx               ; Divido por 0
         popad                 ; Traigo de nuevo los registros
       not_key_y:

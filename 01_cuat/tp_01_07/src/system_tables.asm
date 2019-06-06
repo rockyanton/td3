@@ -117,7 +117,7 @@ section .init progbits
       ;   `-------------- P (Segment Present Flag)
       xor eax, eax
       mov al, 0x8E  ;0x8E = 1 00 0 1 110 ==> Segmento Presente, Permisos elevados, tamaño del gate de 32bits
-      mov [esi + ecx*8 +4], al
+      mov [esi + ecx*8 +5], al
 
       ;  |7|6|5|4|3|2|1|0|  Bit 6 del descriptor IDT
       ;   `-`-`-`-`-`-`-`---- Bits 16-23 del Offset

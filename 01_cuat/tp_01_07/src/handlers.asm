@@ -14,6 +14,7 @@ GLOBAL handler_gp
 GLOBAL handler_ud
 
     handler_de: ; 0x00 Divide Error
+      breakpoint
       pushad
       xor edx, edx
       mov dx, 0x0
