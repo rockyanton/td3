@@ -137,27 +137,25 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
         jmp save_data         ; Voy a la funcion para guardarlo
       not_key_f:
 
-      cmp al, Keyboard_Key_Y  ; Comparo si es F
+      cmp al, Keyboard_Key_Y  ; Comparo si es Y (#DE)
       jnz not_key_y           ; Si no es me sigo
-        breakpoint
         pushad                ; Guardo los registros
         xor ebx, ebx          ; Pongo ebx en 0
-        breakpoint
         div ebx               ; Divido por 0
         popad                 ; Traigo de nuevo los registros
       not_key_y:
 
-      cmp al, Keyboard_Key_U  ; Comparo si es F
+      cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
       jnz not_key_u           ; Si no es me sigo
-        breakpoint
+        ud2                   ; Esta instrucción me genera la excepción
       not_key_u:
 
-      cmp al, Keyboard_Key_I  ; Comparo si es F
+      cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
       jnz not_key_i           ; Si no es me sigo
         breakpoint
       not_key_i:
 
-      cmp al, Keyboard_Key_O  ; Comparo si es F
+      cmp al, Keyboard_Key_O  ; Comparo si es O (#GP)
       jnz not_key_o           ; Si no es me sigo
         breakpoint
       not_key_o:

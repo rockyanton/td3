@@ -98,14 +98,12 @@ section .init progbits
 
       ;  |7|6|5|4|3|2|1|0|  Bit 3 del descriptor IDT
       ;   `-`-`-`-`-`-`-`---- Selector se segmento (segunda parte)
-      xor eax, eax
       mov ax, cs_sel_prim
       mov [esi + ecx*8 +2], ax
 
       ;  |7|6|5|4|3|2|1|0|  Bit 4 del descriptor IDT
       ;   | | | `-`-`-`-`---- Reservado
       ;   `-`-`------------- "000"
-      xor eax, eax
       mov al, 0x00
       mov [esi + ecx*8 +4], al
 
@@ -115,7 +113,6 @@ section .init progbits
       ;   | | | `---------- "0"
       ;   | `-`----------- DPL (Descriptor Privilege Level): 0=SO ... 3:User
       ;   `-------------- P (Segment Present Flag)
-      xor eax, eax
       mov al, 0x8E  ;0x8E = 1 00 0 1 110 ==> Segmento Presente, Permisos elevados, tamaño del gate de 32bits
       mov [esi + ecx*8 +5], al
 
