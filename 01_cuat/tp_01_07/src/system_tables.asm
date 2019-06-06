@@ -7,14 +7,11 @@ section .tablas_de_sistema nobits
   GLOBAL cs_sel
 
   gdt:
-    resb 8
-    ;dq 0x0                ; Descriptor nulo
+    resb 8              ; Descriptor nulo
     ds_sel equ $-gdt
-    resb 8
-    ;dq 0x0                ; Selector de datos nulo
+    resb 8              ; Selector de datos nulo
     cs_sel equ $-gdt
-    resb 8
-    ;dq 0x0                ; Selector de codigo nulo
+    resb 8              ; Selector de codigo nulo
 
     long_gdt equ $-gdt    ; Largo de la gdt vacía
 
@@ -22,7 +19,6 @@ section .tablas_de_sistema nobits
   GLOBAL idt
   idt:
      resb 8*255  ; Reservo las 255 entradas de 8 bytes de la tabla (1024 x 64 bytes)
-     ;TIMES 0x255 dq 0x0
 
   long_idt equ $-idt
 
@@ -37,6 +33,7 @@ section .init progbits
 
   ;--------- Inicialización IDT ------------
   GLOBAL init_idt
+  GLOBAL clear_handler_idt
   GLOBAL img_idtr
   EXTERN handler_de
   EXTERN handler_df
@@ -123,5 +120,16 @@ section .init progbits
       ;   `-`-`-`-`-`-`-`---- Bits 24-31 del Offset
       rol edi,16    ; Lo roto para obtener la parte alta
       mov [esi + ecx*8 +6],di
+
+      ret
+
+    clear_handler_idt:
+      mov esi, idt
+      mov ebp, esp        ; Copio el puntero a la pila, para no usarlo directamente
+      mov edi, [ebp + 4]  ; Numero de excepción / interrupción
+
+      xor ecx, ecx
+      mov [esi + edi*8], ecx
+      mov [esi + edi*8 + 4], ecx
 
       ret

@@ -97,7 +97,7 @@ USE32
     pop eax
     pop eax
 
-    ;--------- Copio la GDT a RAM (y los selectores) ------------
+    ;--------- Copio la GDT a RAM  ------------
     push gdt_prim       ; Pusheo ORIGEN
     push gdt            ; Pusheo DESTINO
     push long_gdt_prim  ; Pusheo LARGO
@@ -106,7 +106,7 @@ USE32
     pop eax
     pop eax
 
-    ;--------- Cargo la nueva GDT de RAM ------------
+    ;--------- Cargo la nueva GDT de RAM  y los selectores ------------
     lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
     mov ax,ds_sel
     mov ds, ax
@@ -118,7 +118,6 @@ USE32
 
     ;--------- Inicializo el PIC ------------
     call _pic_configure
-    breakpoint
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
@@ -127,9 +126,6 @@ USE32
 EXTERN rutina_teclado_polling
 
   main:
-    ;--------- Copio la rutina copy a la direccion 0x00400000 ------------
     call rutina_teclado_polling
-    breakpoint
 
-    ;--------- Terminado, cuelgo el procesador ------------------
-    hlt
+    jmp main

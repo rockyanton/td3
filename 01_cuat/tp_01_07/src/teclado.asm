@@ -58,10 +58,11 @@
 ;--------- Variables externas ------------
 EXTERN __INICIO_TABLA_DE_DIGITOS
 EXTERN __FIN_TABLA_DE_DIGITOS
+EXTERN clear_handler_idt
 
 ;--------- Parámetros globales ------------
-GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
 section .keyboard
+GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 
   ;--------- Rutina de teclado ------------
@@ -152,7 +153,12 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
 
       cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
       jnz not_key_i           ; Si no es me sigo
-        breakpoint
+        pushad
+        xor ebx, ebx
+        push ebx                ; Pusheo numero de excepcion 0
+        call clear_handler_idt  ; Borro la excepcion de la idt
+        div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
+        popad
       not_key_i:
 
       cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)

@@ -85,3 +85,5 @@ _pic_configure:
    ;  OCW1 - IMR Interrupt Mask Register  => DATA PORT SLAVE (0xA1)
    mov al, 0xFF   ; 11111111  => Deshabilito todas las interrupciones por hardware
    out SLAVE_PIC_8259_DATA_PORT, al
+
+   ret
