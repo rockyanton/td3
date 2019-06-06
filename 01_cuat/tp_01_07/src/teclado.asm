@@ -155,9 +155,9 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
         breakpoint
       not_key_i:
 
-      cmp al, Keyboard_Key_O  ; Comparo si es O (#GP)
-      jnz not_key_o           ; Si no es me sigo
-        breakpoint
+      cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)
+      jnz not_key_o               ; Si no es me sigo
+        mov [cs:not_key_o], eax   ; Trato de escribir en un segmento de código ==> #GP
       not_key_o:
 
       jmp check_buffer        ; Si no es ninguno de los anteriores vuelvo a esperar
