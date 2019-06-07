@@ -61,16 +61,17 @@ EXTERN __FIN_TABLA_DE_DIGITOS
 EXTERN clear_handler_idt
 
 ;--------- Parámetros globales ------------
+USE32
 section .keyboard
-GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
-USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 
-  ;--------- Rutina de teclado ------------
+GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
+
+  ;--------- Rutina de teclado por polling------------
   rutina_teclado_polling:
     pushad
-    mov esi, __INICIO_TABLA_DE_DIGITOS - 1    ; Tabla donde voy a copiar los datos
-    mov edi, esi
+    mov esi, __INICIO_TABLA_DE_DIGITOS   ; Tabla donde voy a copiar los datos
     mov ecx, __FIN_TABLA_DE_DIGITOS      ; Final de la tabla
+    mov edi, esi
 
     check_buffer:
       in al, Keyboard_Controller_Status_Register  ; Leo el puerto 0x64 (Keyboard Controller Status Register)
@@ -84,102 +85,131 @@ USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto e
     cmp bl, 0x80                            ; Si el bit vale 0 la tecla fue presionada (Make), si es 1 se dejó de presionar (Break)
     jz check_buffer                         ; Si la tecla fue presionada vuelvo al principio (detecto cuando se suelta)
 
-      cmp al, Keyboard_Key_S        ; Si la tecla presionada es "S" me voy
-      jz check_exit
+    push edi            ; Pongo en la pila el lugar donde lo debería guardar
+    push eax            ; Pongo en la pila el registro con la tecla presionada
+    call handle_key     ; Llamo a la funcion que analiza la tecla
 
-      cmp al, Keyboard_Key_9  ; Comparo si es 0x0A ==> Tecla "9" (los numeros 1-9 son consecutivos)
-      jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
-        dec al
-        dec al
-        js check_buffer       ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
-        add al, ASCII_1       ; Le sumo 0x31 para que se equipare con la tabla ASCII (1 es 0x31)
-        jge save_data         ; Si está entre esos 2 valores, es un número => Voy a la funcion para guardarlo
-      not_number:
+    pop eax             ; Traigo el valor que devolvió
+    pop ebx             ; Saco el otro valor
 
-      cmp al, Keyboard_Key_0  ; Comparo si es la tecla "0"
-      jnz not_key_0           ; Si no es sigo
-        mov al, ASCII_0       ; Reemplazo el valor de registro con el caracter ASCII "0"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_0:
+    cmp eax, 0x00      ; Valor "0": Fin del programa
+    jnz no_exit_key    ; Si es entro, sino no
+      popad
+      ret              ; Termino
+    no_exit_key:
 
-      cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
-      jnz not_key_a           ; Si no es sigo
-        mov al, ASCII_A       ; Reemplazo el valor de registro con el caracter ASCII "A"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_a:
+    cmp eax, 0x01
+    jnz caracer_hexa
 
-      cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
-      jnz not_key_b           ; Si no es sigo
-        mov al, ASCII_B       ; Reemplazo el valor de registro con el caracter ASCII "B"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_b:
+    caracter_hexa:    ; Valor "2": Tecla hexadecimal presionada (guardado en tabla)
 
-      cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
-      jnz not_key_c           ; Si no es sigo
-        mov al, ASCII_C       ; Reemplazo el valor de registro con el caracter ASCII "C"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_c:
 
-      cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
-      jnz not_key_d           ; Si no es sigo
-        mov al, ASCII_D       ; Reemplazo el valor de registro con el caracter ASCII "D"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_d:
 
-      cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
-      jnz not_key_e           ; Si no es sigo
-        mov al, ASCII_E       ; Reemplazo el valor de registro con el caracter ASCII "E"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_e:
+  handle_key:
+    pushad
+    mov ebp, esp
+    mov eax,[ebp + 4*9] ; Son los 8 registros más la dirección de retorno
 
-      cmp al, Keyboard_Key_F  ; Comparo si es F
-      jnz not_key_f           ; Si no es me sigo
-        mov al, ASCII_F       ; Reemplazo el valor de registro con el caracter ASCII "F"
-        jmp save_data         ; Voy a la funcion para guardarlo
-      not_key_f:
+    mov ebx, 0x1     ; Valor "1": Tela presionada, no guardo datos
 
-      cmp al, Keyboard_Key_Y  ; Comparo si es Y (#DE)
-      jnz not_key_y           ; Si no es me sigo
-        pushad                ; Guardo los registros
-        xor ebx, ebx          ; Pongo ebx en 0
-        div ebx               ; Divido por 0
-        popad                 ; Traigo de nuevo los registros
-      not_key_y:
+    cmp al, Keyboard_Key_S        ; Si la tecla presionada es "S" me voy
+      xor ebx, ebx                ; Valor "0": Fin del programa
+    jz handle_key_end
 
-      cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
-      jnz not_key_u           ; Si no es me sigo
-        ud2                   ; Esta instrucción me genera la excepción
-      not_key_u:
+    cmp al, Keyboard_Key_9  ; Comparo si es 0x0A ==> Tecla "9" (los numeros 1-9 son consecutivos)
+    jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
+      dec al
+      dec al
+      js handle_key_end     ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
+        add al, ASCII_1     ; Le sumo 0x31 para que se equipare con la tabla ASCII (1 es 0x31)
+        jge save_data       ; Si está entre esos 2 valores, es un número => Voy a la funcion para guardarlo
+    not_number:
 
-      cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
-      jnz not_key_i           ; Si no es me sigo
-        pushad
-        xor ebx, ebx
-        push ebx                ; Pusheo numero de excepcion 0
-        call clear_handler_idt  ; Borro la excepcion de la idt
-        div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
-        popad
-      not_key_i:
+    cmp al, Keyboard_Key_0  ; Comparo si es la tecla "0"
+    jnz not_key_0           ; Si no es sigo
+      mov al, ASCII_0       ; Reemplazo el valor de registro con el caracter ASCII "0"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_0:
 
-      cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)
-      jnz not_key_o               ; Si no es me sigo
-        mov [cs:not_key_o], eax   ; Trato de escribir en un segmento de código ==> #GP
-      not_key_o:
+    cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
+    jnz not_key_a           ; Si no es sigo
+      mov al, ASCII_A       ; Reemplazo el valor de registro con el caracter ASCII "A"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_a:
 
-      jmp check_buffer        ; Si no es ninguno de los anteriores vuelvo a esperar
+    cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
+    jnz not_key_b           ; Si no es sigo
+      mov al, ASCII_B       ; Reemplazo el valor de registro con el caracter ASCII "B"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_b:
+
+    cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
+    jnz not_key_c           ; Si no es sigo
+      mov al, ASCII_C       ; Reemplazo el valor de registro con el caracter ASCII "C"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_c:
+
+    cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
+    jnz not_key_d           ; Si no es sigo
+      mov al, ASCII_D       ; Reemplazo el valor de registro con el caracter ASCII "D"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_d:
+
+    cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
+    jnz not_key_e           ; Si no es sigo
+      mov al, ASCII_E       ; Reemplazo el valor de registro con el caracter ASCII "E"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_e:
+
+    cmp al, Keyboard_Key_F  ; Comparo si es F
+    jnz not_key_f           ; Si no es me sigo
+      mov al, ASCII_F       ; Reemplazo el valor de registro con el caracter ASCII "F"
+      jmp save_data         ; Voy a la funcion para guardarlo
+    not_key_f:
+
+    cmp al, Keyboard_Key_Y  ; Comparo si es Y (#DE)
+    jnz not_key_y           ; Si no es me sigo
+      pushad                ; Guardo los registros
+      xor ebx, ebx          ; Pongo ebx en 0
+      div ebx               ; Divido por 0
+      popad                 ; Traigo de nuevo los registros
+    not_key_y:
+
+    cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
+    jnz not_key_u           ; Si no es me sigo
+      ud2                   ; Esta instrucción me genera la excepción
+    not_key_u:
+
+    cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
+    jnz not_key_i           ; Si no es me sigo
+      pushad
+      xor ebx, ebx
+      push ebx                ; Pusheo numero de excepcion 0
+      call clear_handler_idt  ; Borro la excepcion de la idt
+      div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
+      popad
+    not_key_i:
+
+    cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)
+    jnz not_key_o               ; Si no es me sigo
+      mov [cs:not_key_o], eax   ; Trato de escribir en un segmento de código ==> #GP
+    not_key_o:
+
+    handle_key_end:
+    mov [ebp + 4*9], ebx ; Guardo el valor de retorno. ebp + los 8 registros más la dirección de retorno
+    popad
+    ret   ; Vuelvo
 
     save_data:
-      cmp edi, ecx        ; Me fijo si estoy en el final del buffer
-      jnz check_overflow
-        mov edi, esi      ; En ese caso vuelvo al principio
-      check_overflow:
-      inc edi             ; Incremento el puntero a la tabla
-      mov [edi], al       ; Guardo el valor en la tabla
-    jmp check_buffer      ; Vuelvo a esperar
 
-    check_exit:
-      popad
-      ret
+      ;cmp edi, ecx        ; Me fijo si estoy en el final del buffer
+      ;jnz check_overflow
+      ;  mov edi, esi      ; En ese caso vuelvo al principio
+      ;check_overflow:
+      ;inc edi             ; Incremento el puntero a la tabla
+      mov [edi], al       ; Guardo el valor en la tabla
+      mov ebx, 0x02       ; Valor "2": Tecla hexadecimal presionada (guardado en tabla)
+    jmp handle_key_end    ; Vuelvo a esperar
 
 section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
   resb 64*1024  ; Reservo Los 64k de la tabla (1024 x 64 bytes)
