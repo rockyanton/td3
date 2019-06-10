@@ -72,6 +72,7 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
     mov esi, __INICIO_TABLA_DE_DIGITOS   ; Tabla donde voy a copiar los datos
     mov ecx, __FIN_TABLA_DE_DIGITOS      ; Final de la tabla
     mov edi, esi
+    xor eax, eax
 
     check_buffer:
       in al, Keyboard_Controller_Status_Register  ; Leo el puerto 0x64 (Keyboard Controller Status Register)
@@ -92,18 +93,23 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
     pop eax             ; Traigo el valor que devolvió
     pop ebx             ; Saco el otro valor
 
-    cmp eax, 0x00      ; Valor "0": Fin del programa
-    jnz no_exit_key    ; Si es entro, sino no
-      popad
-      ret              ; Termino
+    cmp eax, 0x00       ; Valor "0": Fin del programa
+    jnz no_exit_key
+      popad             ; Traigo los registros originales
+      ret               ; Termino
     no_exit_key:
 
-    cmp eax, 0x01
-    jnz caracer_hexa
+    cmp eax, 0x02         ; Valor "2": Tecla hexadecimal presionada (guardado en tabla)
+    jnz no_caracter_hexa
+      cmp edi, ecx        ; Me fijo si estoy en el final del buffer
+      jnz check_overflow
+        mov edi, esi      ; En ese caso vuelvo al principio
+        dec edi           ; Decremento el valor, porque lo voy a incrementar y dejar en 0.
+      check_overflow:
+      inc edi             ; Incremento el puntero a la tabla
+    no_caracter_hexa:
 
-    caracter_hexa:    ; Valor "2": Tecla hexadecimal presionada (guardado en tabla)
-
-
+    jmp check_buffer    ; Vuelvo a arrancar
 
   handle_key:
     pushad
@@ -113,8 +119,10 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
     mov ebx, 0x1     ; Valor "1": Tela presionada, no guardo datos
 
     cmp al, Keyboard_Key_S        ; Si la tecla presionada es "S" me voy
+    jnz no_key_s
       xor ebx, ebx                ; Valor "0": Fin del programa
-    jz handle_key_end
+      jmp handle_key_end
+    no_key_s:
 
     cmp al, Keyboard_Key_9  ; Comparo si es 0x0A ==> Tecla "9" (los numeros 1-9 son consecutivos)
     jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
@@ -173,40 +181,38 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
       xor ebx, ebx          ; Pongo ebx en 0
       div ebx               ; Divido por 0
       popad                 ; Traigo de nuevo los registros
+      jmp handle_key_end
     not_key_y:
 
     cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
     jnz not_key_u           ; Si no es me sigo
       ud2                   ; Esta instrucción me genera la excepción
+      jmp handle_key_end
     not_key_u:
 
-    cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
-    jnz not_key_i           ; Si no es me sigo
+    cmp al, Keyboard_Key_I    ; Comparo si es I (#DF)
+    jnz not_key_i             ; Si no es me sigo
       pushad
-      xor ebx, ebx
-      push ebx                ; Pusheo numero de excepcion 0
+      xor ebx, ebx            ; Pongo ebx en 0
+      push ebx                ; Pusheo numero de excepcion
       call clear_handler_idt  ; Borro la excepcion de la idt
       div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
       popad
+      jmp handle_key_end
     not_key_i:
 
     cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)
     jnz not_key_o               ; Si no es me sigo
       mov [cs:not_key_o], eax   ; Trato de escribir en un segmento de código ==> #GP
+      jmp handle_key_end
     not_key_o:
 
     handle_key_end:
-    mov [ebp + 4*9], ebx ; Guardo el valor de retorno. ebp + los 8 registros más la dirección de retorno
-    popad
-    ret   ; Vuelvo
+      mov [ebp + 4*9], ebx ; Guardo el valor de retorno. ebp + los 8 registros más la dirección de retorno
+      popad
+      ret   ; Vuelvo
 
     save_data:
-
-      ;cmp edi, ecx        ; Me fijo si estoy en el final del buffer
-      ;jnz check_overflow
-      ;  mov edi, esi      ; En ese caso vuelvo al principio
-      ;check_overflow:
-      ;inc edi             ; Incremento el puntero a la tabla
       mov [edi], al       ; Guardo el valor en la tabla
       mov ebx, 0x02       ; Valor "2": Tecla hexadecimal presionada (guardado en tabla)
     jmp handle_key_end    ; Vuelvo a esperar
