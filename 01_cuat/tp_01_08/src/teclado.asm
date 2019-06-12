@@ -58,7 +58,7 @@
 ;--------- Variables externas ------------
 EXTERN __INICIO_TABLA_DE_DIGITOS
 EXTERN __FIN_TABLA_DE_DIGITOS
-EXTERN clear_handler_idt
+EXTERN clear_isr_idt
 
 ;--------- Parámetros globales ------------
 USE32
@@ -195,7 +195,7 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
       pushad
       xor ebx, ebx            ; Pongo ebx en 0
       push ebx                ; Pusheo numero de excepcion
-      call clear_handler_idt  ; Borro la excepcion de la idt
+      call clear_isr_idt      ; Borro la excepcion de la idt
       div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
       popad
       jmp handle_key_end

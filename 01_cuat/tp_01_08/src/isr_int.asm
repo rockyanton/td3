@@ -7,42 +7,42 @@
 ;+++++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
-section .handlers
-GLOBAL handler_de
-GLOBAL handler_df
-GLOBAL handler_gp
-GLOBAL handler_ud
+section .isr
+GLOBAL ist_irq_000_de
+GLOBAL isr_irq_006_ud
+GLOBAL isr_irq_008_df
+GLOBAL isr_irq_013_gp
 
   ; 0x00 Divide Error
-    handler_de:
+    ist_irq_000_de:
       pushad              ;  Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
       mov dx, 0x0         ; Guardo el número de excepción "0"
-      call handler_main
+      call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
-  ; 0x00 Divide Error
-    handler_ud: ; 0x00 Divide Error
+  ; 0x06 Undefined Opcode
+    isr_irq_006_ud:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
       mov dx, 0x06        ; Guardo el número de excepción "6"
-      call handler_main
+      call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
 
   ; 0x08 Double Fault
-    handler_df:
+    isr_irq_008_df:
       breakpoint
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" ebx
       mov dx, 0x08          ; Guardo el número de excepción "8"
-      call handler_main
+      call ISR_Main
       popad               ; Vuelvo a traer los registros
       add esp, 4          ; Como el #DF me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
   ; 0x0D General Protection
-    handler_gp:
+    isr_irq_013_gp:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en 0 ebx
       mov dx, 0x0D        ; Guardo el número de excepción "13"
@@ -57,14 +57,12 @@ GLOBAL handler_ud
       sar ecx, 3
       and ecx, 0x1FFF       ; Los bytes del 15-3 son el número de excepción/interrupción
 
-      call handler_main
+      call ISR_Main
 
       popad               ; Vuelvo a traer los registros
       add esp, 4          ; Como el #GP me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
-    handler_main:
+    ISR_Main:
       breakpoint
       ret
-
-    handler_irq_01:

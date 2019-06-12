@@ -33,12 +33,14 @@ section .init progbits
 
   ;--------- Inicialización IDT ------------
   GLOBAL init_idt
-  GLOBAL clear_handler_idt
+  GLOBAL clear_isr_idt
   GLOBAL img_idtr
-  EXTERN handler_de
-  EXTERN handler_df
-  EXTERN handler_ud
-  EXTERN handler_gp
+  EXTERN ist_irq_000_de
+  EXTERN isr_irq_006_ud
+  EXTERN isr_irq_008_df
+  EXTERN isr_irq_013_gp
+  EXTERN isr_irq_032_pit
+  EXTERN isr_irq_033_keyboard
 
     img_idtr:
        dw long_idt-1
@@ -46,30 +48,30 @@ section .init progbits
 
     init_idt:
       ; Excepcion de división por cero (DE), codigo 0 (0x00)
-      push handler_de         ; Pusheo el handler
+      push ist_irq_000_de     ; Pusheo el handler
       push 0x00               ; Pusheo el numero de interrupción
-      call load_handler_idt   ; LLamo a la función para cargar la IDT
+      call load_isr_idt   ; LLamo a la función para cargar la IDT
       pop eax                 ; Saco lo que puse en pila
       pop eax
 
       ; Excepcion de Opcode inválido (UD), codigo 6 (0x06)
-      push handler_ud
+      push isr_irq_006_ud
       push 0x06
-      call load_handler_idt
+      call load_isr_idt
       pop eax
       pop eax
 
       ; Excepcion de Doble Falta (DF), codigo 8 (0x08)
-      push handler_df
+      push isr_irq_008_df
       push 0x08
-      call load_handler_idt
+      call load_isr_idt
       pop eax
       pop eax
 
       ; Excepcion de General Protection (GP), codigo 13 (0x0D)
-      push handler_gp
+      push isr_irq_013_gp
       push 0x0D
-      call load_handler_idt
+      call load_isr_idt
       pop eax
       pop eax
 
@@ -77,7 +79,7 @@ section .init progbits
 
     EXTERN cs_sel_prim
 
-    load_handler_idt:
+    load_isr_idt:
       mov esi, idt
       mov ebp, esp        ; Copio el puntero a la pila, para no usarlo directamente
       mov ecx, [ebp + 4]  ; Numero de excepción / interrupción
@@ -123,7 +125,7 @@ section .init progbits
 
       ret
 
-    clear_handler_idt:
+    clear_isr_idt:
       mov esi, idt
       mov ebp, esp        ; Copio el puntero a la pila, para no usarlo directamente
       mov edi, [ebp + 4]  ; Numero de excepción / interrupción
