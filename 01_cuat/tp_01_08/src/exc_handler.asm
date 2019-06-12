@@ -8,13 +8,13 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 section .isr
-GLOBAL ist_irq_000_de
-GLOBAL isr_irq_006_ud
-GLOBAL isr_irq_008_df
-GLOBAL isr_irq_013_gp
+GLOBAL exc_handler_000_de
+GLOBAL exc_handler_006_ud
+GLOBAL exc_handler_008_df
+GLOBAL exc_handler_013_gp
 
   ; 0x00 Divide Error
-    ist_irq_000_de:
+    exc_handler_000_de:
       pushad              ;  Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
       mov dx, 0x0         ; Guardo el número de excepción "0"
@@ -22,7 +22,7 @@ GLOBAL isr_irq_013_gp
       popad               ; Vuelvo a traer los registros
       iret
   ; 0x06 Undefined Opcode
-    isr_irq_006_ud:
+    exc_handler_006_ud:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
       mov dx, 0x06        ; Guardo el número de excepción "6"
@@ -31,7 +31,7 @@ GLOBAL isr_irq_013_gp
       iret
 
   ; 0x08 Double Fault
-    isr_irq_008_df:
+    exc_handler_008_df:
       breakpoint
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" ebx
@@ -42,7 +42,7 @@ GLOBAL isr_irq_013_gp
       iret
 
   ; 0x0D General Protection
-    isr_irq_013_gp:
+    exc_handler_013_gp:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en 0 ebx
       mov dx, 0x0D        ; Guardo el número de excepción "13"

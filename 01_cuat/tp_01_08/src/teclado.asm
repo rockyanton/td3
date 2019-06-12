@@ -218,4 +218,7 @@ GLOBAL rutina_teclado_polling     ; Para poder usar esa etiqueta en otro archivo
     jmp handle_key_end    ; Vuelvo a esperar
 
 section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
+_tabla:
   resb 64*1024  ; Reservo Los 64k de la tabla (1024 x 64 bytes)
+_puntero:
+  resb 4

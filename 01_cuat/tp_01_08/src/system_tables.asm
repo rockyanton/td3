@@ -35,10 +35,10 @@ section .init progbits
   GLOBAL init_idt
   GLOBAL clear_isr_idt
   GLOBAL img_idtr
-  EXTERN ist_irq_000_de
-  EXTERN isr_irq_006_ud
-  EXTERN isr_irq_008_df
-  EXTERN isr_irq_013_gp
+  EXTERN exc_handler_000_de
+  EXTERN exc_handler_006_ud
+  EXTERN exc_handler_008_df
+  EXTERN exc_handler_013_gp
   EXTERN isr_irq_032_pit
   EXTERN isr_irq_033_keyboard
 
@@ -48,29 +48,43 @@ section .init progbits
 
     init_idt:
       ; Excepcion de división por cero (DE), codigo 0 (0x00)
-      push ist_irq_000_de     ; Pusheo el handler
+      push exc_handler_000_de     ; Pusheo el handler
       push 0x00               ; Pusheo el numero de interrupción
       call load_isr_idt   ; LLamo a la función para cargar la IDT
       pop eax                 ; Saco lo que puse en pila
       pop eax
 
       ; Excepcion de Opcode inválido (UD), codigo 6 (0x06)
-      push isr_irq_006_ud
+      push exc_handler_006_ud
       push 0x06
       call load_isr_idt
       pop eax
       pop eax
 
       ; Excepcion de Doble Falta (DF), codigo 8 (0x08)
-      push isr_irq_008_df
+      push exc_handler_008_df
       push 0x08
       call load_isr_idt
       pop eax
       pop eax
 
       ; Excepcion de General Protection (GP), codigo 13 (0x0D)
-      push isr_irq_013_gp
+      push exc_handler_013_gp
       push 0x0D
+      call load_isr_idt
+      pop eax
+      pop eax
+
+      ; Interrupción por Timer (PIT), codigo 32 (0x20)
+      push isr_irq_032_pit
+      push 0x20
+      call load_isr_idt
+      pop eax
+      pop eax
+
+      ; Interrupción por Teclado, codigo 33 (0x21)
+      push isr_irq_033_keyboard
+      push 0x21
       call load_isr_idt
       pop eax
       pop eax
