@@ -15,10 +15,12 @@ GLOBAL isr_irq_00_pit
 GLOBAL isr_irq_01_keyboard
 
 EXTERN handle_keyboard
+EXTERN check_keyboard_buffer
 
   isr_irq_00_pit:
     pushad
     mov edx, 0x20   ; Interrupción 32
+    call check_keyboard_buffer
     mov al, 0x20
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
     popad

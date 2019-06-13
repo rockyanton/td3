@@ -87,94 +87,68 @@ GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
 
   handle_key:
 
-    breakpoint
-
     cmp al, Keyboard_Key_S        ; Si la tecla presionada es "S" me voy
     jz handle_key_end
 
-    cmp al, Keyboard_Key_9  ; Comparo si es 0x0A ==> Tecla "9" (los numeros 1-9 son consecutivos)
+    cmp al, Keyboard_Key_0  ; Comparo si es la tecla "0"
     jz save_data
 
-    cmp al, Keyboard_Key_0  ; Comparo si es la tecla "0"
-    jnz not_key_0           ; Si no es sigo
-      ;mov al, ASCII_0       ; Reemplazo el valor de registro con el caracter ASCII "0"
-      mov al, 0x00
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_0:
+    cmp al, Keyboard_Key_1  ; Comparo si es la tecla "1"
+    jz save_data
+
+    cmp al, Keyboard_Key_2  ; Comparo si es la tecla "2"
+    jz save_data
+
+    cmp al, Keyboard_Key_3  ; Comparo si es la tecla "3"
+    jz save_data
+
+    cmp al, Keyboard_Key_4  ; Comparo si es la tecla "4"
+    jz save_data
+
+    cmp al, Keyboard_Key_5  ; Comparo si es la tecla "5"
+    jz save_data
+
+    cmp al, Keyboard_Key_6  ; Comparo si es la tecla "6"
+    jz save_data
+
+    cmp al, Keyboard_Key_7  ; Comparo si es la tecla "7"
+    jz save_data
+
+    cmp al, Keyboard_Key_8  ; Comparo si es la tecla "8"
+    jz save_data
+
+    cmp al, Keyboard_Key_9  ; Comparo si es la tecla "9"
+    jz save_data
 
     cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
-    jnz not_key_a           ; Si no es sigo
-      ;mov al, ASCII_A       ; Reemplazo el valor de registro con el caracter ASCII "A"
-      mov al, 0x0A
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_a:
+    jz save_data
 
     cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
-    jnz not_key_b           ; Si no es sigo
-      ;mov al, ASCII_B       ; Reemplazo el valor de registro con el caracter ASCII "B"
-      mov al, 0x0B
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_b:
+    jz save_data
 
     cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
-    jnz not_key_c           ; Si no es sigo
-      ;mov al, ASCII_C       ; Reemplazo el valor de registro con el caracter ASCII "C"
-      mov al, 0x0C
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_c:
+    jz save_data
 
     cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
-    jnz not_key_d           ; Si no es sigo
-      ;mov al, ASCII_D       ; Reemplazo el valor de registro con el caracter ASCII "D"
-      mov al, 0x0D
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_d:
+    jz save_data
 
     cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
-    jnz not_key_e           ; Si no es sigo
-      ;mov al, ASCII_E       ; Reemplazo el valor de registro con el caracter ASCII "E"
-      mov al, 0x0E
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_e:
+    jz save_data
 
-    cmp al, Keyboard_Key_F  ; Comparo si es F
-    jnz not_key_f           ; Si no es me sigo
-      ;mov al, ASCII_F       ; Reemplazo el valor de registro con el caracter ASCII "F"
-      mov al, 0x0F
-      jmp save_data         ; Voy a la funcion para guardarlo
-    not_key_f:
+    cmp al, Keyboard_Key_F  ; Comparo si es la tecla "F"
+    jz save_data
 
     cmp al, Keyboard_Key_Y  ; Comparo si es Y (#DE)
-    jnz not_key_y           ; Si no es me sigo
-      pushad                ; Guardo los registros
-      xor ebx, ebx          ; Pongo ebx en 0
-      div ebx               ; Divido por 0
-      popad                 ; Traigo de nuevo los registros
-      jmp handle_key_end
-    not_key_y:
+    jz generate_exc_de
 
     cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
-    jnz not_key_u           ; Si no es me sigo
-      ud2                   ; Esta instrucción me genera la excepción
-      jmp handle_key_end
-    not_key_u:
+    jz generate_exc_ud
 
-    cmp al, Keyboard_Key_I    ; Comparo si es I (#DF)
-    jnz not_key_i             ; Si no es me sigo
-      pushad
-      xor ebx, ebx            ; Pongo ebx en 0
-      push ebx                ; Pusheo numero de excepcion
-      call clear_isr_idt      ; Borro la excepcion de la idt
-      div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
-      popad
-      jmp handle_key_end
-    not_key_i:
+    cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
+    jz generate_exc_df
 
-    cmp al, Keyboard_Key_O      ; Comparo si es O (#GP)
-    jnz not_key_o               ; Si no es me sigo
-      mov [cs:not_key_o], eax   ; Trato de escribir en un segmento de código ==> #GP
-      jmp handle_key_end
-    not_key_o:
+    cmp al, Keyboard_Key_O  ; Comparo si es O (#GP)
+    jz generate_exc_gp
 
     handle_key_end:
       popad
@@ -198,44 +172,146 @@ GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
 
       mov [edi + edx], al
 
-      cmp al, Keyboard_Key_ENTER
-      jnz no_enter_key
-        mov ebp, edx
-        inc ebp             ; Salto el actual (enter)
-        cargo_datos:
-          cmp ebp, 0x09     ; Si estoy en el final del buffer vuelvo a arrancar
-          jl no_fin_buffer
-          mov ebp, 0x00
-          no_fin_buffer:
-          
-
-        jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
-          dec al
-          dec al
-          js handle_key_end     ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
-            ;add al, ASCII_1     ; Le sumo 0x31 para que se equipare con la tabla ASCII (1 es 0x31)
-            jge save_data       ; Si está entre esos 2 valores, es un número => Voy a la funcion para guardarlo
-        not_number:
-
-
-          inc ebp
-          cmp ebp, edx ; Si pegue la vuelta y estoy en el enter me voy
-          jnz cargo_datos
-
-      no_enter_key:
-
       inc edx
       mov [puntero_buffer], dl
 
       jmp handle_key_end      ; Me voy
 
+    generate_exc_de:
+      pushad                ; Guardo los registros
+      xor ebx, ebx          ; Pongo ebx en 0
+      div ebx               ; Divido por 0
+      popad                 ; Traigo de nuevo los registros
+      jmp handle_key_end
+
+    generate_exc_ud:
+      ud2                   ; Esta instrucción me genera la excepción
+      jmp handle_key_end
+
+    generate_exc_df:
+      pushad
+      xor ebx, ebx            ; Pongo ebx en 0
+      push ebx                ; Pusheo numero de excepcion
+      call clear_isr_idt      ; Borro la excepcion de la idt
+      div ebx                 ; Divido por 0, como no existe el descriptor en la IDT => ·DF
+      popad
+      jmp handle_key_end
+
+    generate_exc_gp:
+      mov [cs:handle_key_end], eax   ; Trato de escribir en un segmento de código ==> #GP
+      jmp handle_key_end
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++ FUNCION QUE LEE EL BUFFER ++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+GLOBAL check_keyboard_buffer
+
+  check_keyboard_buffer:
+    pushad
+    ; Recorro el buffer buscando la tecla enter
+    mov edi, buffer_circular    ; Puntero al buffer
+    xor edx, edx    ; Limpio registros
+    xor eax, eax
+
+    recorrer_buffer:
+      mov al, [edi + edx]           ; Traigo los datos de a uno
+      cmp al, Keyboard_Key_ENTER    ; Me fijo si es la tecla enter
+      jz enter_detectado            ; Si es proceso
+
+      inc edx               ; Incremento el indice
+    cmp edx, 0x09         ; Me fijo si ya llegue al final
+    jnz recorrer_buffer   ; Sino, me voy
+
+    end_check_keyboard_buffer:
+      popad
+      ret
+
+    enter_detectado:
+      mov ebx, edx  ; Copio la posición del enter
+      inc ebx       ; Voy al primer caracter
+      xor ecx, ecx  ; Pongo en 0 ecx
+
+      copio_buffer:
+        mov al, [edi + ebx]               ; Extraigo el caracter
+        jmp tecla_a_hexa
+        tecla_en_hexa:
+        mov [tabla_de_digitos + ebx], al  ; Lo guardo en la tabla
+        mov [edi + ebx], cl               ; Vacío el buffer
+        inc ebx
+      cmp edx, ebx         ; Me fijo si ya pegue la vuelta
+      jnz copio_buffer   ; Sino, me voy
+
+      mov [edi + ebx], cl               ; Borro el enter del buffer
+
+      ; Incremento la cant de interrupciones
+      mov al, [cant_interrupciones]
+      inc al
+      mov [cant_interrupciones], al
+
+      breakpoint
+
+      jmp end_check_keyboard_buffer   ; Me voy
+
+
+    tecla_a_hexa:
+      cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
+      jnz not_key_a
+        mov al, 0x0A
+        jmp tecla_en_hexa
+      not_key_a:
+
+      cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
+      jnz not_key_b
+        mov al, 0x0B
+        jmp tecla_en_hexa
+      not_key_b:
+
+      cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
+      jnz not_key_c
+        mov al, 0x0C
+        jmp tecla_en_hexa
+      not_key_c:
+
+      cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
+      jnz not_key_d
+        mov al, 0x0D
+        jmp tecla_en_hexa
+      not_key_d:
+
+      cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
+      jnz not_key_e
+        mov al, 0x0E
+        jmp tecla_en_hexa
+      not_key_e:
+
+      cmp al, Keyboard_Key_F  ; Comparo si es la tecla "F"
+      jnz not_key_f
+        mov al, 0x0F
+        jmp tecla_en_hexa
+      not_key_f:
+
+      cmp al, Keyboard_Key_9  ; Comparo si es la tecla "F"
+      jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
+        dec al
+        dec al
+        js not_number         ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
+        inc al
+        jmp tecla_en_hexa
+      not_number:
+
+      mov al, 0x00            ; Si no es ninguno de los anteriores, lo reemplazo por "0"
+      jmp tecla_en_hexa
+
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ TABLA DE DIGITOS +++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
+  tabla_de_digitos:
+    resb 16  ; Reservo 16 bytes (64 bits)
+  cant_interrupciones:
+    resb 1   ; Guardo la cant de veces que llené el buffer
+    resb 63  ; Le doy un espacio al resto para poder verlo mejor en el bochs
   buffer_circular:
     resb 9
   puntero_buffer:
     resb 1
-  tabla_de_digitos:
-    resb 16  ; Reservo 16 bytes (64 bits)
