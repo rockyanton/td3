@@ -14,6 +14,7 @@ SECTION .init progbits
 GLOBAL _pic_configure
 USE32
 _pic_configure:
+  xor eax, eax
 
    ;  |7|6|5|4|3|2|1|0|  ICW1 => CMD PORT MASTER (0X20)
 	 ;   | | | | | | | `---- 1=ICW4 is needed, 0=no ICW4 needed
@@ -28,7 +29,7 @@ _pic_configure:
 	;   |7|6|5|4|3|2|1|0|  ICW2  => DATA PORT MASTER (0x21)
 	;    | | | | | `-------- 000= on 80x86 systems
 	;    `----------------- A7-A3 of 80x86 interrupt vector
-   mov al, 0x20   ; 00100000  =>  El PIC 1 arranca en INT tipo 'base_1' (A5)
+   mov al, 0x20   ; 00100000  =>  El PIC 1 arranca desde la interrupción 0x20 (32)
    out MASTER_PIC_8259_DATA_PORT, al
 
    ;  |7|6|5|4|3|2|1|0|  ICW3 for Master Device  => DATA PORT MASTER (0x21)
@@ -40,7 +41,7 @@ _pic_configure:
 	 ;   | | `--------- 1=interrupt request 5 has slave, 0=no slave
 	 ;   | `---------- 1=interrupt request 6 has slave, 0=no slave
 	 ;   `----------- 1=interrupt request 7 has slave, 0=no slave
-   mov al, 0x04    ; 01000000  =>  PIC 1 Master, Slave, Ingresa Int x IRQ2 (6???)
+   mov al, 0x04    ; 00000100  =>  PIC 1 Master, Slave, Ingresa Int x IRQ2
    out MASTER_PIC_8259_DATA_PORT, al
 
    ;  |7|6|5|4|3|2|1|0|  ICW4  => DATA PORT MASTER (0x21)

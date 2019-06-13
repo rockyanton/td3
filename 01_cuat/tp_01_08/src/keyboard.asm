@@ -138,17 +138,20 @@ GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
     cmp al, Keyboard_Key_F  ; Comparo si es la tecla "F"
     jz save_data
 
-    cmp al, Keyboard_Key_Y  ; Comparo si es Y (#DE)
+    cmp al, Keyboard_Key_Y  ; Comparo si es la tecla "Y"
     jz generate_exc_de
 
-    cmp al, Keyboard_Key_U  ; Comparo si es U (#UD)
+    cmp al, Keyboard_Key_U  ; Comparo si es la tecla "U"
     jz generate_exc_ud
 
-    cmp al, Keyboard_Key_I  ; Comparo si es I (#DF)
+    cmp al, Keyboard_Key_I  ; Comparo si es la tecla "I"
     jz generate_exc_df
 
-    cmp al, Keyboard_Key_O  ; Comparo si es O (#GP)
+    cmp al, Keyboard_Key_O  ; Comparo si es la tecla "O"
     jz generate_exc_gp
+
+    cmp al, Keyboard_Key_ENTER  ; Comparo si es la tecla "Enter"
+    jz save_data
 
     handle_key_end:
       popad
@@ -217,7 +220,6 @@ GLOBAL check_keyboard_buffer
       mov al, [edi + edx]           ; Traigo los datos de a uno
       cmp al, Keyboard_Key_ENTER    ; Me fijo si es la tecla enter
       jz enter_detectado            ; Si es proceso
-
       inc edx               ; Incremento el indice
     cmp edx, 0x09         ; Me fijo si ya llegue al final
     jnz recorrer_buffer   ; Sino, me voy
@@ -227,21 +229,39 @@ GLOBAL check_keyboard_buffer
       ret
 
     enter_detectado:
-      mov ebx, edx  ; Copio la posición del enter
-      inc ebx       ; Voy al primer caracter
+      mov esi, edx  ; Copio la posición del enter
       xor ecx, ecx  ; Pongo en 0 ecx
+      mov [edi + edx], cl               ; Borro el enter del buffer
 
       copio_buffer:
-        mov al, [edi + ebx]               ; Extraigo el caracter
-        jmp tecla_a_hexa
-        tecla_en_hexa:
-        mov [tabla_de_digitos + ebx], al  ; Lo guardo en la tabla
-        mov [edi + ebx], cl               ; Vacío el buffer
-        inc ebx
-      cmp edx, ebx         ; Me fijo si ya pegue la vuelta
-      jnz copio_buffer   ; Sino, me voy
+        inc esi                           ; Siguiente numero
+        cmp esi, 0x09                     ; Chequeo overflow
+        jl no_overflow_1
+          xor esi, esi
+        no_overflow_1:
 
-      mov [edi + ebx], cl               ; Borro el enter del buffer
+        mov al, [edi + esi]               ; Extraigo el caracter
+        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
+        call tecla_a_hexa                 ; Lo paso a hexa
+        mov bl, al                        ; Lo Muevo 4 posiciones (parte 1 del byte)
+        shl bl, 0x04
+
+        inc esi                           ; Siguiente numero
+        cmp esi, 0x09                     ; Chequeo overflow
+        jl no_overflow_2
+          xor esi, esi
+        no_overflow_2:
+
+        mov al, [edi + esi]               ; Extraigo el caracter
+        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
+        call tecla_a_hexa                 ; Lo paso a hexa
+
+        or al, bl                         ; Combino los valores
+        mov [tabla_de_digitos + ecx], al  ; Lo guardo en la tabla
+        inc ecx
+
+      cmp esi, edx          ; Me fijo si ya pegue la vuelta
+      jnz copio_buffer      ; Sino, me voy
 
       ; Incremento la cant de interrupciones
       mov al, [cant_interrupciones]
@@ -251,7 +271,6 @@ GLOBAL check_keyboard_buffer
       breakpoint
 
       jmp end_check_keyboard_buffer   ; Me voy
-
 
     tecla_a_hexa:
       cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
@@ -291,7 +310,7 @@ GLOBAL check_keyboard_buffer
       not_key_f:
 
       cmp al, Keyboard_Key_9  ; Comparo si es la tecla "F"
-      jg not_number           ; Si es mayor, no es un número 1-9, analizo si es A-F o 0
+      jg not_number           ; Si es mayor, no es un número 1-9
         dec al
         dec al
         js not_number         ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
@@ -300,7 +319,10 @@ GLOBAL check_keyboard_buffer
       not_number:
 
       mov al, 0x00            ; Si no es ninguno de los anteriores, lo reemplazo por "0"
-      jmp tecla_en_hexa
+
+      tecla_en_hexa:
+        ret
+
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ TABLA DE DIGITOS +++++++++++++++++++++++++++++++++

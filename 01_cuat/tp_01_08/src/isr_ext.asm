@@ -30,6 +30,7 @@ EXTERN check_keyboard_buffer
     pushad
     mov edx, 0x21   ; Interrupción 33
     call handle_keyboard
+    mov al, 0x20
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
     popad
     iret    ; Vuelvo de la interrupción
