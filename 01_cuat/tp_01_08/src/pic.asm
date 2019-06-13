@@ -61,7 +61,7 @@ _pic_configure:
 	 ;   | | `--------- 0 = service IRQ5, 1 = mask off
 	 ;   | `---------- 0 = service IRQ6, 1 = mask off
 	 ;   `----------- 0 = service IRQ7, 1 = mask off
-   mov al, 0xFF ; 11111111 => Deshabilito todas las interrupciones por hardware
+   mov al, 0xFC ; 1111 1100 => Habilito solo teclado (1) y timer (0)
    out MASTER_PIC_8259_DATA_PORT, al
 
    ; ICW1 => CMD PORT SLAVE (0XA0)

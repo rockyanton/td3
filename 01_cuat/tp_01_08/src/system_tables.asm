@@ -39,8 +39,8 @@ section .init progbits
   EXTERN exc_handler_006_ud
   EXTERN exc_handler_008_df
   EXTERN exc_handler_013_gp
-  EXTERN isr_irq_032_pit
-  EXTERN isr_irq_033_keyboard
+  EXTERN isr_irq_00_pit
+  EXTERN isr_irq_01_keyboard
 
     img_idtr:
        dw long_idt-1
@@ -75,15 +75,15 @@ section .init progbits
       pop eax
       pop eax
 
-      ; Interrupción por Timer (PIT), codigo 32 (0x20)
-      push isr_irq_032_pit
+      ; Interrupción por Timer (IRQ 0), codigo 32 (0x20)
+      push isr_irq_00_pit
       push 0x20
       call load_isr_idt
       pop eax
       pop eax
 
-      ; Interrupción por Teclado, codigo 33 (0x21)
-      push isr_irq_033_keyboard
+      ; Interrupción por Teclado (IRQ 1), codigo 33 (0x21)
+      push isr_irq_01_keyboard
       push 0x21
       call load_isr_idt
       pop eax

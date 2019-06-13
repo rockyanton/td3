@@ -123,13 +123,14 @@ USE32
     ;--------- Inicializo el PIT ------------
     call _pit_configure
 
+    ;--------- Enciendo las interrupciones ------------
+    sti
+
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;--------- Variables externas ------------
-EXTERN rutina_teclado_polling
 
   main:
-    call rutina_teclado_polling
-
+    hlt       ; Halteo el procesador hasta que me llegue algo
     jmp main

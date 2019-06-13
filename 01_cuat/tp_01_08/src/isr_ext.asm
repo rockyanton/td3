@@ -3,22 +3,31 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
 
+%define MASTER_PIC_8259_CMD_PORT   0x20
+
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 section .isr
-GLOBAL isr_irq_032_pit
-GLOBAL isr_irq_033_keyboard
 
-  isr_irq_032_pit:
-    pushad
-    breakpoint
-    popad
-    iret
+GLOBAL isr_irq_00_pit
+GLOBAL isr_irq_01_keyboard
 
-  isr_irq_033_keyboard:
+EXTERN handle_keyboard
+
+  isr_irq_00_pit:
     pushad
-    breakpoint
+    mov edx, 0x20   ; Interrupción 32
+    mov al, 0x20
+    out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
     popad
-    iret
+    iret    ; Vuelvo de la interrupción
+
+  isr_irq_01_keyboard:
+    pushad
+    mov edx, 0x21   ; Interrupción 33
+    call handle_keyboard
+    out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
+    popad
+    iret    ; Vuelvo de la interrupción
