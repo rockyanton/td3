@@ -68,6 +68,7 @@ EXTERN cs_sel
 EXTERN init_idt
 EXTERN img_idtr
 EXTERN _pic_configure
+EXTERN _pit_configure
 
 USE32
   modo_proteg:

@@ -32,7 +32,6 @@ GLOBAL exc_handler_013_gp
 
   ; 0x08 Double Fault
     exc_handler_008_df:
-      breakpoint
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" ebx
       mov dx, 0x08          ; Guardo el número de excepción "8"
@@ -65,4 +64,5 @@ GLOBAL exc_handler_013_gp
 
     ISR_Main:
       breakpoint
+      hlt
       ret

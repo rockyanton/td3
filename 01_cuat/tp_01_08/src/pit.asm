@@ -48,11 +48,11 @@ _pit_configure:
   or  al, PIT_8253_LOHI_ACCESS_MODE   ; "0011 0000": Acces mode lobyte/hibyte
   or  al, dl      ; Agrego en los bits 6-7 el canal
   out PIT_8253_CMD_PORT, al   ; Lo mando por el puerto de salida al PIT
-
   add cx, PIT_8253_CHANNEL_BASE_DATA_PORT ; Cargo el puerto de salida del canal del pit
-  mov ax, word 119318 ; 1.193182MHz * 100ms = 119318 ==> Interrumpe cada 100ms
-  out cx, al    ; Le envío al canal el primer byte
+  mov dx, cx
+  mov ax, 11932 ; 1.193182MHz * 10ms = 11932 ==> Interrumpe cada 10ms
+  out dx, al    ; Le envío al canal el primer byte
   mov al, ah    ; Invierto
-  out cx, al    ; Le envío al canal el segundo byte
+  out dx, al    ; Le envío al canal el segundo byte
   popad
   ret
