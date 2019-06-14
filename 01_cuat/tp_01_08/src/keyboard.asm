@@ -221,8 +221,8 @@ GLOBAL check_keyboard_buffer
       cmp al, Keyboard_Key_ENTER    ; Me fijo si es la tecla enter
       jz enter_detectado            ; Si es proceso
       inc edx               ; Incremento el indice
-    cmp edx, 0x09         ; Me fijo si ya llegue al final
-    jnz recorrer_buffer   ; Sino, me voy
+    cmp edx, 0x09           ; Me fijo si ya llegue al final
+    jnz recorrer_buffer     ; Sino, me voy
 
     end_check_keyboard_buffer:
       popad
@@ -233,12 +233,13 @@ GLOBAL check_keyboard_buffer
       xor ecx, ecx  ; Pongo en 0 ecx
       mov [edi + edx], cl               ; Borro el enter del buffer
 
+      inc esi             ; Primer caracter o número
+      cmp esi, 0x09       ; Chequeo overflow
+      jl no_overflow_ini
+        xor esi, esi
+      no_overflow_ini:
+
       copio_buffer:
-        inc esi                           ; Siguiente numero
-        cmp esi, 0x09                     ; Chequeo overflow
-        jl no_overflow_1
-          xor esi, esi
-        no_overflow_1:
 
         mov al, [edi + esi]               ; Extraigo el caracter
         mov [edi + esi], byte 0x00        ; Lo borro en el buffer
@@ -260,15 +261,20 @@ GLOBAL check_keyboard_buffer
         mov [tabla_de_digitos + ecx], al  ; Lo guardo en la tabla
         inc ecx
 
+        inc esi                           ; Siguiente numero
+        cmp esi, 0x09                     ; Chequeo overflow
+        jl no_overflow_1
+          xor esi, esi
+        no_overflow_1:
+
       cmp esi, edx          ; Me fijo si ya pegue la vuelta
       jnz copio_buffer      ; Sino, me voy
 
+      breakpoint
       ; Incremento la cant de interrupciones
       mov al, [cant_interrupciones]
       inc al
       mov [cant_interrupciones], al
-
-      breakpoint
 
       jmp end_check_keyboard_buffer   ; Me voy
 
@@ -329,10 +335,9 @@ GLOBAL check_keyboard_buffer
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
   tabla_de_digitos:
-    resb 16  ; Reservo 16 bytes (64 bits)
+    resb 4  ; Reservo 4 bytes (32 bits)
   cant_interrupciones:
     resb 1   ; Guardo la cant de veces que llené el buffer
-    resb 63  ; Le doy un espacio al resto para poder verlo mejor en el bochs
   buffer_circular:
     resb 9
   puntero_buffer:
