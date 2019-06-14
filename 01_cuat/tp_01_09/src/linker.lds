@@ -32,8 +32,9 @@ SECTIONS
   .rutinas_out 0x00000000 :                     /* El vector "." de VMA le digo que arranque en 0x00000000 */
     { __RUTINAS_RAM = .;                        /* Cargo el valor anterior en la etiqueta __RUTINAS_RAM (VALOR EN VMA) */
       __RUTINAS_ROM = LOADADDR(.rutinas_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
-      bin/keyboard.elf(.keyboard);               /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
-      *(.isr);                         /* Que copie la sección .handlers del archivo handlers.elf ensamblado */
+      bin/keyboard.elf(.keyboard);              /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
+      *(.exc);                                  /* Que copie la sección .exc de los archivos */
+      *(.isr);                                  /* Que copie la sección .isr de los archivos */
     } AT >rom                                   /* Le pido que me cargue todo eso en ROM (LMA) */
     __RUTINAS_LENGHT = SIZEOF(.rutinas_out);    /* Le pido el largo de la seccion de .rutinas_out */
 
@@ -53,12 +54,20 @@ SECTIONS
     __COPY_ROM = __NUCLEO_ROM;              /* Dirección de Copy */
 
   /*------TABLA DE DIGITOS-------*/
-  .tabla_de_digitos_out 0x00310000 :              /* El vector "." de VMA le digo que arranque en 0x00310000 */
-    { __INICIO_TABLA_DE_DIGITOS = .;              /* Cargo el valor anterior en la etiqueta __INICIO_TABLA_DE_DIGITOS (VALOR EN VMA) */
+  .tabla_de_digitos_out 0x00310000 :           /* El vector "." de VMA le digo que arranque en 0x00310000 */
+    { __INICIO_TABLA_DE_DIGITOS = .;           /* Cargo el valor anterior en la etiqueta __INICIO_TABLA_DE_DIGITOS (VALOR EN VMA) */
       bin/keyboard.elf(.tabla_de_digitos);     /* Que copie la sección .tabla_de_digitos del archivo teclado ensamblado */
     }
     __SIZE_TABLA_DE_DIGITOS = SIZEOF(.tabla_de_digitos_out);    /* Le pido el largo de la seccion de .tabla_de_digitos */
     __FIN_TABLA_DE_DIGITOS = __INICIO_TABLA_DE_DIGITOS + __SIZE_TABLA_DE_DIGITOS;   /* Resto para obtener el final de la tabla */
+
+  /*----------TAREAS------------*/
+  .tareas_out 0x00320000 :                    /* El vector "." de VMA le digo que arranque en 0x00320000 */
+    { __TAREAS_RAM = .;                       /* Cargo el valor anterior en la etiqueta __TAREAS_RAM (VALOR EN VMA) */
+      __TAREAS_ROM = LOADADDR(.tareas_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      *(.tareas);                             /* Que copie la sección .tareas de los archivos */
+    } AT >rom                                 /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREAS_LENGHT = SIZEOF(.tareas_out);    /* Le pido el largo de la seccion de .tareas_out */
 
   /*-----------DATOS------------*/
   .datos_out 0x003E0000 :    /* El vector "." de VMA le digo que arranque en 0x00310000 */

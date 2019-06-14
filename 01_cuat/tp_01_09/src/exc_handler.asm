@@ -7,7 +7,7 @@
 ;+++++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
-section .isr
+section .exc
 GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
 GLOBAL exc_handler_008_df
