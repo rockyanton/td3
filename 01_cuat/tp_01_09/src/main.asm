@@ -57,9 +57,9 @@ EXTERN __NUCLEO_ROM
 EXTERN __NUCLEO_RAM
 EXTERN __NUCLEO_LENGHT
 EXTERN __COPY_ROM
-EXTERN __RUTINAS_ROM
-EXTERN __RUTINAS_RAM
-EXTERN __RUTINAS_LENGHT
+EXTERN __HANDLERS_ROM
+EXTERN __HANDLERS_RAM
+EXTERN __HANDLERS_LENGHT
 EXTERN copy
 EXTERN gdt
 EXTERN img_gdtr
@@ -90,9 +90,9 @@ USE32
     pop eax
 
     ;--------- Copio las RUTINAS a RAM ------------
-    push __RUTINAS_ROM    ; Pusheo ORIGEN
-    push __RUTINAS_RAM    ; Pusheo DESTINO
-    push __RUTINAS_LENGHT ; Pusheo LARGO
+    push __HANDLERS_ROM    ; Pusheo ORIGEN
+    push __HANDLERS_RAM    ; Pusheo DESTINO
+    push __HANDLERS_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
     pop eax

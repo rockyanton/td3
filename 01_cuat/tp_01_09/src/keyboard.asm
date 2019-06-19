@@ -205,8 +205,9 @@ GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
       jmp handle_key_end
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++ FUNCION QUE LEE EL BUFFER ++++++++++++++++++++++++++
+;++++++++++++++++++++++++++ TAREA QUE LEE EL BUFFER ++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+section .tareas
 GLOBAL check_keyboard_buffer
 
   check_keyboard_buffer:

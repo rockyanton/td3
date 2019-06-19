@@ -1,13 +1,5 @@
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*+++++++++++++++++++++++++++++++  ETIQUETAS ++++++++++++++++++++++++++++++++++*/
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-__INICIO_PILA = 0x1FFFB000;                 /* Principio del stack */
-__FIN_PILA = 0x1FFFFF0;                     /* La termino al final de la RAM */
-__SIZE_PILA = __FIN_PILA - __INICIO_PILA;    /* Calculo el largo de la pila */
-
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*+++++++++++++++++++++++++++++++  MEMORY +++++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++  MEMORIA +++++++++++++++++++++++++++++++++++++*/
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 MEMORY
 {
@@ -17,26 +9,20 @@ MEMORY
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*+++++++++++++++++++++++++++++++  SECTIONS +++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++  SECCIONES +++++++++++++++++++++++++++++++++++*/
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* Las secciones se definen en orden creciente de posiciones de memorias a donde se ubicarán */
 /* El "." es el vector de VMA e indica la posición de memoria a donde se llamarán las siguientes secciones de código (VMA) */
 SECTIONS
 {
-  /*------------INIT-------------*/
-  .init_out 0xFFFF0000 :      /* El vector "." de VMA le digo que arranque en 0xFFFF0000 */
-    { *(.init_start);
-      *(.init)} AT >rom       /* Entre paréntesis la LMA donde está la sección a copiar/ubicar. El "*" define que todas las secciones con ese nombre se copien/ubiquen en la dirección apuntada por "." */
-
   /*----------RUTINAS------------*/
-  .rutinas_out 0x00000000 :                     /* El vector "." de VMA le digo que arranque en 0x00000000 */
-    { __RUTINAS_RAM = .;                        /* Cargo el valor anterior en la etiqueta __RUTINAS_RAM (VALOR EN VMA) */
-      __RUTINAS_ROM = LOADADDR(.rutinas_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
-      bin/keyboard.elf(.keyboard);              /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
+  .handlers_out 0x00000000 :                     /* El vector "." de VMA le digo que arranque en 0x00000000 */
+    { __HANDLERS_RAM = .;                        /* Cargo el valor anterior en la etiqueta __RUTINAS_RAM (VALOR EN VMA) */
+      __HANDLERS_ROM = LOADADDR(.handlers_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       *(.exc);                                  /* Que copie la sección .exc de los archivos */
       *(.isr);                                  /* Que copie la sección .isr de los archivos */
     } AT >rom                                   /* Le pido que me cargue todo eso en ROM (LMA) */
-    __RUTINAS_LENGHT = SIZEOF(.rutinas_out);    /* Le pido el largo de la seccion de .rutinas_out */
+    __HANDLERS_LENGHT = SIZEOF(.handlers_out);    /* Le pido el largo de la seccion de .rutinas_out */
 
   /*------TABLAS DE SISTEMA-------*/
   .tablas_de_sistema_out 0x00100000 :                             /* El vector "." de VMA le digo que arranque en 0x00100000 */
@@ -49,6 +35,7 @@ SECTIONS
     { __NUCLEO_RAM = .;                     /* Cargo el valor anterior en la etiqueta __COPY_RAM (VALOR EN VMA) */
       __NUCLEO_ROM = LOADADDR(.nucleo_out); /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/copy.elf(.copy);                  /* Que copie la sección .copy del archivo copy ensamblado */
+      bin/keyboard.elf(.keyboard);          /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
     } AT >rom                               /* Le pido que me cargue todo eso en ROM (LMA) */
     __NUCLEO_LENGHT = SIZEOF(.nucleo_out);  /* Le pido el largo de la seccion de .copy_out */
     __COPY_ROM = __NUCLEO_ROM;              /* Dirección de Copy */
@@ -72,6 +59,16 @@ SECTIONS
   /*-----------DATOS------------*/
   .datos_out 0x003E0000 :    /* El vector "." de VMA le digo que arranque en 0x00310000 */
   {*(.datos)}                /* Todos los archivos de datos que los cargue en ese lugar */
+
+  /*-----------PILA------------*/
+  __INICIO_PILA = 0x1FFFB000;                 /* Principio del stack */
+  __FIN_PILA = 0x1FFFFF0;                     /* La termino al final de la RAM */
+  __SIZE_PILA = __FIN_PILA - __INICIO_PILA;    /* Calculo el largo de la pila */
+
+  /*------------INIT-------------*/
+  .init_out 0xFFFF0000 :      /* El vector "." de VMA le digo que arranque en 0xFFFF0000 */
+    { *(.init_start);
+      *(.init)} AT >rom       /* Entre paréntesis la LMA donde está la sección a copiar/ubicar. El "*" define que todas las secciones con ese nombre se copien/ubiquen en la dirección apuntada por "." */
 
   /*-----------RESET--------------*/
   .reset_out 0xFFFFFFF0:            /* El vector "." de VMA le digo que arranque en 0xFFFFFFF0 */
