@@ -56,18 +56,18 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINA TECLADO +++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;--------- Variables externas ------------
-EXTERN __INICIO_TABLA_DE_DIGITOS
-EXTERN __FIN_TABLA_DE_DIGITOS
-EXTERN clear_isr_idt
 
 ;--------- Parámetros globales ------------
 USE32
 section .keyboard
 
-GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
+;--------- Variables externas ------------
+EXTERN clear_isr_idt
 
-  ;--------- Rutina de teclado por polling------------
+;--------- Variables compartidas -----------
+GLOBAL handle_keyboard
+
+;--------- Rutina que llena el buffer de teclado ------------
   handle_keyboard:
     pushad
 
@@ -205,141 +205,19 @@ GLOBAL handle_keyboard     ; Para poder usar esa etiqueta en otro archivo
       jmp handle_key_end
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++++ TAREA QUE LEE EL BUFFER ++++++++++++++++++++++++++
+;++++++++++++++++++++++++++ BUFFER DE TECLADO ++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-section .tareas
-GLOBAL check_keyboard_buffer
 
-  check_keyboard_buffer:
-    pushad
-    ; Recorro el buffer buscando la tecla enter
-    mov edi, buffer_circular    ; Puntero al buffer
-    xor edx, edx    ; Limpio registros
-    xor eax, eax
+;--------- Parámetros globales ------------
 
-    recorrer_buffer:
-      mov al, [edi + edx]           ; Traigo los datos de a uno
-      cmp al, Keyboard_Key_ENTER    ; Me fijo si es la tecla enter
-      jz enter_detectado            ; Si es proceso
-      inc edx               ; Incremento el indice
-    cmp edx, 0x09           ; Me fijo si ya llegue al final
-    jnz recorrer_buffer     ; Sino, me voy
+;--------- Variables externas ------------
 
-    end_check_keyboard_buffer:
-      popad
-      ret
+;--------- Variables compartidas -----------
+GLOBAL buffer_circular
+GLOBAL puntero_buffer
 
-    enter_detectado:
-      mov esi, edx  ; Copio la posición del enter
-      xor ecx, ecx  ; Pongo en 0 ecx
-      mov [edi + edx], cl               ; Borro el enter del buffer
-
-      inc esi             ; Primer caracter o número
-      cmp esi, 0x09       ; Chequeo overflow
-      jl no_overflow_ini
-        xor esi, esi
-      no_overflow_ini:
-
-      copio_buffer:
-
-        mov al, [edi + esi]               ; Extraigo el caracter
-        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
-        call tecla_a_hexa                 ; Lo paso a hexa
-        mov bl, al                        ; Lo Muevo 4 posiciones (parte 1 del byte)
-        shl bl, 0x04
-
-        inc esi                           ; Siguiente numero
-        cmp esi, 0x09                     ; Chequeo overflow
-        jl no_overflow_2
-          xor esi, esi
-        no_overflow_2:
-
-        mov al, [edi + esi]               ; Extraigo el caracter
-        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
-        call tecla_a_hexa                 ; Lo paso a hexa
-
-        or al, bl                         ; Combino los valores
-        mov [tabla_de_digitos + ecx], al  ; Lo guardo en la tabla
-        inc ecx
-
-        inc esi                           ; Siguiente numero
-        cmp esi, 0x09                     ; Chequeo overflow
-        jl no_overflow_1
-          xor esi, esi
-        no_overflow_1:
-
-      cmp esi, edx          ; Me fijo si ya pegue la vuelta
-      jnz copio_buffer      ; Sino, me voy
-
-      breakpoint
-      ; Incremento la cant de interrupciones
-      mov al, [cant_interrupciones]
-      inc al
-      mov [cant_interrupciones], al
-
-      jmp end_check_keyboard_buffer   ; Me voy
-
-    tecla_a_hexa:
-      cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
-      jnz not_key_a
-        mov al, 0x0A
-        jmp tecla_en_hexa
-      not_key_a:
-
-      cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
-      jnz not_key_b
-        mov al, 0x0B
-        jmp tecla_en_hexa
-      not_key_b:
-
-      cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
-      jnz not_key_c
-        mov al, 0x0C
-        jmp tecla_en_hexa
-      not_key_c:
-
-      cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
-      jnz not_key_d
-        mov al, 0x0D
-        jmp tecla_en_hexa
-      not_key_d:
-
-      cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
-      jnz not_key_e
-        mov al, 0x0E
-        jmp tecla_en_hexa
-      not_key_e:
-
-      cmp al, Keyboard_Key_F  ; Comparo si es la tecla "F"
-      jnz not_key_f
-        mov al, 0x0F
-        jmp tecla_en_hexa
-      not_key_f:
-
-      cmp al, Keyboard_Key_9  ; Comparo si es la tecla "F"
-      jg not_number           ; Si es mayor, no es un número 1-9
-        dec al
-        dec al
-        js not_number         ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
-        inc al
-        jmp tecla_en_hexa
-      not_number:
-
-      mov al, 0x00            ; Si no es ninguno de los anteriores, lo reemplazo por "0"
-
-      tecla_en_hexa:
-        ret
-
-
-;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++++ TABLA DE DIGITOS +++++++++++++++++++++++++++++++++
-;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
-  tabla_de_digitos:
-    resb 4  ; Reservo 4 bytes (32 bits)
-  cant_interrupciones:
-    resb 1   ; Guardo la cant de veces que llené el buffer
+;--------- Buffer y Puntero ------------
   buffer_circular:
-    resb 9
+    db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   ; 9 bytes
   puntero_buffer:
-    resb 1
+    db 0x00

@@ -6,11 +6,18 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++ RUTINA COPY +++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;--------- Parámetros globales ------------
-GLOBAL copy     ; Para poder usar esa etiqueta en otro archivo
-section .copy
-USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
 
+;--------- Parámetros globales ------------
+section .copy
+USE32
+;--------- Parámetros globales ------------
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+GLOBAL copy
+
+;-----------------------------------------------------------------------------
   ;--------- Levanto los valores de pila ------------
   copy:                 ; Como es una pila, los saco en el orden inverso a como los cargué
     mov ebp, esp        ; Copio el pintero a la pila, para no usarlo directamente

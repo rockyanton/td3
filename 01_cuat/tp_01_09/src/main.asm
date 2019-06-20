@@ -6,9 +6,17 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++ RESET +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-section .reset
-  arranque:
+
+;--------- Parámetros globales ------------
 USE16
+section .reset
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+
+;------------------------ Salto inicial (reset) ------------------------------
+    arranque:
     mov ax,0
     jmp ax                        ; Salto al inicio del programa (16 bits)
     times 16-($-arranque) db 0    ; Relleno con ceros hasta el final
@@ -16,11 +24,18 @@ USE16
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++ INICIALIZACION MODO REAL +++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
 section .init_start
 
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+
+;----------------------------- Jump al código -------------------------------
   jmp inicio    ; Salto a la rutina de inicialización
 
-  ;--------- GDT Primaria (básica) ------------
+;----------------------- GDT Primaria (básica) ------------------------------
   GLOBAL cs_sel_prim
   GLOBAL ds_sel_prim
 
@@ -37,7 +52,7 @@ section .init_start
     dw long_gdt_prim - 1       ; dw me agrega 1 byte en cero antes: 0x0017 (3 elementos de 8 bytes: 23 -> 0x17)
     dd gdt_prim
 
-  ;--------- Rutina de inicialización ------------
+;---------------- Rutina de pasaje a modo protegido -------------------------
   inicio:
     cli                   ; Deshabilito las interrupciones
     db 0x66               ; Requerido para direcciones mayores que 0x00FFFFFFF.
@@ -51,6 +66,12 @@ section .init_start
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++ INICIALIZACION MODO PROTEGIDO +++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+
+;--------- Variables compartidas -----------
+
 ;--------- Variables externas ------------
 EXTERN __FIN_PILA
 EXTERN __NUCLEO_ROM
@@ -60,6 +81,9 @@ EXTERN __COPY_ROM
 EXTERN __HANDLERS_ROM
 EXTERN __HANDLERS_RAM
 EXTERN __HANDLERS_LENGHT
+EXTERN __TAREAS_ROM
+EXTERN __TAREAS_RAM
+EXTERN __TAREAS_LENGHT
 EXTERN copy
 EXTERN gdt
 EXTERN img_gdtr
@@ -70,9 +94,9 @@ EXTERN img_idtr
 EXTERN _pic_configure
 EXTERN _pit_configure
 
-USE32
+;---------------------------------------------------------------------------
   modo_proteg:
-    ;--------- Cargo los selectores ------------
+  ;--------- Cargo los selectores ------------
     mov ax,ds_sel_prim
     mov ds, ax
     mov ss, ax
@@ -89,10 +113,19 @@ USE32
     pop eax
     pop eax
 
-    ;--------- Copio las RUTINAS a RAM ------------
+    ;--------- Copio los HANDLERS a RAM ------------
     push __HANDLERS_ROM    ; Pusheo ORIGEN
     push __HANDLERS_RAM    ; Pusheo DESTINO
     push __HANDLERS_LENGHT ; Pusheo LARGO
+    call copy             ; LLamo a la rutina en RAM
+    pop eax               ; Saco los 3 push que hice antes
+    pop eax
+    pop eax
+
+    ;--------- Copio las TAREAS a RAM ------------
+    push __TAREAS_ROM    ; Pusheo ORIGEN
+    push __TAREAS_RAM    ; Pusheo DESTINO
+    push __TAREAS_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
     pop eax
@@ -129,8 +162,20 @@ USE32
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;--------- Variables externas ------------
 
+;--------- Parámetros globales ------------
+
+;--------- Variables externas ------------
+EXTERN check_keyboard_buffer
+EXTERN pit_flag
+
+;--------- Variables compartidas -----------
+
+;-----------------------------------------------------------------------------
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
-    jmp main
+    mov al, [pit_flag]  ; Levanto el flag del pit (llego a 100ms)
+    cmp al, 0x01
+    jnz main            ; Si no interrumpió el pit, vuelvo a la espera
+      call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
+      jmp main          ; Vuelvo a esperar

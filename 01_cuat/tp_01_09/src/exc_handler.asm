@@ -4,16 +4,20 @@
 %define breakpoint  xchg bx,bx
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;+++++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
+
+;--------- Parámetros globales ------------
+USE32
 section .exc
+
+;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
 GLOBAL exc_handler_008_df
 GLOBAL exc_handler_013_gp
 
-  ; 0x00 Divide Error
+;--------------------------- 0x00 Divide Error -------------------------------
     exc_handler_000_de:
       pushad              ;  Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
@@ -21,7 +25,7 @@ GLOBAL exc_handler_013_gp
       call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
-  ; 0x06 Undefined Opcode
+;------------------------ 0x06 Undefined Opcode ------------------------------
     exc_handler_006_ud:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en "0" ebx
@@ -30,7 +34,7 @@ GLOBAL exc_handler_013_gp
       popad               ; Vuelvo a traer los registros
       iret
 
-  ; 0x08 Double Fault
+;-------------------------- 0x08 Double Fault --------------------------------
     exc_handler_008_df:
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" ebx
@@ -40,7 +44,7 @@ GLOBAL exc_handler_013_gp
       add esp, 4          ; Como el #DF me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
-  ; 0x0D General Protection
+;----------------------- 0x0D General Protection -----------------------------
     exc_handler_013_gp:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en 0 ebx
@@ -62,6 +66,7 @@ GLOBAL exc_handler_013_gp
       add esp, 4          ; Como el #GP me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
+;------------------------------- ISR Main ------------------------------------
     ISR_Main:
       breakpoint
       hlt

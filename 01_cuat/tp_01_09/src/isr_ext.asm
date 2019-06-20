@@ -3,20 +3,26 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
 
-%define MASTER_PIC_8259_CMD_PORT   0x20
+%define MASTER_PIC_8259_CMD_PORT    0x20
+%define PIC_EOI                     0x20
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;+++++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
+
+;--------- Parámetros globales ------------
+USE32
 section .isr
 
+;--------- Variables compartidas -----------
 GLOBAL isr_irq_00_pit
 GLOBAL isr_irq_01_keyboard
+GLOBAL pit_flag
 
+;--------- Variables externas ------------
 EXTERN handle_keyboard
-EXTERN check_keyboard_buffer
 
+;------------------------------- IRQ 0 ----------------------------------------
   isr_irq_00_pit:
     pushad
     mov edx, 0x20   ; Interrupción 32
@@ -31,26 +37,36 @@ EXTERN check_keyboard_buffer
 
     cmp bl, 0xA               ; Me fijo si llegue al final
     jl pit_counter_end
-      call check_keyboard_buffer
+      mov bl, 0x01
+      mov [pit_flag], bl      ; Levanto el flag de clock
+      mov ebx, [cant_interrupciones]
+      inc bl
+      mov [cant_interrupciones], ebx   ; Aumento el contador de interrupciones
       xor ebx, ebx            ; Lo reseteo a 0
     pit_counter_end:
 
     inc bl                  ; Incrmento el contador
     mov [pit_counter], bl
 
-    mov al, 0x20
+    mov al, PIC_EOI
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
     popad
     iret    ; Vuelvo de la interrupción
 
     pit_counter:
     db 0x00
+    pit_flag:
+    db 0x00
+    cant_interrupciones:
+    dd 0x00                 ; Guardo la cant de veces que interrumpí
 
+;------------------------------- IRQ 1 ----------------------------------------
   isr_irq_01_keyboard:
     pushad
     mov edx, 0x21   ; Interrupción 33
+    
     call handle_keyboard
-    mov al, 0x20
+    mov al, PIC_EOI
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
     popad
     iret    ; Vuelvo de la interrupción

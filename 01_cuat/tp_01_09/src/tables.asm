@@ -1,11 +1,25 @@
-USE32       ; Le tengo que forzar a que use 32 bits porque arranca por defecto en 16
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%define breakpoint  xchg bx,bx
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++ TABLAS DE SISTEMA ++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
 section .tablas_de_sistema nobits
 
-  ;--------- GDT ------------
-  GLOBAL gdt
-  GLOBAL ds_sel
-  GLOBAL cs_sel
+;--------- Variables externas ------------
 
+;--------- Variables compartidas -----------
+GLOBAL gdt
+GLOBAL ds_sel
+GLOBAL cs_sel
+GLOBAL idt
+
+;-------------------------------- GDT ---------------------------------------
   gdt:
     resb 8              ; Descriptor nulo
     ds_sel equ $-gdt
@@ -15,33 +29,40 @@ section .tablas_de_sistema nobits
 
     long_gdt equ $-gdt    ; Largo de la gdt vacía
 
-  ;--------- IDT ------------
-  GLOBAL idt
+;------------------------------- IDT -----------------------------------------
   idt:
      resb 8*255  ; Reservo las 255 entradas de 8 bytes de la tabla (1024 x 64 bytes)
 
   long_idt equ $-idt
 
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++ INICIALIZACIÓN DE TABLAS DE SISTEMA ++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+;--------- Parámetros globales ------------
 section .init progbits
-  ;--------- Inicialización GDT ------------
-  GLOBAL img_gdtr
 
+;--------- Variables externas ------------
+EXTERN exc_handler_000_de
+EXTERN exc_handler_006_ud
+EXTERN exc_handler_008_df
+EXTERN exc_handler_013_gp
+EXTERN cs_sel_prim
+EXTERN isr_irq_00_pit
+EXTERN isr_irq_01_keyboard
+
+;--------- Variables compartidas -----------
+GLOBAL img_gdtr
+GLOBAL init_idt
+GLOBAL clear_isr_idt
+GLOBAL img_idtr
+
+;------------------------- Inicialización GDT -------------------------------
     img_gdtr:               ; Escribo primero la longitud y luego la GDT
       dw long_gdt - 1       ; dw me agrega 1 byte en cero antes: 0x0017 --- 3 elementos de 8 bytes: 23 -> 0x17
       dd gdt
 
-  ;--------- Inicialización IDT ------------
-  GLOBAL init_idt
-  GLOBAL clear_isr_idt
-  GLOBAL img_idtr
-  EXTERN exc_handler_000_de
-  EXTERN exc_handler_006_ud
-  EXTERN exc_handler_008_df
-  EXTERN exc_handler_013_gp
-  EXTERN isr_irq_00_pit
-  EXTERN isr_irq_01_keyboard
-
+;------------------------ Inicialización IDT --------------------------------
     img_idtr:
        dw long_idt-1
        dd idt
@@ -90,8 +111,6 @@ section .init progbits
       pop eax
 
     ret
-
-    EXTERN cs_sel_prim
 
     load_isr_idt:
       mov esi, idt
@@ -149,3 +168,19 @@ section .init progbits
       mov [esi + edi*8 + 4], ecx
 
       ret
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++ TABLA DE DIGITOS +++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección va a existir pero que no carge nada (sino me hace un archivo de 4GB)
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+GLOBAL tabla_de_digitos
+
+;-----------------------------------------------------------------------------
+  tabla_de_digitos:
+    resb 4  ; Reservo 4 bytes (32 bits)
