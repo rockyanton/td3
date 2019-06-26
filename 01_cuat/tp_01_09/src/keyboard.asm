@@ -151,7 +151,7 @@ GLOBAL handle_keyboard
     jz generate_exc_gp
 
     cmp al, Keyboard_Key_ENTER  ; Comparo si es la tecla "Enter"
-    jz save_data
+    jz save_enter
 
     handle_key_end:
       popad
@@ -159,26 +159,62 @@ GLOBAL handle_keyboard
 
 ;----------------------------------------------------------
     save_data:
-      mov edi, buffer_circular
-      xor edx, edx
-      mov dl, [puntero_buffer]
+      mov edi, keyboard_buffer_hexa
+      xor ecx, ecx
+      mov cl, [keyboard_buffer_status]
 
-      cmp edx, 0x00     ; Me fijo si es menor a 0 (el jl me lo toma como valido si es negativo)
+      cmp ecx, 0x00     ; Me fijo si es menor a 0 (el jl me lo toma como valido si es negativo)
       jge puntero_ok
-        mov edx, 0x00
+        mov ecx, 0x00
       puntero_ok:
 
-      cmp edx, 0x09     ; Si estoy en el final del buffer vuelvo a arrancar
+      cmp ecx, 0x12     ; Si estoy en el final del buffer (9 bytes -> 18 posiciones) vuelvo a arrancar
       jl no_fin_buffer
-        mov edx, 0x00
+        mov ecx, 0x00
       no_fin_buffer:
 
-      mov [edi + edx], al
+      cmp al, Keyboard_Key_ENTER  ; Comparo si es la tecla "Enter"
+      jnz sigo_cargando:
+        mov bl,
+      sigo_cargando:
 
-      inc edx
-      mov [puntero_buffer], dl
+      call tecla_a_hexa   ; Convierto el valor de opcode a hexa
+      mov ebx, eax        ; Guardo el valor en hexa
+
+      mov eax, ecx    ; Copio el valor del indice
+      div byte 0x02   ; Divido por 2 para saber en byte estoy -- AL: Quotient, AH: Remainder
+      cmp ah, 0x01    ; Me fijo si estoy en la parte alta o baja
+      jnz hexa_baja
+      jmp hexa_alta
+
+      hexa_baja:
+        xor edx,edx
+        mov dl,al             ; Copio el numero de byte
+        mov [edi + edx], bl   ; Guardo el valor en hexa
+      jmp end_save_data
+
+      hexa_alta:
+        xor edx,edx
+        mov dl,al             ; Copio el numero de byte
+        shl bl, 0x04          ; Lo muevo hacia la parte alta
+        mov al, [edi + edx]   ; Trago la parte baja
+        AND al, 0x0F
+        OR bl, al             ; Uno todo
+        mov [edi + edx], bl   ; Guardo
+      jmp end_save_data
+
+      end_save_data:
+      inc ecx
+      mov [keyboard_buffer_status], cl
 
       jmp handle_key_end      ; Me voy
+
+    save_enter:
+      mov al, [keyboard_buffer_status]    ; Levanto el bit 8 del keyboard_buffer_status como flag de enter
+      or al, 0x80
+      mov [keyboard_buffer_status], al
+      jmp handle_key_end
+
 
     generate_exc_de:
       pushad                ; Guardo los registros
@@ -204,6 +240,59 @@ GLOBAL handle_keyboard
       mov [cs:handle_key_end], eax   ; Trato de escribir en un segmento de código ==> #GP
       jmp handle_key_end
 
+;----------------------------------------------------------
+
+    tecla_a_hexa:
+      cmp al, Keyboard_Key_A  ; Comparo si es la tecla "A"
+      jnz not_key_a
+        mov al, 0x0A
+        jmp tecla_en_hexa
+      not_key_a:
+
+      cmp al, Keyboard_Key_B  ; Comparo si es la tecla "B"
+      jnz not_key_b
+        mov al, 0x0B
+        jmp tecla_en_hexa
+      not_key_b:
+
+      cmp al, Keyboard_Key_C  ; Comparo si es la tecla "C"
+      jnz not_key_c
+        mov al, 0x0C
+        jmp tecla_en_hexa
+      not_key_c:
+
+      cmp al, Keyboard_Key_D  ; Comparo si es la tecla "D"
+      jnz not_key_d
+        mov al, 0x0D
+        jmp tecla_en_hexa
+      not_key_d:
+
+      cmp al, Keyboard_Key_E  ; Comparo si es la tecla "E"
+      jnz not_key_e
+        mov al, 0x0E
+        jmp tecla_en_hexa
+      not_key_e:
+
+      cmp al, Keyboard_Key_F  ; Comparo si es la tecla "F"
+      jnz not_key_f
+        mov al, 0x0F
+        jmp tecla_en_hexa
+      not_key_f:
+
+      cmp al, Keyboard_Key_9  ; Comparo si es la tecla "F"
+      jg not_number           ; Si es mayor, no es un número 1-9
+        dec al
+        dec al
+        js not_number         ; Si me da negativo es porque  es menor a la Tecla "1" (0x02)
+        inc al
+        jmp tecla_en_hexa
+      not_number:
+
+      mov al, 0x00            ; Si no es ninguno de los anteriores, lo reemplazo por "0"
+
+      tecla_en_hexa:
+        ret
+
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ BUFFER DE TECLADO ++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -213,11 +302,11 @@ GLOBAL handle_keyboard
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
-GLOBAL buffer_circular
-GLOBAL puntero_buffer
+GLOBAL keyboard_buffer_hexa
+GLOBAL keyboard_buffer_status
 
 ;--------- Buffer y Puntero ------------
-  buffer_circular:
+  keyboard_buffer_hexa:
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   ; 9 bytes
-  puntero_buffer:
+  keyboard_keyboard_buffer_status:
     db 0x00

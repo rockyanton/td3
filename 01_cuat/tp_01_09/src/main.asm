@@ -29,6 +29,7 @@ section .reset
 section .init_start
 
 ;--------- Variables externas ------------
+EXTERN _bios_init
 
 ;--------- Variables compartidas -----------
 
@@ -55,6 +56,7 @@ section .init_start
 ;---------------- Rutina de pasaje a modo protegido -------------------------
   inicio:
     cli                   ; Deshabilito las interrupciones
+    call _bios_init       ; Inicialización para poder usar la pantalla
     db 0x66               ; Requerido para direcciones mayores que 0x00FFFFFFF.
     lgdt [cs:img_gdtr_prim]    ; Cargo la GDTR
     mov eax, cr0          ; Copio el registro de
