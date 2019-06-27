@@ -38,59 +38,57 @@ GLOBAL check_keyboard_buffer
     cmp bl, 0x80
     jnz end_check_keyboard_buffer   ; Si no hay enter me voy
 
-    and al, 0x0F    ; Los primeros 4 bytes son el contador
+    and al, 0x1F    ; Los primeros 5 bytes son el contador
     mov dl, 0x02
     div dl          ; Divido al por 2 para tener la cantidad de bytes y la parte alta o baja
     xor edx, edx
     mov dl, al      ; Copio los bytes
 
     inc edx         ; Avanzo 2 bytes
-    cmp edx, 0x09       ; Chequeo overflow
-    jl no_overflow_ini_1
-      xor edx, edx
-    no_overflow_ini_1:
-
     inc edx
     cmp edx, 0x09       ; Chequeo overflow
-    jl no_overflow_ini_2
-      xor edx, edx
-    no_overflow_ini_2:
+    jl no_overflow_ini
+      sub edx, 0x09     ; Le resto lo que me pase
+    no_overflow_ini:
 
-    xor ecx, ecx
-    xor ah, 0x01    ; La parte que necesito es la siguiente
+    xor ah, 0x01    ; La arranco a copiar por la parte contraria a la ultima que escribí
 
     mov al, 0x00    ; Parte baja o alta de la tabla
 
     xor ebx, ebx
     mov bl, [puntero_tabla_digitos]
-    mov ebp, ebx        ; Copio la posición en la que estoy
-    inc ebp
+    mov ebp, ebx        ; Copio el indice de la tabla del ultimo registro
+    inc ebp             ; Incremento indice
+
     xor esi, esi        ; Limpio variables
+    xor ecx,ecx
 
     copio_buffer:
       xor ebx, ebx    ; Limpio ebx
       cmp ah, 0x00
-      jz copio_parte_baja
-      jmp copio_parte_alta
+      jz copio_parte_alta
+      jmp copio_parte_baja
 
       copio_parte_baja:
         mov bl, [keyboard_buffer_hexa + edx]
         and bl, 0x0F
         call guardar_en_tabla
-        xor ah, 0x01  ; Para poder copiar parte alta en siguiente ciclo
+        xor ah, 0x01                      ; Para poder copiar parte alta en siguiente ciclo
+        inc edx                           ; Cambio de byte para siguiente ciclo
+        cmp edx, 0x09                     ; Chequeo overflow
+        jl no_overflow_baja
+          xor edx, edx
+        no_overflow_baja:
+
         jmp copio_buffer_check
 
 
       copio_parte_alta:
-        mov bl, [keyboard_buffer_hexa + edx]
-        and bl, 0xF0
+        mov bl, [keyboard_buffer_hexa + edx]  ; Traigo el byte
+        and bl, 0xF0                      ; Obtengo la parte alta
         shr bl, 0x04
         call guardar_en_tabla
-        inc edx                           ; Cargo siguiente numero para siguiente ciclo
-        cmp edx, 0x09                     ; Chequeo overflow
-        jl no_overflow_alta
-          xor edx, edx
-        no_overflow_alta:
+        xor ah, 0x01  ; Para poder copiar parte baja en siguiente ciclo
         jmp copio_buffer_check
 
       copio_buffer_check:
