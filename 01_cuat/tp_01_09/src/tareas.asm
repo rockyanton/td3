@@ -24,6 +24,7 @@ section .tarea_1
 EXTERN keyboard_buffer_hexa
 EXTERN keyboard_buffer_status
 EXTERN tabla_de_digitos
+EXTERN puntero_tabla_digitos
 
 ;--------- Variables compartidas -----------
 GLOBAL check_keyboard_buffer
@@ -38,11 +39,10 @@ GLOBAL check_keyboard_buffer
     jnz end_check_keyboard_buffer   ; Si no hay enter me voy
 
     and al, 0x0F    ; Los primeros 4 bytes son el contador
-    mov esi, eax    ; Guardo el valor del buffer
-    div byte 0x02   ; Divido al por 2 para tener la cantidad de bytes y la parte alta o baja
-    mov edi, [keyboard_buffer_hexa]    ; Puntero al buffer
+    mov dl, 0x02
+    div dl          ; Divido al por 2 para tener la cantidad de bytes y la parte alta o baja
     xor edx, edx
-    mov dl, al
+    mov dl, al      ; Copio los bytes
 
     inc edx         ; Avanzo 2 bytes
     cmp edx, 0x09       ; Chequeo overflow
@@ -56,10 +56,19 @@ GLOBAL check_keyboard_buffer
       xor edx, edx
     no_overflow_ini_2:
 
+    xor ecx, ecx
     xor ah, 0x01    ; La parte que necesito es la siguiente
-    xor ecx, ecx    ; Pongo ecx en 0
+
+    mov al, 0x00    ; Parte baja o alta de la tabla
+
+    xor ebx, ebx
+    mov bl, [puntero_tabla_digitos]
+    mov ebp, ebx        ; Copio la posición en la que estoy
+    inc ebp
+    xor esi, esi        ; Limpio variables
 
     copio_buffer:
+      xor ebx, ebx    ; Limpio ebx
       cmp ah, 0x00
       jz copio_parte_baja
       jmp copio_parte_alta
@@ -67,62 +76,74 @@ GLOBAL check_keyboard_buffer
       copio_parte_baja:
         mov bl, [keyboard_buffer_hexa + edx]
         and bl, 0x0F
-        ;; COPIAR A DATOS
-        inc ecx
+        call guardar_en_tabla
         xor ah, 0x01  ; Para poder copiar parte alta en siguiente ciclo
+        jmp copio_buffer_check
 
 
       copio_parte_alta:
-        mov bl, [keyboard_buffer_hexa]
+        mov bl, [keyboard_buffer_hexa + edx]
         and bl, 0xF0
-
+        shr bl, 0x04
+        call guardar_en_tabla
         inc edx                           ; Cargo siguiente numero para siguiente ciclo
         cmp edx, 0x09                     ; Chequeo overflow
         jl no_overflow_alta
           xor edx, edx
         no_overflow_alta:
+        jmp copio_buffer_check
+
+      copio_buffer_check:
+        inc cl
+        cmp cl, 0x10          ; Me fijo si cargue los 64 bits
+        jz copio_buffer_end
+        jmp copio_buffer
+
+      copio_buffer_end:
+        ; Guardo el puntero actualizado
+        mov ecx, esi
+        mov [puntero_tabla_digitos], cl
+        ; Vacío el buffer de teclado
+        call limpiar_buffer_teclado
+        ; Saco el flag de enter
+        mov al, [keyboard_buffer_status]
+        and al, 0x7F
+        mov [keyboard_buffer_status], al
+        ; Me voy
+        jmp end_check_keyboard_buffer
 
 
+      guardar_en_tabla:
+        cmp al, 0x01
+        jz guardar_parte_alta
+        jmp guardar_parte_baja
+
+        guardar_parte_alta:
+          shl bl, 0x04
+          mov bh, [tabla_de_digitos + ebp + esi]
+          or bl, bh
+          mov [tabla_de_digitos + ebp + esi], bl
+          xor al, 0x01
+          inc esi
+          ret
+
+        guardar_parte_baja:
+          mov [tabla_de_digitos + ebp + esi], bl
+          xor al, 0x01
+          ret
 
 
+      limpiar_buffer_teclado:
+        xor ecx, ecx
+        xor edx, edx
 
+        loop_limpiar_buffer:
+          mov [keyboard_buffer_hexa + edx], cl
+          inc edx
+        cmp edx, 0x09
+        jnz loop_limpiar_buffer
 
-
-
-
-        mov al, [edi + esi]               ; Extraigo el caracter
-        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
-        call tecla_a_hexa                 ; Lo paso a hexa
-        mov bl, al                        ; Lo Muevo 4 posiciones (parte 1 del byte)
-        shl bl, 0x04
-
-        inc esi                           ; Siguiente numero
-        cmp esi, 0x09                     ; Chequeo overflow
-        jl no_overflow_2
-          xor esi, esi
-        no_overflow_2:
-
-        mov al, [edi + esi]               ; Extraigo el caracter
-        mov [edi + esi], byte 0x00        ; Lo borro en el buffer
-        call tecla_a_hexa                 ; Lo paso a hexa
-
-        or al, bl                         ; Combino los valores
-        mov [tabla_de_digitos + ecx], al  ; Lo guardo en la tabla
-        inc ecx
-
-        inc esi                           ; Siguiente numero
-        cmp esi, 0x09                     ; Chequeo overflow
-        jl no_overflow_1
-          xor esi, esi
-        no_overflow_1:
-
-      cmp esi, edx          ; Me fijo si ya pegue la vuelta
-      jnz copio_buffer      ; Sino, me voy
-
-      breakpoint
-
-      jmp end_check_keyboard_buffer   ; Me voy
-
+        ret
 
     end_check_keyboard_buffer:
       popad

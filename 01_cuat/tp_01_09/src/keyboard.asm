@@ -162,40 +162,33 @@ GLOBAL handle_keyboard
       mov edi, keyboard_buffer_hexa
       xor ecx, ecx
       mov cl, [keyboard_buffer_status]
+      and cl, 0x0F
 
-      cmp ecx, 0x00     ; Me fijo si es menor a 0 (el jl me lo toma como valido si es negativo)
-      jge puntero_ok
-        mov ecx, 0x00
-      puntero_ok:
-
+      inc ecx
       cmp ecx, 0x12     ; Si estoy en el final del buffer (9 bytes -> 18 posiciones) vuelvo a arrancar
-      jl no_fin_buffer
+      jle no_fin_buffer
         mov ecx, 0x00
       no_fin_buffer:
 
-      cmp al, Keyboard_Key_ENTER  ; Comparo si es la tecla "Enter"
-      jnz sigo_cargando:
-        mov bl,
-      sigo_cargando:
-
       call tecla_a_hexa   ; Convierto el valor de opcode a hexa
       mov ebx, eax        ; Guardo el valor en hexa
-
       mov eax, ecx    ; Copio el valor del indice
-      div byte 0x02   ; Divido por 2 para saber en byte estoy -- AL: Quotient, AH: Remainder
-      cmp ah, 0x01    ; Me fijo si estoy en la parte alta o baja
+      mov dl, 0x02
+      div dl          ; Divido por 2 para saber en byte estoy -- AL: Quotient, AH: Remainder
+      xor edx,edx
+      mov dl,al       ; Copio el numero de byte
+      cmp ah, 0x01    ; Me fijo si tengo que escribir estoy en la parte alta o baja
       jnz hexa_baja
       jmp hexa_alta
-
+      
       hexa_baja:
-        xor edx,edx
-        mov dl,al             ; Copio el numero de byte
+        mov al, [edi + edx]   ; Trago la parte alta
+        and al, 0xF0
+        or bl, al             ; Uno todo
         mov [edi + edx], bl   ; Guardo el valor en hexa
       jmp end_save_data
 
       hexa_alta:
-        xor edx,edx
-        mov dl,al             ; Copio el numero de byte
         shl bl, 0x04          ; Lo muevo hacia la parte alta
         mov al, [edi + edx]   ; Trago la parte baja
         AND al, 0x0F
@@ -204,7 +197,9 @@ GLOBAL handle_keyboard
       jmp end_save_data
 
       end_save_data:
-      inc ecx
+      mov ch, [keyboard_buffer_status]
+      and ch, 0x80  ; Flag enter
+      or cl, ch
       mov [keyboard_buffer_status], cl
 
       jmp handle_key_end      ; Me voy
@@ -308,5 +303,5 @@ GLOBAL keyboard_buffer_status
 ;--------- Buffer y Puntero ------------
   keyboard_buffer_hexa:
     db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   ; 9 bytes
-  keyboard_keyboard_buffer_status:
+  keyboard_buffer_status:
     db 0x00

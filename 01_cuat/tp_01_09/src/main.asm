@@ -169,15 +169,11 @@ EXTERN _pit_configure
 
 ;--------- Variables externas ------------
 EXTERN check_keyboard_buffer
-EXTERN pit_flag
 
 ;--------- Variables compartidas -----------
 
 ;-----------------------------------------------------------------------------
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
-    mov al, [pit_flag]  ; Levanto el flag del pit (llego a 100ms)
-    cmp al, 0x01
-    jnz main            ; Si no interrumpió el pit, vuelvo a la espera
-      call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
-      jmp main          ; Vuelvo a esperar
+    call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
+    jmp main          ; Vuelvo a esperar
