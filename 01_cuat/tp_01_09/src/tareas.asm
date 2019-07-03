@@ -42,10 +42,15 @@ GLOBAL check_keyboard_buffer
     mov dl, 0x02
     div dl          ; Divido al por 2 para tener la cantidad de bytes y la parte alta o baja
     xor edx, edx
-    mov dl, al      ; Copio los bytes
+    mov dl, al      ; Copio el indice de bytes
 
-    inc edx         ; Avanzo 2 bytes
-    inc edx
+    inc edx         ; Avanzo al siguiente byte
+
+    cmp ah, 0x01    ; Si estoy en la parte baja tengo que avanzar un byte mas
+    jnz no_inc_extra
+      inc edx
+    no_inc_extra:
+
     cmp edx, 0x09       ; Chequeo overflow
     jl no_overflow_ini
       sub edx, 0x09     ; Le resto lo que me pase
@@ -53,18 +58,17 @@ GLOBAL check_keyboard_buffer
 
     xor ah, 0x01    ; La arranco a copiar por la parte contraria a la ultima que escribí
 
-    mov al, 0x00    ; Parte baja o alta de la tabla
+    mov al, 0x00    ; Parte baja o alta de la tabla de digitos
 
     xor ebx, ebx
     mov bl, [puntero_tabla_digitos]
     mov ebp, ebx        ; Copio el indice de la tabla del ultimo registro
-    inc ebp             ; Incremento indice
 
     xor esi, esi        ; Limpio variables
-    xor ecx,ecx
+    xor ecx, ecx
 
     copio_buffer:
-      xor ebx, ebx    ; Limpio ebx
+      xor ebx, ebx      ; Limpio ebx
       cmp ah, 0x00
       jz copio_parte_alta
       jmp copio_parte_baja
@@ -79,7 +83,6 @@ GLOBAL check_keyboard_buffer
         jl no_overflow_baja
           xor edx, edx
         no_overflow_baja:
-
         jmp copio_buffer_check
 
 
@@ -98,36 +101,40 @@ GLOBAL check_keyboard_buffer
         jmp copio_buffer
 
       copio_buffer_end:
-        ; Guardo el puntero actualizado
-        mov ecx, esi
+        inc ebp             ; Incremento indice (para siguiente ciclo)
+        mov ecx, ebp        ; Guardo el puntero actualizado
         mov [puntero_tabla_digitos], cl
-        ; Vacío el buffer de teclado
-        call limpiar_buffer_teclado
-        ; Saco el flag de enter
-        mov al, [keyboard_buffer_status]
+
+        breakpoint
+        call limpiar_buffer_teclado       ; Vacío el buffer de teclado
+
+        mov al, [keyboard_buffer_status]  ; Saco el flag de enter
         and al, 0x7F
         mov [keyboard_buffer_status], al
-        ; Me voy
+
         jmp end_check_keyboard_buffer
 
 
       guardar_en_tabla:
-        cmp al, 0x01
+        cmp al, 0x00
         jz guardar_parte_alta
         jmp guardar_parte_baja
 
         guardar_parte_alta:
-          shl bl, 0x04
-          mov bh, [tabla_de_digitos + ebp + esi]
-          or bl, bh
-          mov [tabla_de_digitos + ebp + esi], bl
-          xor al, 0x01
-          inc esi
+          shl bl, 0x04        ; Muevo hacia parte alta
+          and bl, 0xF0
+          mov [tabla_de_digitos + ebp*8 + esi], bl  ; Guardo
+          xor al, 0x01        ; Siguiente ciclo parte baja
           ret
 
         guardar_parte_baja:
-          mov [tabla_de_digitos + ebp + esi], bl
-          xor al, 0x01
+          and bl, 0x0F      ; Me quedo con la parte baja
+          mov bh, [tabla_de_digitos + ebp*8 + esi]    ; Traigo la parte alta
+          and bh, 0xF0
+          or bl, bh         ; Uno todo
+          mov [tabla_de_digitos + ebp*8 + esi], bl    ; Guardo
+          xor al, 0x01      ; Siguiente ciclo parte alta
+          inc esi           ; Incremento indice de byte
           ret
 
 

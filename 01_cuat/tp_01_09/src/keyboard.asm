@@ -168,7 +168,6 @@ GLOBAL handle_keyboard
       cmp ecx, 0x12     ; Si estoy en el final del buffer (9 bytes -> 18 (0x12) posiciones) vuelvo a arrancar
       jl no_fin_buffer
         xor ecx, ecx  ; Reinicio ecx
-        breakpoint
       no_fin_buffer:
 
       call tecla_a_hexa   ; Convierto el valor de opcode a hexa
@@ -209,7 +208,7 @@ GLOBAL handle_keyboard
       mov al, [keyboard_buffer_status]    ; Levanto el bit 8 del keyboard_buffer_status como flag de enter
       or al, 0x80
       mov [keyboard_buffer_status], al
-      breakpoint
+      ;breakpoint
       jmp handle_key_end
 
 

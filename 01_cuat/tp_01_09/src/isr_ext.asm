@@ -39,9 +39,9 @@ EXTERN handle_keyboard
     jl pit_counter_end
       mov bl, 0x01
       mov [pit_flag], bl      ; Levanto el flag de clock
-      mov ebx, [cant_interrupciones]
+      mov bl, [cant_interrupciones]
       inc bl
-      mov [cant_interrupciones], ebx   ; Aumento el contador de interrupciones
+      mov [cant_interrupciones], bl   ; Aumento el contador de interrupciones
       xor ebx, ebx            ; Lo reseteo a 0
     pit_counter_end:
 
@@ -64,7 +64,7 @@ EXTERN handle_keyboard
   isr_irq_01_keyboard:
     pushad
     mov edx, 0x21   ; Interrupción 33
-    
+
     call handle_keyboard
     mov al, PIC_EOI
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
