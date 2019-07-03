@@ -104,13 +104,13 @@ GLOBAL check_keyboard_buffer
         inc ebp             ; Incremento indice (para siguiente ciclo)
         mov ecx, ebp        ; Guardo el puntero actualizado
         mov [puntero_tabla_digitos], cl
-
-        breakpoint
         call limpiar_buffer_teclado       ; Vacío el buffer de teclado
 
         mov al, [keyboard_buffer_status]  ; Saco el flag de enter
         and al, 0x7F
         mov [keyboard_buffer_status], al
+
+        call sumar_tabla
 
         jmp end_check_keyboard_buffer
 
@@ -136,6 +136,10 @@ GLOBAL check_keyboard_buffer
           xor al, 0x01      ; Siguiente ciclo parte alta
           inc esi           ; Incremento indice de byte
           ret
+
+      sumar_tabla:
+        mov ecx, ebp
+        ; SEGUIR ACA
 
 
       limpiar_buffer_teclado:

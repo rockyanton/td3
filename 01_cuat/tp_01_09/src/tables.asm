@@ -181,9 +181,12 @@ section .tabla_de_digitos nobits     ; nobits le dice al linker que esa sección
 ;--------- Variables compartidas -----------
 GLOBAL tabla_de_digitos
 GLOBAL puntero_tabla_digitos
+GLOBAL suma_tabla
 
 ;-----------------------------------------------------------------------------
+  suma_tabla:
+    resb 8        ; Reservo 8 bytes para la suma (64 bits)
   tabla_de_digitos:
-    resb 63*1024  ; Reservo 63k bytes
+    resb 63*1024  ; Reservo 63k bytes para tabla
   puntero_tabla_digitos:
     resb 1
