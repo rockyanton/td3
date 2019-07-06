@@ -45,6 +45,7 @@ SECTIONS
       __NUCLEO_ROM = LOADADDR(.nucleo_out); /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/copy.elf(.copy);                  /* Que copie la sección .copy del archivo copy ensamblado */
       bin/keyboard.elf(.keyboard);          /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
+      bin/screen.elf(.screen)               /* Que copie la sección .screen del archivo screen.elf ensamblado */
     } AT >rom                               /* Le pido que me cargue todo eso en ROM (LMA) */
     __NUCLEO_LENGHT = SIZEOF(.nucleo_out);  /* Le pido el largo de la seccion de .copy_out */
     __COPY_ROM = __NUCLEO_ROM;              /* Dirección de Copy */

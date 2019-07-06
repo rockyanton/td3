@@ -143,7 +143,6 @@ GLOBAL check_keyboard_buffer
       sumar_tabla:
 
         mov esi, 0x04     ; Para acceder a los 32 otros altos
-        breakpoint
 
         mov eax, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
         mov ebx, [suma_tabla_digitos + esi]

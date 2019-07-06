@@ -169,6 +169,7 @@ EXTERN _pit_configure
 
 ;--------- Variables externas ------------
 EXTERN check_keyboard_buffer
+EXTERN actualizar_pantalla
 
 ;--------- Variables compartidas -----------
 
@@ -176,4 +177,5 @@ EXTERN check_keyboard_buffer
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
     call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
+    call actualizar_pantalla
     jmp main          ; Vuelvo a esperar
