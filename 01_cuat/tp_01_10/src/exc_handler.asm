@@ -11,6 +11,9 @@
 USE32
 section .exc
 
+;--------- Variables externas ------------
+EXTERN mostrar_page_fault
+
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
@@ -20,7 +23,7 @@ GLOBAL exc_handler_013_gp
 ;--------------------------- 0x00 Divide Error -------------------------------
     exc_handler_000_de:
       pushad              ;  Guardo los registros
-      xor edx, edx        ; Pongo en "0" ebx
+      xor edx, edx        ; Pongo en "0" edx
       mov dx, 0x0         ; Guardo el número de excepción "0"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
@@ -28,7 +31,7 @@ GLOBAL exc_handler_013_gp
 ;------------------------ 0x06 Undefined Opcode ------------------------------
     exc_handler_006_ud:
       pushad              ; Guardo los registros
-      xor edx, edx        ; Pongo en "0" ebx
+      xor edx, edx        ; Pongo en "0" edx
       mov dx, 0x06        ; Guardo el número de excepción "6"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
@@ -37,7 +40,7 @@ GLOBAL exc_handler_013_gp
 ;-------------------------- 0x08 Double Fault --------------------------------
     exc_handler_008_df:
       pushad                ; Guardo los registros
-      xor edx, edx          ; Pongo en "0" ebx
+      xor edx, edx          ; Pongo en "0" edx
       mov dx, 0x08          ; Guardo el número de excepción "8"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
@@ -47,7 +50,7 @@ GLOBAL exc_handler_013_gp
 ;----------------------- 0x0D General Protection -----------------------------
     exc_handler_013_gp:
       pushad              ; Guardo los registros
-      xor edx, edx        ; Pongo en 0 ebx
+      xor edx, edx        ; Pongo en 0 edx
       mov dx, 0x0D        ; Guardo el número de excepción "13"
 
       mov ebp, esp          ; Copio la esp para no usarla directamente
@@ -69,11 +72,16 @@ GLOBAL exc_handler_013_gp
 ;-------------------------- 0x14 Page Fault --------------------------------
     exc_handler_014_pf:
       pushad                ; Guardo los registros
-      xor edx, edx          ; Pongo en "0" ebx
+      xor edx, edx          ; Pongo en "0" edx
       mov dx, 0x0E          ; Guardo el número de excepción "14"
-      call ISR_Main
+
+      mov eax, cr2                    ; Treigo el numero de la pagina que generó la excepción
+      push eax                        ; Lo pusheo a pila
+      call mostrar_page_fault
+      pop eax
+
       popad               ; Vuelvo a traer los registros
-      add esp, 4          ; Como el #DF me genera un código de error, lo tengo que sacar antes de retornar
+      add esp, 4          ; Como el #PG me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
 ;------------------------------- ISR Main ------------------------------------

@@ -18,7 +18,7 @@
 
 ;--------- Parámetros globales ------------
 USE32
-section .tarea_1
+section .tarea_1_text
 
 ;--------- Variables externas ------------
 EXTERN keyboard_buffer_hexa
@@ -26,6 +26,7 @@ EXTERN keyboard_buffer_status
 EXTERN tabla_digitos
 EXTERN puntero_tabla_digitos
 EXTERN suma_tabla_digitos
+EXTERN mostrar_digitos
 
 ;--------- Variables compartidas -----------
 GLOBAL check_keyboard_buffer
@@ -114,6 +115,8 @@ GLOBAL check_keyboard_buffer
         mov [keyboard_buffer_status], al
 
         call sumar_tabla
+
+        call mostrar_digitos  ; Muestro resultado en pantalla
 
         jmp end_check_keyboard_buffer
 

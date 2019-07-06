@@ -39,8 +39,14 @@ SECTIONS
     bin/tables.elf(.tablas_de_sistema)}                           /* Que copie la sección .tablas_de_sistema de todos los archivos ensamblado */
   __TABLAS_DE_SISTEMA_LENGHT = SIZEOF(.tablas_de_sistema_out);    /* Le pido el largo de la seccion de .tablas_de_sistema_out */
 
+  /*------TABLAS DE PAGINACION-------*/
+  .tablas_de_paginacion_out 0x00110000 :                             /* El vector "." de VMA le digo que arranque en 0x00110000 */
+  { __TABLAS_DE_PAGINACION_RAM = .;                                  /* Cargo el valor anterior en la etiqueta __TABLAS_DE_PAGINACION_RAM (VALOR EN VMA) */
+    bin/tables.elf(.tablas_de_paginacion)}                           /* Que copie la sección .tablas_de_paginacion de todos los archivos ensamblado */
+  __TABLAS_DE_PAGINACION_LENGHT = SIZEOF(.tablas_de_paginacion_out); /* Le pido el largo de la seccion de .tablas_de_paginacion_out */
+
   /*------------NUCLEO------------*/
-  .nucleo_out 0x00300000 :                  /* El vector "." de VMA le digo que arranque en 0x00300000 */
+  .nucleo_out 0x00400000 :                  /* El vector "." de VMA le digo que arranque en 0x00400000 */
     { __NUCLEO_RAM = .;                     /* Cargo el valor anterior en la etiqueta __COPY_RAM (VALOR EN VMA) */
       __NUCLEO_ROM = LOADADDR(.nucleo_out); /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/copy.elf(.copy);                  /* Que copie la sección .copy del archivo copy ensamblado */
@@ -51,27 +57,41 @@ SECTIONS
     __COPY_ROM = __NUCLEO_ROM;              /* Dirección de Copy */
 
   /*------TABLA DE DIGITOS-------*/
-  .tabla_de_digitos_out 0x00310000 :           /* El vector "." de VMA le digo que arranque en 0x00310000 */
+  .tabla_de_digitos_out 0x00410000 :           /* El vector "." de VMA le digo que arranque en 0x00410000 */
     { __INICIO_TABLA_DE_DIGITOS = .;           /* Cargo el valor anterior en la etiqueta __INICIO_TABLA_DE_DIGITOS (VALOR EN VMA) */
       bin/tables.elf(.tabla_de_digitos);      /* Que copie la sección .tabla_de_digitos del archivo ensamblado */
     }
     __SIZE_TABLA_DE_DIGITOS = SIZEOF(.tabla_de_digitos_out);    /* Le pido el largo de la seccion de .tabla_de_digitos */
     __FIN_TABLA_DE_DIGITOS = __INICIO_TABLA_DE_DIGITOS + __SIZE_TABLA_DE_DIGITOS;   /* Resto para obtener el final de la tabla */
 
-  /*----------TAREAS------------*/
-  .tareas_out 0x00320000 :                    /* El vector "." de VMA le digo que arranque en 0x00320000 */
-    { __TAREAS_RAM = .;                       /* Cargo el valor anterior en la etiqueta __TAREAS_RAM (VALOR EN VMA) */
-      __TAREAS_ROM = LOADADDR(.tareas_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
-      bin/tareas.elf(.tarea_1);             /* Que copie la sección .tarea_1 del archivo ensamblado */
-    } AT >rom                                 /* Le pido que me cargue todo eso en ROM (LMA) */
-    __TAREAS_LENGHT = SIZEOF(.tareas_out);    /* Le pido el largo de la seccion de .tareas_out */
+  /*----------TAREA 1------------*/
+  .tarea_1_text_out 0x00420000 :                        /* El vector "." de VMA le digo que arranque en 0x00420000 */
+    { __TAREAS_TEXT_RAM = .;                            /* Cargo el valor anterior en la etiqueta __TAREAS_TEXT_RAM (VALOR EN VMA) */
+      __TAREAS_TEXT_ROM = LOADADDR(.tarea_1_text_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_1.elf(.tarea_1_text);                    /* Que copie la sección .tarea_1_text del archivo ensamblado */
+    } AT >rom                                           /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREAS_TEXT_LENGHT = SIZEOF(.tarea_1_text_out);   /* Le pido el largo de la seccion de .tarea_1_text_out */
+
+  .tarea_1_bss_out 0x00421000 :                       /* El vector "." de VMA le digo que arranque en 0x00421000 */
+    { __TAREAS_BSS_RAM = .;                           /* Cargo el valor anterior en la etiqueta __TAREAS_BSS_RAM (VALOR EN VMA) */
+      __TAREAS_BSS_ROM = LOADADDR(.tarea_1_bss_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_1.elf(.tarea_1_bss);                   /* Que copie la sección .tarea_1_bss del archivo ensamblado */
+    } AT >rom                                         /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREAS_BSS_LENGHT = SIZEOF(.tarea_1_bss_out);   /* Le pido el largo de la seccion de .tarea_1_bss_out */
+
+  .tarea_1_data_out 0x00422000 :                        /* El vector "." de VMA le digo que arranque en 0x00422000 */
+    { __TAREAS_DATA_RAM = .;                            /* Cargo el valor anterior en la etiqueta __TAREAS_DATA_RAM (VALOR EN VMA) */
+      __TAREAS_DATA_ROM = LOADADDR(.tarea_1_data_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_1.elf(.tarea_1_data);                    /* Que copie la sección .tarea_1_text del archivo ensamblado */
+    } AT >rom                                           /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREAS_DATA_LENGHT = SIZEOF(.tarea_1_data_out);   /* Le pido el largo de la seccion de .tarea_1_data_out */
 
   /*-----------DATOS------------*/
-  .datos_out 0x003E0000 :    /* El vector "." de VMA le digo que arranque en 0x00310000 */
+  .datos_out 0x004E0000 :    /* El vector "." de VMA le digo que arranque en 0x004E0000 */
   {*(.datos)}                /* Todos los archivos de datos que los cargue en ese lugar */
 
   /*-----------PILA------------*/
-  __INICIO_PILA = 0x1FFFB000;                 /* Principio del stack */
+  __INICIO_PILA = 0x1FFFE000;                 /* Principio del stack */
   __FIN_PILA = 0x1FFFFF0;                     /* La termino al final de la RAM */
   __SIZE_PILA = __FIN_PILA - __INICIO_PILA;    /* Calculo el largo de la pila */
 }

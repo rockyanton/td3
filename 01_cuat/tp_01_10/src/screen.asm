@@ -2,11 +2,36 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;----- LA PANTALLA ES DE 80(W)x25(H) (2 bytes por caracter) ------
-%define Offset_Row_Digitos      0x06E0  ; Linea 12
-%define Offset_Column_Digitos   0x38    ; Caracter 28
+%define Screen_Buffer 0x000B8000
+%define Screen_Row_01 0x0000
+%define Screen_Row_02 0x00A0
+%define Screen_Row_03 0x0140
+%define Screen_Row_04 0x01E0
+%define Screen_Row_05 0x0280
+%define Screen_Row_06 0x0320
+%define Screen_Row_07 0x03C0
+%define Screen_Row_08 0x0460
+%define Screen_Row_09 0x0500
+%define Screen_Row_10 0x05A0
+%define Screen_Row_11 0x0640
+%define Screen_Row_12 0x06E0
+%define Screen_Row_13 0x0780
+%define Screen_Row_14 0x0820
+%define Screen_Row_15 0x08C0
+%define Screen_Row_16 0x0960
+%define Screen_Row_17 0x0A00
+%define Screen_Row_18 0x0AA0
+%define Screen_Row_19 0x0B40
+%define Screen_Row_20 0x0BE0
+%define Screen_Row_21 0x0C80
+%define Screen_Row_22 0x0D20
+%define Screen_Row_23 0x0DC0
+%define Screen_Row_24 0x0E60
+%define Screen_Row_25 0x0F00
 
-%define Offset_Row_Name      0x00     ; Linea 1
-%define Offset_Column_Name   0x30    ; Caracter 24
+%define Offset_Character_Digitos  0x38    ; Caracter 28
+%define Offset_Character_Name     0x30    ; Caracter 24
+%define Offset_Character_PF       0x30    ; Caracter 24
 
 %define Font_Color_Black        0x00
 %define Font_Color_Blue         0x01
@@ -90,17 +115,16 @@ section .screen
 EXTERN suma_tabla_digitos
 
 ;--------- Variables compartidas -----------
-GLOBAL actualizar_pantalla
-
-    actualizar_pantalla:
-      call mostrar_nombre
-      call mostrar_digitos
-      ret
+GLOBAL mostrar_nombre
+GLOBAL mostrar_digitos
+GLOBAL mostrar_page_fault
 
     mostrar_digitos:
       pushad
 
-      mov ebp, 0x000B8000     ; Dirección del buffer de video
+      call limpiar_pantalla   ; Borro lo que haya
+
+      mov ebp, Screen_Buffer     ; Dirección del buffer de video
       mov edi, buffer_pantalla_digitos
       xor edx, edx     ; Contador de digitos en 0
 
@@ -128,8 +152,8 @@ GLOBAL actualizar_pantalla
         cmp edx, 0x10       ; Si llego a los 16 bytes paso a mostar el digito en pantalla
         jnz guardar_parte_baja
 
-      add ebp, Offset_Row_Digitos     ; Le agrego un offset para que me aparezca en el medio de la pantalla
-      add ebp, Offset_Column_Digitos
+      add ebp, Screen_Row_12
+      add ebp, Offset_Character_Digitos   ; Le agrego un offset para que me aparezca en el medio de la pantalla
 
       mov cl, Font_Color_Red   ; Color del Caracter
       or cl, Font_Background_Green  ; Color del fondo
@@ -175,6 +199,73 @@ GLOBAL actualizar_pantalla
         jnz loop_mostrar
 
       fin_mostrar_digitos:
+      popad
+      ret
+
+;----------------------------------------------------------
+
+      mostrar_page_fault:
+      pushad
+      mov ebp, esp  ; Puntero a pila
+      mov eax, [ebp + 0x09] ; Traigo el codigo de error
+
+      call limpiar_pantalla   ; Borro lo que haya
+
+      add ebp, Screen_Row_08
+      add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+
+      mov cl, Font_Color_White   ; Color del Caracter
+      or cl, Font_Background_Red  ; Color del fondo
+
+      ; Pongo en pantalla "PAGE: 0x"
+      mov al, ASCII_P
+      call imprimir_caracter
+      mov al, ASCII_A
+      call imprimir_caracter
+      mov al, ASCII_G
+      call imprimir_caracter
+      mov al, ASCII_E
+      call imprimir_caracter
+      mov al, ASCII_Colon
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_0
+      call imprimir_caracter
+      mov al, ASCII_x
+      call imprimir_caracter
+
+      xor edx, edx
+
+      loop_page_fault:
+        rol eax, 0x01    ; Roto para guardar del mas significativo al menos
+        mov ecx, eax
+        and ecx, 0x01
+        call convertir_ascii
+        mov al, cl   ; Guardo en el buffer
+        mov cl, Font_Color_White   ; Color del Caracter
+        or cl, Font_Background_Red  ; Color del fondo
+        call imprimir_caracter
+        inc edx
+        cmp edx, 0x20       ; Cuando recorro los 32 bits me voy
+        jnz loop_page_fault
+
+      popad
+      ret
+
+;----------------------------------------------------------
+
+    limpiar_pantalla:
+      pushad
+      xor esi, esi
+      xor eax, eax
+      mov ebp, Screen_Buffer
+      loop_limpiar_pantalla:
+        mov [ebp + esi], eax
+      inc esi
+      cmp esi, 0x03E8  ; Pantalla de 80x25, 2 bytes cada uno = 4000. Limpio de a 4 bytes => Comparo contra 1000 (0x3E8)
+      jl loop_limpiar_pantalla
+      call mostrar_nombre  ; Vuelvo a escribir mi nombre
       popad
       ret
 
@@ -240,9 +331,9 @@ GLOBAL actualizar_pantalla
     mostrar_nombre:
       pushad
 
-      mov ebp, 0x000B8000          ; Dirección del buffer de video
-      add ebp, Offset_Row_Name     ; Le agrego un offset para que me aparezca en el medio de la pantalla
-      add ebp, Offset_Column_Name
+      mov ebp, Screen_Buffer          ; Dirección del buffer de video
+      add ebp, Screen_Row_01
+      add ebp, Offset_Character_Name ; Le agrego un offset para que me aparezca en el medio de la pantalla
 
       mov cl, Font_Color_White   ; Color del Caracter
       or cl, Font_Background_Blue  ; Color del fondo

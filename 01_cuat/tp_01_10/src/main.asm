@@ -83,9 +83,9 @@ EXTERN __COPY_ROM
 EXTERN __HANDLERS_ROM
 EXTERN __HANDLERS_RAM
 EXTERN __HANDLERS_LENGHT
-EXTERN __TAREAS_ROM
-EXTERN __TAREAS_RAM
-EXTERN __TAREAS_LENGHT
+EXTERN __TAREAS_TEXT_ROM
+EXTERN __TAREAS_TEXT_RAM
+EXTERN __TAREAS_TEXT_LENGHT
 EXTERN copy
 EXTERN gdt
 EXTERN img_gdtr
@@ -125,9 +125,9 @@ EXTERN _pit_configure
     pop eax
 
     ;--------- Copio las TAREAS a RAM ------------
-    push __TAREAS_ROM    ; Pusheo ORIGEN
-    push __TAREAS_RAM    ; Pusheo DESTINO
-    push __TAREAS_LENGHT ; Pusheo LARGO
+    push __TAREAS_TEXT_ROM    ; Pusheo ORIGEN
+    push __TAREAS_TEXT_RAM    ; Pusheo DESTINO
+    push __TAREAS_TEXT_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
     pop eax
@@ -169,13 +169,14 @@ EXTERN _pit_configure
 
 ;--------- Variables externas ------------
 EXTERN check_keyboard_buffer
-EXTERN actualizar_pantalla
+EXTERN mostrar_nombre
 
 ;--------- Variables compartidas -----------
 
 ;-----------------------------------------------------------------------------
+  call mostrar_nombre
+
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
     call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
-    call actualizar_pantalla
     jmp main          ; Vuelvo a esperar
