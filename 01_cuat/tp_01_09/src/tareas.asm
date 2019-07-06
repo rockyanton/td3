@@ -23,8 +23,9 @@ section .tarea_1
 ;--------- Variables externas ------------
 EXTERN keyboard_buffer_hexa
 EXTERN keyboard_buffer_status
-EXTERN tabla_de_digitos
+EXTERN tabla_digitos
 EXTERN puntero_tabla_digitos
+EXTERN suma_tabla_digitos
 
 ;--------- Variables compartidas -----------
 GLOBAL check_keyboard_buffer
@@ -64,8 +65,9 @@ GLOBAL check_keyboard_buffer
     mov bl, [puntero_tabla_digitos]
     mov ebp, ebx        ; Copio el indice de la tabla del ultimo registro
 
-    xor esi, esi        ; Limpio variables
-    xor ecx, ecx
+    xor ecx, ecx        ; Pongo exc en 0
+
+    mov esi, 0x07       ; Arranca de atras para adelante
 
     copio_buffer:
       xor ebx, ebx      ; Limpio ebx
@@ -101,8 +103,9 @@ GLOBAL check_keyboard_buffer
         jmp copio_buffer
 
       copio_buffer_end:
-        inc ebp             ; Incremento indice (para siguiente ciclo)
-        mov ecx, ebp        ; Guardo el puntero actualizado
+        mov ecx, ebp        ; Guardo el puntero de byte cargado
+        inc ecx             ; Incremento indice (para siguiente ciclo)
+
         mov [puntero_tabla_digitos], cl
         call limpiar_buffer_teclado       ; Vacío el buffer de teclado
 
@@ -123,24 +126,48 @@ GLOBAL check_keyboard_buffer
         guardar_parte_alta:
           shl bl, 0x04        ; Muevo hacia parte alta
           and bl, 0xF0
-          mov [tabla_de_digitos + ebp*8 + esi], bl  ; Guardo
+          mov [tabla_digitos + ebp*8 + esi], bl  ; Guardo
           xor al, 0x01        ; Siguiente ciclo parte baja
           ret
 
         guardar_parte_baja:
           and bl, 0x0F      ; Me quedo con la parte baja
-          mov bh, [tabla_de_digitos + ebp*8 + esi]    ; Traigo la parte alta
+          mov bh, [tabla_digitos + ebp*8 + esi]    ; Traigo la parte alta
           and bh, 0xF0
           or bl, bh         ; Uno todo
-          mov [tabla_de_digitos + ebp*8 + esi], bl    ; Guardo
+          mov [tabla_digitos + ebp*8 + esi], bl    ; Guardo
           xor al, 0x01      ; Siguiente ciclo parte alta
-          inc esi           ; Incremento indice de byte
+          dec esi           ; Decremento indice de byte
           ret
 
       sumar_tabla:
-        mov ecx, ebp
-        ; SEGUIR ACA
 
+        mov esi, 0x04     ; Para acceder a los 32 otros altos
+        breakpoint
+
+        mov eax, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
+        mov ebx, [suma_tabla_digitos + esi]
+
+        mov ecx, [tabla_digitos + ebp*8]        ; Traigo el valor del dato
+        mov edx, [tabla_digitos + ebp*8 + esi]
+
+        add eax, ecx
+        jc sumar_carry
+        jmp sumar_sin_carry
+
+        sumar_carry:
+          adc ebx, edx
+          jmp guardar_suma
+
+        sumar_sin_carry:
+          add ebx, edx
+          jmp guardar_suma
+
+        guardar_suma:
+          mov [suma_tabla_digitos], eax         ; Guardo el resultado
+          mov [suma_tabla_digitos + esi], ebx
+
+        ret ; Vuelvo
 
       limpiar_buffer_teclado:
         xor ecx, ecx
