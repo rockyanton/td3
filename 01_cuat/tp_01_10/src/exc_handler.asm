@@ -66,6 +66,16 @@ GLOBAL exc_handler_013_gp
       add esp, 4          ; Como el #GP me genera un código de error, lo tengo que sacar antes de retornar
       iret
 
+;-------------------------- 0x14 Page Fault --------------------------------
+    exc_handler_014_pf:
+      pushad                ; Guardo los registros
+      xor edx, edx          ; Pongo en "0" ebx
+      mov dx, 0x0E          ; Guardo el número de excepción "14"
+      call ISR_Main
+      popad               ; Vuelvo a traer los registros
+      add esp, 4          ; Como el #DF me genera un código de error, lo tengo que sacar antes de retornar
+      iret
+
 ;------------------------------- ISR Main ------------------------------------
     ISR_Main:
       breakpoint

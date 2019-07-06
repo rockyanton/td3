@@ -2,10 +2,39 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;----- LA PANTALLA ES DE 80(W)x25(H) (2 bytes por caracter) ------
-%define Offset_Row_Digitos      0x780   ; Linea 12
+%define Offset_Row_Digitos      0x06E0  ; Linea 12
 %define Offset_Column_Digitos   0x38    ; Caracter 28
 
-%define FontColor     0x07
+%define Offset_Row_Name      0x00     ; Linea 1
+%define Offset_Column_Name   0x30    ; Caracter 24
+
+%define Font_Color_Black        0x00
+%define Font_Color_Blue         0x01
+%define Font_Color_Green        0x02
+%define Font_Color_Cyan         0x03
+%define Font_Color_Red          0x04
+%define Font_Color_Purple       0x05
+%define Font_Color_Brown        0x06
+%define Font_Color_Gray         0x07
+%define Font_Color_DarkGray     0x08
+%define Font_Color_LightBlue    0x09
+%define Font_Color_LightGreen   0x0A
+%define Font_Color_LightCyan    0x0B
+%define Font_Color_LightRed     0x0C
+%define Font_Color_LightPurple  0x0D
+%define Font_Color_Yellow       0x0E
+%define Font_Color_White        0x0F
+
+%define Font_Background_Black        0x00
+%define Font_Background_Blue         0x10
+%define Font_Background_Green        0x20
+%define Font_Background_Cyan         0x30
+%define Font_Background_Red          0x40
+%define Font_Background_Purple       0x50
+%define Font_Background_Brown        0x60
+%define Font_Background_Gray         0x70
+
+%define Font_Blink    0x80
 
 %define ASCII_0 0x30
 %define ASCII_1 0x31
@@ -44,7 +73,10 @@
 %define ASCII_Y 0x59
 %define ASCII_Z 0x60
 %define ASCII_x 0x78
-%define ASCII_Dos_Puntos 0x3A
+%define ASCII_Colon 0x3A
+%define ASCII_Space 0x20
+%define ASCII_Dash  0x2D
+%define ASCII_Dot   0x2E
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++ RUTINA QUE ESCRIBE EN PANTALLA ++++++++++++++++++++++++
@@ -61,7 +93,9 @@ EXTERN suma_tabla_digitos
 GLOBAL actualizar_pantalla
 
     actualizar_pantalla:
-      jmp mostrar_digitos
+      call mostrar_nombre
+      call mostrar_digitos
+      ret
 
     mostrar_digitos:
       pushad
@@ -94,58 +128,62 @@ GLOBAL actualizar_pantalla
         cmp edx, 0x10       ; Si llego a los 16 bytes paso a mostar el digito en pantalla
         jnz guardar_parte_baja
 
-      mov cl, FontColor   ; Color del digito y fondo
-
       add ebp, Offset_Row_Digitos     ; Le agrego un offset para que me aparezca en el medio de la pantalla
       add ebp, Offset_Column_Digitos
 
-      ; Pongo en pantalla Suma:
-      mov al, ASCII_S
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
-      mov al, ASCII_U
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
-      mov al, ASCII_M
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
-      mov al, ASCII_A
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
-      mov al, ASCII_Dos_Puntos
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
+      mov cl, Font_Color_Red   ; Color del Caracter
+      or cl, Font_Background_Green  ; Color del fondo
 
-      ; Espacio
-      add ebp, 0x02
+      ; Pongo en pantalla "Suma:"
+      mov al, ASCII_S
+      call imprimir_caracter
+      mov al, ASCII_U
+      call imprimir_caracter
+      mov al, ASCII_M
+      call imprimir_caracter
+      mov al, ASCII_A
+      call imprimir_caracter
+      mov al, ASCII_Colon
+      call imprimir_caracter
+
+      mov cl, Font_Color_Black   ; Color del Caracter
+      or cl, Font_Background_Black  ; Color del fondo
+
+      ; Pongo en pantalla un espacio
+      mov al, ASCII_Space
+      call imprimir_caracter
+
+      mov cl, Font_Color_DarkGray   ; Color del Caracter
+      or cl, Font_Background_Cyan  ; Color del fondo
 
       ; Pongo en pantalla un 0x
       mov al, ASCII_0
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
+      call imprimir_caracter
       mov al, ASCII_x
-      mov [ebp], al
-      mov [ebp + 0x01], cl
-      add ebp, 0x02
+      call imprimir_caracter
+
+      mov cl, Font_Color_Black   ; Color del Caracter
+      or cl, Font_Background_Cyan  ; Color del fondo
 
       xor edx, edx      ; Contador de digitos en 0
 
       loop_mostrar:
         mov al , [edi + edx]              ; Traigo el digito del buffer
-        mov [ebp + edx*2], al             ; Lo guardo en el buffer de video
-        mov [ebp + edx*2 + 0x01], cl      ; Guardo el color del digito y fondo
+        call imprimir_caracter
         inc edx
         cmp edx,0x10                      ; Si ya mostre los 16 digitos me voy
         jnz loop_mostrar
 
       fin_mostrar_digitos:
       popad
+      ret
+
+;----------------------------------------------------------
+
+    imprimir_caracter:
+      mov [ebp], al
+      mov [ebp + 0x01], cl
+      add ebp, 0x02
       ret
 
 ;----------------------------------------------------------
@@ -196,6 +234,87 @@ GLOBAL actualizar_pantalla
 
         mov cl, ASCII_N     ; Default que me ponga N
         ret
+
+;----------------------------------------------------------
+
+    mostrar_nombre:
+      pushad
+
+      mov ebp, 0x000B8000          ; Dirección del buffer de video
+      add ebp, Offset_Row_Name     ; Le agrego un offset para que me aparezca en el medio de la pantalla
+      add ebp, Offset_Column_Name
+
+      mov cl, Font_Color_White   ; Color del Caracter
+      or cl, Font_Background_Blue  ; Color del fondo
+
+      ; Pongo en pantalla "RODRIGO ANTON -- LEG.: 144.129-2"
+      mov al, ASCII_R
+      call imprimir_caracter
+      mov al, ASCII_O
+      call imprimir_caracter
+      mov al, ASCII_D
+      call imprimir_caracter
+      mov al, ASCII_R
+      call imprimir_caracter
+      mov al, ASCII_I
+      call imprimir_caracter
+      mov al, ASCII_G
+      call imprimir_caracter
+      mov al, ASCII_O
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_A
+      call imprimir_caracter
+      mov al, ASCII_N
+      call imprimir_caracter
+      mov al, ASCII_T
+      call imprimir_caracter
+      mov al, ASCII_O
+      call imprimir_caracter
+      mov al, ASCII_N
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_Dash
+      call imprimir_caracter
+      mov al, ASCII_Dash
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_L
+      call imprimir_caracter
+      mov al, ASCII_E
+      call imprimir_caracter
+      mov al, ASCII_G
+      call imprimir_caracter
+      mov al, ASCII_Dot
+      call imprimir_caracter
+      mov al, ASCII_Colon
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_1
+      call imprimir_caracter
+      mov al, ASCII_4
+      call imprimir_caracter
+      mov al, ASCII_4
+      call imprimir_caracter
+      mov al, ASCII_Dot
+      call imprimir_caracter
+      mov al, ASCII_1
+      call imprimir_caracter
+      mov al, ASCII_2
+      call imprimir_caracter
+      mov al, ASCII_9
+      call imprimir_caracter
+      mov al, ASCII_Dash
+      call imprimir_caracter
+      mov al, ASCII_2
+      call imprimir_caracter
+
+      popad
+      ret
 
 ;----------------------------------------------------------
   buffer_pantalla_digitos:
