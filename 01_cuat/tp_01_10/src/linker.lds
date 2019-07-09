@@ -17,7 +17,8 @@ SECTIONS
 {
   /*------------INIT-------------*/
   .init_out 0xFFFF0000 :      /* El vector "." de VMA le digo que arranque en 0xFFFF0000 */
-    { *(.init_start);
+    { __INIT_ROM = .;
+      *(.init_start);
       *(.init)} AT >rom       /* Entre paréntesis la LMA donde está la sección a copiar/ubicar. El "*" define que todas las secciones con ese nombre se copien/ubiquen en la dirección apuntada por "." */
     __SIZE_INIT = SIZEOF(.init_out);
 

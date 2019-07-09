@@ -53,7 +53,7 @@
 ; Datos                 | 0x 004E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 0E0      |     NO    |
 ; Pila General          | 0x 1FFF B000 | 0x 0000 2FF0 |     3      |    0x 07F    | 0x 3FB - 0x 3FD |     SI    |
 ; Pila Tarea 1          | 0x 1FFF E000 | 0x 0000 1FF0 |     2      |    0x 07F    | 0x 3FE - 0x 3FF |     SI    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 1718 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 16CB |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
 ; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
 
@@ -82,6 +82,8 @@ EXTERN __INICIO_PILA
 EXTERN __SIZE_PILA
 EXTERN __INICIO_PILA_TAREA_1
 EXTERN __SIZE_PILA_TAREA_1
+EXTERN __INIT_ROM
+EXTERN __SIZE_INIT
 
 
 
@@ -207,13 +209,24 @@ GLOBAL directorio
     pop eax
     pop eax
 
+    push Table_Attrib_S_RW_P
+    push Page_Attrib_S_RW_P
+    push __SIZE_INIT
+    push __INIT_ROM
+    push __INIT_ROM
+    call paginar
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
     ret
 
 
 ;-------------------------------------------------------------
 
   paginar:
-
     mov ebp, esp          ; Puntero a pila
     mov esi, [ebp + 0x04]    ; Cargo direccion lineal
     mov edi, esi
@@ -242,7 +255,8 @@ GLOBAL directorio
       add ebx, eax                  ; Le sumo el indice de tablas ya paginadas
       and ebx, 0xFFFFF000           ; Me quedo con los primeros 20 bytes
       mov ecx, ebx                  ; Copio el valor
-      add ecx, [ebp + 0x14]           ; Le sumo los atributos de tabla
+      mov eax, [ebp + 0x14]         ; Traigo los atributos de tabla
+      add ecx, eax                  ; Le sumo los atributos de tabla
 
       mov [directorio + esi*4], ecx ; Guardo la entrada del directorio
 
@@ -250,26 +264,31 @@ GLOBAL directorio
 
     tabla_creada:
       mov ebx, [directorio + esi*4]
+      and ebx, 0xFFFFF000
 
       jmp crear_paginas
 
     crear_paginas:
-      mov ecx, [ebp + 0x10]   ; Traigo el largo de Sección
+      mov ecx, [ebp + 0x0C]   ; Traigo el largo de Sección
       shr ecx, 0x0C           ; A partir de los 12 bits es la cantidad de paginas -1
       inc ecx                 ; Incremento para saber la cant de paginas
 
-      xor edx, edx        ; Pongo edx en 0
+      xor edx, edx            ; Pongo edx en 0
 
       mov eax, [ebp + 0x08]   ; Traigo dirección física
 
+      shl edi, 0x02           ; Incremento el indice de tabla en 4 (son 4 bytes)
+      add ebx, edi            ; Le sumo a la tabla el indice
+
       loop_paginar:
-        and eax, 0xFFFFF000   ; Me quedo con los primeros 20 bytes
-        add eax, [ebp + 0x10] ; Agrego atributos
+        and eax, 0xFFFFF000     ; Me quedo con los primeros 20 bytes
+        mov esi, [ebp + 0x10]   ; Traigo los atributos de pagina
+        add eax, esi            ; Agrego atributos
 
-        mov [ebx + edx*4], eax        ; Guardo entrada de página en tabla
+        mov [ebx + edx*4], eax  ; Guardo entrada de página en tabla
 
-        add eax, 0x1000       ; Le sumo 4k (para siguiente ciclo)
-        inc edx               ; Incremento paginas
+        add eax, 0x1000         ; Le sumo 4k (para siguiente ciclo)
+        inc edx                 ; Incremento paginas
 
       cmp edx, ecx
       jnz loop_paginar
