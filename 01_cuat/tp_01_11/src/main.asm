@@ -111,9 +111,10 @@ EXTERN _pit_configure
     ;--------- Inicializo las tablas y activo paginación ------------
 
     call init_paginar
-    breakpoint
+
     mov eax, directorio
     mov cr3, eax          ; Cargo el directorio de páginas en cr3
+    
     mov eax,cr0           ; Pongo en 1 el bit 31 de cr0: Paginacion activada
     or eax,0x80000000
     mov cr0,eax

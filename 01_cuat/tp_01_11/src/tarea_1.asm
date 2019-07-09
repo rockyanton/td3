@@ -16,7 +16,6 @@ EXTERN keyboard_buffer_hexa
 EXTERN keyboard_buffer_status
 EXTERN tabla_digitos
 EXTERN puntero_tabla_digitos
-EXTERN suma_tabla_digitos
 EXTERN mostrar_digitos
 
 ;--------- Variables compartidas -----------
@@ -215,3 +214,7 @@ section .tarea_1_bss nobits
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
+GLOBAL suma_tabla_digitos
+
+suma_tabla_digitos:
+  resb 8        ; Reservo 8 bytes para la suma (64 bits)
