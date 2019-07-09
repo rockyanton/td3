@@ -45,15 +45,15 @@
 ; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0810 |     1      |    0x 000    |     0x 100      |     SI    |
 ; Tablas de Paginacion  | 0x 0011 0000 | 0x 0000 5004 |     6      |    0x 000    |     0x 110      |     SI    |
 ; Nucleo                | 0x 0040 0000 | 0x 0000 0404 |     1      |    0x 001    |     0x 000      |     SI    |
-; Tabla de Digitos      | 0x 0041 0000 | 0x 0000 fc09 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
+; Tabla de Digitos      | 0x 0041 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
 ; Tarea 1 (Text)        | 0x 0042 0000 | 0x 0000 0129 |     1      |    0x 001    |     0x 020      |     SI    |
-; Tarea 1 (BSS)         | 0x 0042 1000 | 0x 0000 0000 |     0      |    0x 001    |     0x 021      |     NO    |
+; Tarea 1 (BSS)         | 0x 0042 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 021      |     NO    |
 ; Tarea 1 (Data RW)     | 0x 0042 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 022      |     NO    |
 ; Tarea 1 (Data R)      | 0x 0042 3000 | 0x 0000 0000 |     0      |    0x 001    |     0x 023      |     NO    |
 ; Datos                 | 0x 004E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 0E0      |     NO    |
 ; Pila General          | 0x 1FFF B000 | 0x 0000 2FF0 |     3      |    0x 07F    | 0x 3FB - 0x 3FD |     SI    |
 ; Pila Tarea 1          | 0x 1FFF E000 | 0x 0000 1FF0 |     2      |    0x 07F    | 0x 3FE - 0x 3FF |     SI    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 16CB |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 16EC |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
 ; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
 
@@ -78,6 +78,8 @@ EXTERN __INICIO_TABLA_DE_DIGITOS
 EXTERN __SIZE_TABLA_DE_DIGITOS
 EXTERN __TAREA_1_TEXT_RAM
 EXTERN __TAREA_1_TEXT_LENGHT
+EXTERN __TAREA_1_BSS_RAM
+EXTERN __TAREA_1_BSS_LENGHT
 EXTERN __INICIO_PILA
 EXTERN __SIZE_PILA
 EXTERN __INICIO_PILA_TAREA_1
@@ -178,6 +180,18 @@ GLOBAL directorio
     push __TAREA_1_TEXT_LENGHT
     push __TAREA_1_TEXT_RAM
     push __TAREA_1_TEXT_RAM
+    call paginar
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
+    push Table_Attrib_S_RW_P
+    push Page_Attrib_S_RW_P
+    push __TAREA_1_BSS_LENGHT
+    push __TAREA_1_BSS_RAM
+    push __TAREA_1_BSS_RAM
     call paginar
     pop eax
     pop eax

@@ -84,9 +84,8 @@ SECTIONS
 
   .tarea_1_bss_out 0x00421000 :                        /* El vector "." de VMA le digo que arranque en 0x00421000 */
     { __TAREA_1_BSS_RAM = .;                           /* Cargo el valor anterior en la etiqueta __TAREA_1_BSS_RAM (VALOR EN VMA) */
-      __TAREA_1_BSS_ROM = LOADADDR(.tarea_1_bss_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/tarea_1.elf(.tarea_1_bss);                   /* Que copie la sección .tarea_1_bss del archivo ensamblado */
-    } AT >rom                                          /* Le pido que me cargue todo eso en ROM (LMA) */
+    }                                                  /* Le pido que me cargue todo eso en ROM (LMA) */
     __TAREA_1_BSS_LENGHT = SIZEOF(.tarea_1_bss_out);   /* Le pido el largo de la seccion de .tarea_1_bss_out */
 
   .tarea_1_data_rw_out 0x00422000 :                             /* El vector "." de VMA le digo que arranque en 0x00422000 */
