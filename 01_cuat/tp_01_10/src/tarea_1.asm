@@ -3,22 +3,13 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
 
-%define ASCII_0   0x30
-%define ASCII_1   0x31
-%define ASCII_A   0x41
-%define ASCII_B   0x42
-%define ASCII_C   0x43
-%define ASCII_D   0x44
-%define ASCII_E   0x45
-%define ASCII_F   0x46
-
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++++++ TAREA QUE LEE EL BUFFER ++++++++++++++++++++++++++
+;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (TEXT) +++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ;--------- Parámetros globales ------------
 USE32
-section .tarea_1_text
+section .tarea_1_text progbits
 
 ;--------- Variables externas ------------
 EXTERN keyboard_buffer_hexa
@@ -186,3 +177,41 @@ GLOBAL check_keyboard_buffer
     end_check_keyboard_buffer:
       popad
       ret
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (DATA RW) +++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .tarea_1_data_rw progbits
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (DATA R) +++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .tarea_1_data_r progbits
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (BSS) +++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .tarea_1_bss nobits
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
