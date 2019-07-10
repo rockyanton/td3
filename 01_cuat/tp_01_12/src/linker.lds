@@ -116,6 +116,11 @@ SECTIONS
   .datos_out 0x004E0000 :    /* El vector "." de VMA le digo que arranque en 0x004E0000 */
   {*(.datos)}                /* Todos los archivos de datos que los cargue en ese lugar */
 
+  /*------------TABLAS DINÁMICAS------------*/
+  __TABLAS_DINAMICAS_FIS = 0x08000000;
+  __FIN_TABLAS_DINAMICAS_FIS = 0x20000000;
+  __SIZE_TABLAS_DINAMICAS = __FIN_TABLAS_DINAMICAS_FIS - __TABLAS_DINAMICAS_FIS;
+
   /*-----------PILA GENERAL------------*/
   __INICIO_PILA_GENERAL_LIN = 0x1FFFB000;                   /* Principio del stack */
   __FIN_PILA_GENERAL_LIN = 0x1FFFDFF0;                      /* La termino al principop de la pila de la tarea 1 */

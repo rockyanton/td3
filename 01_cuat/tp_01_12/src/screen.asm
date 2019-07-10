@@ -122,7 +122,7 @@ GLOBAL mostrar_page_fault
     mostrar_digitos:
       pushad
 
-      call limpiar_pantalla   ; Borro lo que haya
+      ;call limpiar_pantalla   ; Borro lo que haya
 
       mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
       mov edi, buffer_pantalla_digitos
@@ -209,9 +209,9 @@ GLOBAL mostrar_page_fault
       mov ebp, esp  ; Puntero a pila
       mov eax, [ebp + 0x09] ; Traigo el codigo de error
 
-      call limpiar_pantalla   ; Borro lo que haya
+      ;call limpiar_pantalla   ; Borro lo que haya
 
-      add ebp, Screen_Row_08
+      add ebp, Screen_Row_04
       add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
 
       mov cl, Font_Color_White   ; Color del Caracter

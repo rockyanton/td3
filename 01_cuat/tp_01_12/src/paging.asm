@@ -108,10 +108,11 @@ EXTERN __INIT_ROM_LIN
 EXTERN __INIT_ROM_FIS
 EXTERN __SIZE_INIT
 
+EXTERN __TABLAS_DINAMICAS_FIS
+
 ;--------- Variables compartidas -----------
 GLOBAL init_paginar
-GLOBAL directorio
-
+GLOBAL paginacion_dinamica
 
   init_paginar:
 
@@ -328,6 +329,43 @@ GLOBAL directorio
 
     ret   ; Vuelvo
 
+    paginacion_dinamica:
+      pushad
+      mov ebp, esp
+      mov edx, [ebp + 0x09*4]           ; Traigo la dirección lineal que me generó error
+
+      mov eax, [tablas_dinamicas]     ; Traigo el contador de págianas dinamicas
+      mov ebx, eax                    ; Copio el valor
+      inc eax                         ; Incremento el valor
+      mov [tablas_dinamicas], eax     ; Guardo el valor incrementado
+
+      shl ebx, 0x0C                   ; Shifteo 12 bits
+      mov eax, __TABLAS_DINAMICAS_FIS ; Inico de la dirección de memoria para las paginas creadas dinamicamente
+      add eax, ebx                    ; Le sumo para saltear las ya paginadas
+
+      mov ecx, 0x01                   ; Le pongo largo de 1 byte (para que me haga 1 sola pagina)
+
+      ; ORDEN DE PUSHEO
+      ;    1 - Atributos del directorio (tabla)
+      ;    2 - Atributos de pagina
+      ;    3 - Largo de la sección
+      ;    4 - Direccion Física
+      ;    5 - Dirección Lineal
+
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push ecx
+      push eax
+      push edx
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      popad
+      ret
 
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -345,6 +383,8 @@ section .tablas_de_paginacion nobits     ; nobits le dice al linker que esa secc
   directorio:
     resd 1024       ; Reservo los 1024 bytes del directorio
   inicio_tablas:
-    resd 1024*4     ; Tengo 4 tablas en total
+    resd 1024*504     ; Tengo 4 tablas estaticas + 500 dinamicas
   tablas_creadas:
     resd 1          ; Reservo un indicador de tabla creada
+  tablas_dinamicas:
+    resd 1

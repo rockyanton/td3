@@ -108,6 +108,8 @@ GLOBAL check_keyboard_buffer
 
         call mostrar_digitos  ; Muestro resultado en pantalla
 
+        call leer_memoria
+
         jmp end_check_keyboard_buffer
 
 
@@ -171,6 +173,15 @@ GLOBAL check_keyboard_buffer
         cmp edx, 0x09
         jnz loop_limpiar_buffer
 
+        ret
+
+      leer_memoria:
+        cmp ebx, 0x00           ; Si la direccion de memoria es mayor a 32 bits, no leoo
+        jnz end_leer_memoria
+          cmp eax, 0x20000000   ; Me fijo si me pase de los 512 MB
+          jge end_leer_memoria
+            mov ecx, [eax]
+        end_leer_memoria:
         ret
 
     end_check_keyboard_buffer:

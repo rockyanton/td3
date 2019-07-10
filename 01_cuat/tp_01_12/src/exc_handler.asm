@@ -13,6 +13,7 @@ section .exc
 
 ;--------- Variables externas ------------
 EXTERN mostrar_page_fault
+EXTERN paginacion_dinamica
 
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
@@ -76,10 +77,9 @@ GLOBAL exc_handler_014_pf
       xor edx, edx          ; Pongo en "0" edx
       mov dx, 0x0E          ; Guardo el número de excepción "14"
 
-      breakpoint
-
       mov eax, cr2                    ; Treigo el numero de la pagina que generó la excepción
       push eax                        ; Lo pusheo a pila
+      call paginacion_dinamica
       call mostrar_page_fault
       pop eax
 
