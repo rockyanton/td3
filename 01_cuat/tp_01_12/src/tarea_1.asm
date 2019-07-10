@@ -180,7 +180,7 @@ GLOBAL check_keyboard_buffer
         jnz end_leer_memoria
           cmp eax, 0x20000000   ; Me fijo si me pase de los 512 MB
           jge end_leer_memoria
-            mov ecx, [eax]
+            mov ecx, [eax]      ; Traigo el valor
         end_leer_memoria:
         ret
 

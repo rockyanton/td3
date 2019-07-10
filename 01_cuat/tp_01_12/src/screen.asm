@@ -30,7 +30,7 @@
 
 %define Offset_Character_Digitos  0x38    ; Caracter 28
 %define Offset_Character_Name     0x30    ; Caracter 24
-%define Offset_Character_PF       0x30    ; Caracter 24
+%define Offset_Character_PF       0x38    ; Caracter 28
 
 %define Font_Color_Black        0x00
 %define Font_Color_Blue         0x01
@@ -122,36 +122,36 @@ GLOBAL mostrar_page_fault
     mostrar_digitos:
       pushad
 
-      ;call limpiar_pantalla   ; Borro lo que haya
+      call limpiar_pantalla
 
-      mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
       mov edi, buffer_pantalla_digitos
-      xor edx, edx     ; Contador de digitos en 0
+      xor ebx, ebx     ; Contador de digitos en 0
 
       mov esi, 0x04
-      mov eax, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
-      mov ebx, [suma_tabla_digitos + esi]
+      mov ecx, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
+      mov edx, [suma_tabla_digitos + esi]
 
       guardar_parte_alta:
-        rol ebx, 0x04    ; Roto para guardar del mas significativo al menos
-        mov ecx, ebx
-        and ecx, 0x0F
+        rol edx, 0x04    ; Roto para guardar del mas significativo al menos
+        mov eax, edx
+        and eax, 0x0F
         call convertir_ascii
-        mov [edi + edx], cl   ; Guardo en el buffer
-        inc edx
-        cmp edx, 0x08       ; Si llego a los 8 bytes, paso a la parte baja
+        mov [edi + ebx], al   ; Guardo en el buffer
+        inc ebx
+        cmp ebx, 0x08       ; Si llego a los 8 bytes, paso a la parte baja
         jnz guardar_parte_alta
 
       guardar_parte_baja:
-        rol eax, 0x04    ; Roto para guardar del mas significativo al menos
-        mov ecx, eax
-        and ecx, 0x0F
+        rol ecx, 0x04    ; Roto para guardar del mas significativo al menos
+        mov eax, ecx
+        and eax, 0x0F
         call convertir_ascii
-        mov [edi + edx], cl   ; Guardo en el buffer
-        inc edx
-        cmp edx, 0x10       ; Si llego a los 16 bytes paso a mostar el digito en pantalla
+        mov [edi + ebx], al   ; Guardo en el buffer
+        inc ebx
+        cmp ebx, 0x10       ; Si llego a los 16 bytes paso a mostar el digito en pantalla
         jnz guardar_parte_baja
 
+      mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
       add ebp, Screen_Row_12
       add ebp, Offset_Character_Digitos   ; Le agrego un offset para que me aparezca en el medio de la pantalla
 
@@ -207,10 +207,10 @@ GLOBAL mostrar_page_fault
       mostrar_page_fault:
       pushad
       mov ebp, esp  ; Puntero a pila
-      mov eax, [ebp + 0x09] ; Traigo el codigo de error
+      mov ebx, [ebp + 0x04*9] ; Traigo el direccion lineal de error
+      mov edi, [ebp + 0x04*10] ; Traigo el cantidad de paginas creadas dinamicamente
 
-      ;call limpiar_pantalla   ; Borro lo que haya
-
+      mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
       add ebp, Screen_Row_04
       add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
 
@@ -218,13 +218,27 @@ GLOBAL mostrar_page_fault
       or cl, Font_Background_Red  ; Color del fondo
 
       ; Pongo en pantalla "PAGE: 0x"
-      mov al, ASCII_P
+      mov al, ASCII_L
+      call imprimir_caracter
+      mov al, ASCII_I
+      call imprimir_caracter
+      mov al, ASCII_N
+      call imprimir_caracter
+      mov al, ASCII_E
       call imprimir_caracter
       mov al, ASCII_A
       call imprimir_caracter
-      mov al, ASCII_G
+      mov al, ASCII_R
       call imprimir_caracter
-      mov al, ASCII_E
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_D
+      call imprimir_caracter
+      mov al, ASCII_I
+      call imprimir_caracter
+      mov al, ASCII_R
+      call imprimir_caracter
+      mov al, ASCII_Dot
       call imprimir_caracter
       mov al, ASCII_Colon
       call imprimir_caracter
@@ -235,20 +249,70 @@ GLOBAL mostrar_page_fault
       mov al, ASCII_x
       call imprimir_caracter
 
+      mov cl, Font_Color_White   ; Color del Caracter
+      or cl, Font_Background_Red  ; Color del fondo
+
       xor edx, edx
 
       loop_page_fault:
-        rol eax, 0x01    ; Roto para guardar del mas significativo al menos
-        mov ecx, eax
-        and ecx, 0x01
+        rol ebx, 0x04    ; Roto para mostrar del mas significativo al menos
+        mov eax, ebx    ; Copio en C
+        and eax, 0x0F   ; Me quedo con los 4 bits del hexa
         call convertir_ascii
-        mov al, cl   ; Guardo en el buffer
-        mov cl, Font_Color_White   ; Color del Caracter
-        or cl, Font_Background_Red  ; Color del fondo
         call imprimir_caracter
         inc edx
-        cmp edx, 0x20       ; Cuando recorro los 32 bits me voy
-        jnz loop_page_fault
+      cmp edx, 0x08       ; Cuando recorro los 8 hexa me voy
+      jnz loop_page_fault
+
+      mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
+      add ebp, Screen_Row_05
+      add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+      add ebp, 0x04     ; Le pongo un poco mas de offset
+
+      mov al, ASCII_P
+      call imprimir_caracter
+      mov al, ASCII_A
+      call imprimir_caracter
+      mov al, ASCII_G
+      call imprimir_caracter
+      mov al, ASCII_E
+      call imprimir_caracter
+      mov al, ASCII_S
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_C
+      call imprimir_caracter
+      mov al, ASCII_R
+      call imprimir_caracter
+      mov al, ASCII_E
+      call imprimir_caracter
+      mov al, ASCII_A
+      call imprimir_caracter
+      mov al, ASCII_T
+      call imprimir_caracter
+      mov al, ASCII_E
+      call imprimir_caracter
+      mov al, ASCII_D
+      call imprimir_caracter
+      mov al, ASCII_Colon
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_0
+      call imprimir_caracter
+      mov al, ASCII_x
+      call imprimir_caracter
+
+      mov eax, edi
+      shr eax, 0x04
+      and eax, 0x0F
+      call convertir_ascii
+      call imprimir_caracter
+      mov eax, edi
+      and eax, 0x0F
+      call convertir_ascii
+      call imprimir_caracter
 
       popad
       ret
@@ -281,49 +345,49 @@ GLOBAL mostrar_page_fault
 
       convertir_ascii:
 
-        cmp cl, 0x09    ; Chequeo si es mayor a 9
+        cmp al, 0x09    ; Chequeo si es mayor a 9
         jg not_number
-          add cl, ASCII_0
+          add al, ASCII_0
           ret
         not_number:
 
-        cmp cl, 0x0A
+        cmp al, 0x0A
         jnz not_value_a
-          mov cl, ASCII_A
+          mov al, ASCII_A
           ret
         not_value_a:
 
-        cmp cl, 0x0B
+        cmp al, 0x0B
         jnz not_value_b
-          mov cl, ASCII_B
+          mov al, ASCII_B
           ret
         not_value_b:
 
-        cmp cl, 0x0C
+        cmp al, 0x0C
         jnz not_value_c
-          mov cl, ASCII_C
+          mov al, ASCII_C
           ret
         not_value_c:
 
-        cmp cl, 0x0D
+        cmp al, 0x0D
         jnz not_value_d
-          mov cl, ASCII_D
+          mov al, ASCII_D
           ret
         not_value_d:
 
-        cmp cl, 0x0E
+        cmp al, 0x0E
         jnz not_value_e
-          mov cl, ASCII_E
+          mov al, ASCII_E
           ret
         not_value_e:
 
-        cmp cl, 0x0F
+        cmp al, 0x0F
         jnz not_value_f
-          mov cl, ASCII_F
+          mov al, ASCII_F
           ret
         not_value_f:
 
-        mov cl, ASCII_N     ; Default que me ponga N
+        mov al, ASCII_N     ; Default que me ponga N
         ret
 
 ;----------------------------------------------------------

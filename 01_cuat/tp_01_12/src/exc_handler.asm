@@ -78,9 +78,11 @@ GLOBAL exc_handler_014_pf
       mov dx, 0x0E          ; Guardo el número de excepción "14"
 
       mov eax, cr2                    ; Treigo el numero de la pagina que generó la excepción
+      push eax
       push eax                        ; Lo pusheo a pila
       call paginacion_dinamica
       call mostrar_page_fault
+      pop eax
       pop eax
 
       popad               ; Vuelvo a traer los registros
