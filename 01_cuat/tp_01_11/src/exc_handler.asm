@@ -19,6 +19,7 @@ GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
 GLOBAL exc_handler_008_df
 GLOBAL exc_handler_013_gp
+GLOBAL exc_handler_014_pf
 
 ;--------------------------- 0x00 Divide Error -------------------------------
     exc_handler_000_de:

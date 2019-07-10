@@ -47,6 +47,7 @@ EXTERN exc_handler_000_de
 EXTERN exc_handler_006_ud
 EXTERN exc_handler_008_df
 EXTERN exc_handler_013_gp
+EXTERN exc_handler_014_pf
 EXTERN cs_sel_prim
 EXTERN isr_irq_00_pit
 EXTERN isr_irq_01_keyboard
@@ -92,6 +93,13 @@ GLOBAL img_idtr
       ; Excepcion de General Protection (GP), codigo 13 (0x0D)
       push exc_handler_013_gp
       push 0x0D
+      call load_isr_idt
+      pop eax
+      pop eax
+
+      ; Excepcion de Page Fault (PF), codigo 14 (0x0E)
+      push exc_handler_014_pf
+      push 0x0E
       call load_isr_idt
       pop eax
       pop eax

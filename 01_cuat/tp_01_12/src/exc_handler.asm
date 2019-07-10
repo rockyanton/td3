@@ -19,6 +19,7 @@ GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
 GLOBAL exc_handler_008_df
 GLOBAL exc_handler_013_gp
+GLOBAL exc_handler_014_pf
 
 ;--------------------------- 0x00 Divide Error -------------------------------
     exc_handler_000_de:
@@ -74,6 +75,8 @@ GLOBAL exc_handler_013_gp
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" edx
       mov dx, 0x0E          ; Guardo el número de excepción "14"
+
+      breakpoint
 
       mov eax, cr2                    ; Treigo el numero de la pagina que generó la excepción
       push eax                        ; Lo pusheo a pila
