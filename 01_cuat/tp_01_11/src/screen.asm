@@ -111,7 +111,7 @@ USE32
 section .screen
 
 ;--------- Variables externas ------------
-EXTERN __INICIO_BUFFER_DE_VIDEO
+EXTERN __BUFFER_DE_VIDEO_LIN
 EXTERN suma_tabla_digitos
 
 ;--------- Variables compartidas -----------
@@ -124,7 +124,7 @@ GLOBAL mostrar_page_fault
 
       call limpiar_pantalla   ; Borro lo que haya
 
-      mov ebp, __INICIO_BUFFER_DE_VIDEO     ; Dirección del buffer de video
+      mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
       mov edi, buffer_pantalla_digitos
       xor edx, edx     ; Contador de digitos en 0
 
@@ -259,7 +259,7 @@ GLOBAL mostrar_page_fault
       pushad
       xor esi, esi
       xor eax, eax
-      mov ebp, __INICIO_BUFFER_DE_VIDEO
+      mov ebp, __BUFFER_DE_VIDEO_LIN
       loop_limpiar_pantalla:
         mov [ebp + esi], eax
       inc esi
@@ -331,7 +331,7 @@ GLOBAL mostrar_page_fault
     mostrar_nombre:
       pushad
 
-      mov ebp, __INICIO_BUFFER_DE_VIDEO          ; Dirección del buffer de video
+      mov ebp, __BUFFER_DE_VIDEO_LIN          ; Dirección del buffer de video
       add ebp, Screen_Row_01
       add ebp, Offset_Character_Name ; Le agrego un offset para que me aparezca en el medio de la pantalla
 

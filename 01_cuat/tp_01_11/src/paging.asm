@@ -64,30 +64,49 @@ section .init
 ;--------- Variables externas ------------
 EXTERN __INICIO_DIRECTORIO
 
-EXTERN __HANDLERS_RAM
+EXTERN __HANDLERS_LIN
+EXTERN __HANDLERS_FIS
 EXTERN __HANDLERS_LENGHT
-EXTERN __INICIO_BUFFER_DE_VIDEO
+
+EXTERN __BUFFER_DE_VIDEO_LIN
+EXTERN __BUFFER_DE_VIDEO_FIS
 EXTERN __SIZE_BUFFER_DE_VIDEO
-EXTERN __TABLAS_DE_SISTEMA_RAM
+
+EXTERN __TABLAS_DE_SISTEMA_LIN
+EXTERN __TABLAS_DE_SISTEMA_FIS
 EXTERN __TABLAS_DE_SISTEMA_LENGHT
-EXTERN __TABLAS_DE_PAGINACION_RAM
+
+EXTERN __TABLAS_DE_PAGINACION_LIN
+EXTERN __TABLAS_DE_PAGINACION_FIS
 EXTERN __TABLAS_DE_PAGINACION_LENGHT
-EXTERN __NUCLEO_RAM
+
+EXTERN __NUCLEO_LIN
+EXTERN __NUCLEO_FIS
 EXTERN __NUCLEO_LENGHT
-EXTERN __INICIO_TABLA_DE_DIGITOS
+
+EXTERN __TABLA_DE_DIGITOS_LIN
+EXTERN __TABLA_DE_DIGITOS_FIS
 EXTERN __SIZE_TABLA_DE_DIGITOS
-EXTERN __TAREA_1_TEXT_RAM
+
+EXTERN __TAREA_1_TEXT_LIN
+EXTERN __TAREA_1_TEXT_FIS
 EXTERN __TAREA_1_TEXT_LENGHT
-EXTERN __TAREA_1_BSS_RAM
+
+EXTERN __TAREA_1_BSS_LIN
+EXTERN __TAREA_1_BSS_FIS
 EXTERN __TAREA_1_BSS_LENGHT
-EXTERN __INICIO_PILA
-EXTERN __SIZE_PILA
-EXTERN __INICIO_PILA_TAREA_1
+
+EXTERN __INICIO_PILA_GENERAL_LIN
+EXTERN __INICIO_PILA_GENERAL_FIS
+EXTERN __SIZE_PILA_GENERAL
+
+EXTERN __INICIO_PILA_TAREA_1_LIN
+EXTERN __INICIO_PILA_TAREA_1_FIS
 EXTERN __SIZE_PILA_TAREA_1
-EXTERN __INIT_ROM
+
+EXTERN __INIT_ROM_LIN
+EXTERN __INIT_ROM_FIS
 EXTERN __SIZE_INIT
-
-
 
 ;--------- Variables compartidas -----------
 GLOBAL init_paginar
@@ -106,8 +125,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __HANDLERS_LENGHT
-    push __HANDLERS_RAM
-    push __HANDLERS_RAM
+    push __HANDLERS_FIS
+    push __HANDLERS_LIN
     call paginar
     pop eax
     pop eax
@@ -118,8 +137,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __SIZE_BUFFER_DE_VIDEO
-    push __INICIO_BUFFER_DE_VIDEO
-    push __INICIO_BUFFER_DE_VIDEO
+    push __BUFFER_DE_VIDEO_FIS
+    push __BUFFER_DE_VIDEO_LIN
     call paginar
     pop eax
     pop eax
@@ -130,8 +149,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __TABLAS_DE_SISTEMA_LENGHT
-    push __TABLAS_DE_SISTEMA_RAM
-    push __TABLAS_DE_SISTEMA_RAM
+    push __TABLAS_DE_SISTEMA_FIS
+    push __TABLAS_DE_SISTEMA_LIN
     call paginar
     pop eax
     pop eax
@@ -142,8 +161,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __TABLAS_DE_PAGINACION_LENGHT
-    push __TABLAS_DE_PAGINACION_RAM
-    push __TABLAS_DE_PAGINACION_RAM
+    push __TABLAS_DE_PAGINACION_FIS
+    push __TABLAS_DE_PAGINACION_LIN
     call paginar
     pop eax
     pop eax
@@ -154,8 +173,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __NUCLEO_LENGHT
-    push __NUCLEO_RAM
-    push __NUCLEO_RAM
+    push __NUCLEO_FIS
+    push __NUCLEO_LIN
     call paginar
     pop eax
     pop eax
@@ -166,8 +185,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __SIZE_TABLA_DE_DIGITOS
-    push __INICIO_TABLA_DE_DIGITOS
-    push __INICIO_TABLA_DE_DIGITOS
+    push __TABLA_DE_DIGITOS_FIS
+    push __TABLA_DE_DIGITOS_LIN
     call paginar
     pop eax
     pop eax
@@ -178,8 +197,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __TAREA_1_TEXT_LENGHT
-    push __TAREA_1_TEXT_RAM
-    push __TAREA_1_TEXT_RAM
+    push __TAREA_1_TEXT_FIS
+    push __TAREA_1_TEXT_LIN
     call paginar
     pop eax
     pop eax
@@ -190,8 +209,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __TAREA_1_BSS_LENGHT
-    push __TAREA_1_BSS_RAM
-    push __TAREA_1_BSS_RAM
+    push __TAREA_1_BSS_FIS
+    push __TAREA_1_BSS_LIN
     call paginar
     pop eax
     pop eax
@@ -201,9 +220,9 @@ GLOBAL directorio
 
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
-    push __SIZE_PILA
-    push __INICIO_PILA
-    push __INICIO_PILA
+    push __SIZE_PILA_GENERAL
+    push __INICIO_PILA_GENERAL_FIS
+    push __INICIO_PILA_GENERAL_LIN
     call paginar
     pop eax
     pop eax
@@ -214,8 +233,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __SIZE_PILA_TAREA_1
-    push __INICIO_PILA_TAREA_1
-    push __INICIO_PILA_TAREA_1
+    push __INICIO_PILA_TAREA_1_FIS
+    push __INICIO_PILA_TAREA_1_LIN
     call paginar
     pop eax
     pop eax
@@ -226,8 +245,8 @@ GLOBAL directorio
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
     push __SIZE_INIT
-    push __INIT_ROM
-    push __INIT_ROM
+    push __INIT_ROM_FIS
+    push __INIT_ROM_LIN
     call paginar
     pop eax
     pop eax

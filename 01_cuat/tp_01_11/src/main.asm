@@ -75,16 +75,16 @@ USE32
 ;--------- Variables compartidas -----------
 
 ;--------- Variables externas ------------
-EXTERN __FIN_PILA
+EXTERN __FIN_PILA_GENERAL_LIN
 EXTERN __NUCLEO_ROM
-EXTERN __NUCLEO_RAM
+EXTERN __NUCLEO_LIN
 EXTERN __NUCLEO_LENGHT
 EXTERN __COPY_ROM
 EXTERN __HANDLERS_ROM
-EXTERN __HANDLERS_RAM
+EXTERN __HANDLERS_LIN
 EXTERN __HANDLERS_LENGHT
 EXTERN __TAREA_1_TEXT_ROM
-EXTERN __TAREA_1_TEXT_RAM
+EXTERN __TAREA_1_TEXT_LIN
 EXTERN __TAREA_1_TEXT_LENGHT
 EXTERN copy
 EXTERN gdt
@@ -94,7 +94,7 @@ EXTERN cs_sel
 EXTERN init_idt
 EXTERN img_idtr
 EXTERN init_paginar
-EXTERN directorio
+EXTERN __INICIO_DIRECTORIO
 EXTERN _pic_configure
 EXTERN _pit_configure
 
@@ -106,22 +106,22 @@ EXTERN _pit_configure
     mov ss, ax
 
     ;--------- Cargo la dirección del stack (pila) ------------
-    mov esp, __FIN_PILA ; La pila se carga al revés (es decreciente)
+    mov esp, __FIN_PILA_GENERAL_LIN ; La pila se carga al revés (es decreciente)
 
     ;--------- Inicializo las tablas y activo paginación ------------
 
     call init_paginar
 
-    mov eax, directorio
+    mov eax, __INICIO_DIRECTORIO
     mov cr3, eax          ; Cargo el directorio de páginas en cr3
-    
+
     mov eax,cr0           ; Pongo en 1 el bit 31 de cr0: Paginacion activada
     or eax,0x80000000
     mov cr0,eax
 
     ;--------- Paso el NUCLEO a RAM (se copia a si mismo con la rutina copy) ------------
     push __NUCLEO_ROM     ; Pusheo ORIGEN
-    push __NUCLEO_RAM     ; Pusheo DESTINO
+    push __NUCLEO_LIN     ; Pusheo DESTINO
     push __NUCLEO_LENGHT  ; Pusheo LARGO
     call __COPY_ROM       ; LLamo a la rutina en ROM
     pop eax               ; Saco los 3 push que hice antes
@@ -130,7 +130,7 @@ EXTERN _pit_configure
 
     ;--------- Copio los HANDLERS a RAM ------------
     push __HANDLERS_ROM    ; Pusheo ORIGEN
-    push __HANDLERS_RAM    ; Pusheo DESTINO
+    push __HANDLERS_LIN    ; Pusheo DESTINO
     push __HANDLERS_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
@@ -139,7 +139,7 @@ EXTERN _pit_configure
 
     ;--------- Copio las TAREAS a RAM ------------
     push __TAREA_1_TEXT_ROM    ; Pusheo ORIGEN
-    push __TAREA_1_TEXT_RAM    ; Pusheo DESTINO
+    push __TAREA_1_TEXT_LIN    ; Pusheo DESTINO
     push __TAREA_1_TEXT_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
