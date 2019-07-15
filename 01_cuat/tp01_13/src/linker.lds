@@ -61,7 +61,7 @@ SECTIONS
 
 
   /*------------NUCLEO------------*/
-  .nucleo_out 0x00400000 :                  /* El vector "." de VMA le digo que arranque en 0x00400000 */
+  .nucleo_out 0x00500000 :                  /* El vector "." de VMA le digo que arranque en 0x00400000 */
     { __NUCLEO_LIN = .;                     /* Cargo el valor anterior en la etiqueta __COPY_RAM (VALOR EN VMA) */
       __NUCLEO_ROM = LOADADDR(.nucleo_out); /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/copy.elf(.copy);                  /* Que copie la sección .copy del archivo copy ensamblado */
@@ -73,66 +73,157 @@ SECTIONS
     __COPY_ROM = __NUCLEO_ROM;              /* Dirección de Copy */
 
   /*------TABLA DE DIGITOS-------*/
-  .tabla_de_digitos_out 0x00410000 :           /* El vector "." de VMA le digo que arranque en 0x00410000 */
+  .tabla_de_digitos_out 0x00510000 :           /* El vector "." de VMA le digo que arranque en 0x00410000 */
     { __TABLA_DE_DIGITOS_LIN = .;           /* Cargo el valor anterior en la etiqueta __INICIO_TABLA_DE_DIGITOS (VALOR EN VMA) */
       bin/tables.elf(.tabla_de_digitos);      /* Que copie la sección .tabla_de_digitos del archivo ensamblado */
     }
     __SIZE_TABLA_DE_DIGITOS = SIZEOF(.tabla_de_digitos_out);    /* Le pido el largo de la seccion de .tabla_de_digitos */
     __TABLA_DE_DIGITOS_FIS = __TABLA_DE_DIGITOS_LIN;
 
+  /*----------TAREA 0------------*/
+  .tarea_0_text_out 0x00610000 :                          /* El vector "." de VMA le digo que arranque en 0x00610000 */
+    { __TAREA_0_TEXT_LIN = .;                             /* Cargo el valor anterior en la etiqueta __TAREA_0_TEXT_RAM (VALOR EN VMA) */
+      __TAREA_0_TEXT_ROM = LOADADDR(.tarea_0_text_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_0.elf(.tarea_0_text);                     /* Que copie la sección .tarea_0_text del archivo ensamblado */
+    } AT >rom                                             /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_0_TEXT_LENGHT = SIZEOF(.tarea_0_text_out);    /* Le pido el largo de la seccion de .tarea_0_text_out */
+    __TAREA_0_TEXT_FIS = 0x00501000;
+
+  .tarea_0_bss_out 0x00611000 :                        /* El vector "." de VMA le digo que arranque en 0x00421000 */
+    { __TAREA_0_BSS_LIN = .;                           /* Cargo el valor anterior en la etiqueta __TAREA_0_BSS_RAM (VALOR EN VMA) */
+      bin/tarea_0.elf(.tarea_0_bss);                   /* Que copie la sección .tarea_0_bss del archivo ensamblado */
+    }                                                  /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_0_BSS_LENGHT = SIZEOF(.tarea_0_bss_out);   /* Le pido el largo de la seccion de .tarea_0_bss_out */
+    __TAREA_0_BSS_FIS = 0x00502000;
+
+  .tarea_0_data_rw_out 0x00612000 :                             /* El vector "." de VMA le digo que arranque en 0x00422000 */
+    { __TAREA_0_DATA_RW_LIN = .;                                /* Cargo el valor anterior en la etiqueta __TAREA_0_DATA_RW_RAM (VALOR EN VMA) */
+      __TAREA_0_DATA_RW_ROM = LOADADDR(.tarea_0_data_rw_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_0.elf(.tarea_0_data_rw);                        /* Que copie la sección .tarea_0_data_rw del archivo ensamblado */
+    } AT >rom                                                   /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_0_DATA_RW_LENGHT = SIZEOF(.tarea_0_data_rw_out);    /* Le pido el largo de la seccion de .tarea_0_data_rw_out */
+    __TAREA_0_DATA_RW_FIS = 0x00503000;
+
+  .tarea_0_data_r_out 0x00613000 :                            /* El vector "." de VMA le digo que arranque en 0x00423000 */
+    { __TAREA_0_DATA_R_LIN = .;                               /* Cargo el valor anterior en la etiqueta __TAREA_0_DATA_R_RAM (VALOR EN VMA) */
+      __TAREA_0_DATA_R_ROM = LOADADDR(.tarea_0_data_r_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_0.elf(.tarea_0_data_r);                       /* Que copie la sección .tarea_0_data_r del archivo ensamblado */
+    } AT >rom                                                 /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_0_DATA_R_LENGHT = SIZEOF(.tarea_0_data_r_out);    /* Le pido el largo de la seccion de .tarea_0_data_r_out */
+    __TAREA_0_DATA_R_FIS = 0x00504000;
+
   /*----------TAREA 1------------*/
-  .tarea_1_text_out 0x00510000 :                        /* El vector "." de VMA le digo que arranque en 0x00420000 */
+  .tarea_1_text_out 0x00610000 :                        /* El vector "." de VMA le digo que arranque en 0x00420000 */
     { __TAREA_1_TEXT_LIN = .;                            /* Cargo el valor anterior en la etiqueta __TAREA_1_TEXT_RAM (VALOR EN VMA) */
       __TAREA_1_TEXT_ROM = LOADADDR(.tarea_1_text_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/tarea_1.elf(.tarea_1_text);                    /* Que copie la sección .tarea_1_text del archivo ensamblado */
     } AT >rom                                           /* Le pido que me cargue todo eso en ROM (LMA) */
     __TAREA_1_TEXT_LENGHT = SIZEOF(.tarea_1_text_out);   /* Le pido el largo de la seccion de .tarea_1_text_out */
-    __TAREA_1_TEXT_FIS = 0x00421000;
+    __TAREA_1_TEXT_FIS = 0x00521000;
 
-  .tarea_1_bss_out 0x00511000 :                        /* El vector "." de VMA le digo que arranque en 0x00421000 */
+  .tarea_1_bss_out 0x00611000 :                        /* El vector "." de VMA le digo que arranque en 0x00421000 */
     { __TAREA_1_BSS_LIN = .;                           /* Cargo el valor anterior en la etiqueta __TAREA_1_BSS_RAM (VALOR EN VMA) */
       bin/tarea_1.elf(.tarea_1_bss);                   /* Que copie la sección .tarea_1_bss del archivo ensamblado */
     }                                                  /* Le pido que me cargue todo eso en ROM (LMA) */
     __TAREA_1_BSS_LENGHT = SIZEOF(.tarea_1_bss_out);   /* Le pido el largo de la seccion de .tarea_1_bss_out */
-    __TAREA_1_BSS_FIS = 0x00042000;
+    __TAREA_1_BSS_FIS = 0x00522000;
 
-  .tarea_1_data_rw_out 0x00512000 :                             /* El vector "." de VMA le digo que arranque en 0x00422000 */
+  .tarea_1_data_rw_out 0x00612000 :                             /* El vector "." de VMA le digo que arranque en 0x00422000 */
     { __TAREA_1_DATA_RW_LIN = .;                                /* Cargo el valor anterior en la etiqueta __TAREA_1_DATA_RW_RAM (VALOR EN VMA) */
       __TAREA_1_DATA_RW_ROM = LOADADDR(.tarea_1_data_rw_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/tarea_1.elf(.tarea_1_data_rw);                        /* Que copie la sección .tarea_1_data_rw del archivo ensamblado */
     } AT >rom                                                   /* Le pido que me cargue todo eso en ROM (LMA) */
     __TAREA_1_DATA_RW_LENGHT = SIZEOF(.tarea_1_data_rw_out);    /* Le pido el largo de la seccion de .tarea_1_data_rw_out */
-    __TAREA_1_DATA_RW_FIS = 0x00423000;
+    __TAREA_1_DATA_RW_FIS = 0x00523000;
 
-  .tarea_1_data_r_out 0x00513000 :                            /* El vector "." de VMA le digo que arranque en 0x00423000 */
+  .tarea_1_data_r_out 0x00613000 :                            /* El vector "." de VMA le digo que arranque en 0x00423000 */
     { __TAREA_1_DATA_R_LIN = .;                               /* Cargo el valor anterior en la etiqueta __TAREA_1_DATA_R_RAM (VALOR EN VMA) */
       __TAREA_1_DATA_R_ROM = LOADADDR(.tarea_1_data_r_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
       bin/tarea_1.elf(.tarea_1_data_r);                       /* Que copie la sección .tarea_1_data_r del archivo ensamblado */
     } AT >rom                                                 /* Le pido que me cargue todo eso en ROM (LMA) */
     __TAREA_1_DATA_R_LENGHT = SIZEOF(.tarea_1_data_r_out);    /* Le pido el largo de la seccion de .tarea_1_data_r_out */
-    __TAREA_1_DATA_R_FIS = 0x00424000;
+    __TAREA_1_DATA_R_FIS = 0x00524000;
+
+  /*----------TAREA 2------------*/
+  .tarea_2_text_out 0x00610000 :                        /* El vector "." de VMA le digo que arranque en 0x00420000 */
+    { __TAREA_2_TEXT_LIN = .;                            /* Cargo el valor anterior en la etiqueta __TAREA_2_TEXT_RAM (VALOR EN VMA) */
+      __TAREA_2_TEXT_ROM = LOADADDR(.tarea_2_text_out);  /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_2.elf(.tarea_2_text);                    /* Que copie la sección .tarea_2_text del archivo ensamblado */
+    } AT >rom                                           /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_2_TEXT_LENGHT = SIZEOF(.tarea_2_text_out);   /* Le pido el largo de la seccion de .tarea_2_text_out */
+    __TAREA_2_TEXT_FIS = 0x00531000;
+
+  .tarea_2_bss_out 0x00611000 :                        /* El vector "." de VMA le digo que arranque en 0x00421000 */
+    { __TAREA_2_BSS_LIN = .;                           /* Cargo el valor anterior en la etiqueta __TAREA_2_BSS_RAM (VALOR EN VMA) */
+      bin/tarea_2.elf(.tarea_2_bss);                   /* Que copie la sección .tarea_2_bss del archivo ensamblado */
+    }                                                  /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_2_BSS_LENGHT = SIZEOF(.tarea_2_bss_out);   /* Le pido el largo de la seccion de .tarea_2_bss_out */
+    __TAREA_2_BSS_FIS = 0x00532000;
+
+  .tarea_2_data_rw_out 0x00612000 :                             /* El vector "." de VMA le digo que arranque en 0x00422000 */
+    { __TAREA_2_DATA_RW_LIN = .;                                /* Cargo el valor anterior en la etiqueta __TAREA_2_DATA_RW_RAM (VALOR EN VMA) */
+      __TAREA_2_DATA_RW_ROM = LOADADDR(.tarea_2_data_rw_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_2.elf(.tarea_2_data_rw);                        /* Que copie la sección .tarea_2_data_rw del archivo ensamblado */
+    } AT >rom                                                   /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_2_DATA_RW_LENGHT = SIZEOF(.tarea_2_data_rw_out);    /* Le pido el largo de la seccion de .tarea_2_data_rw_out */
+    __TAREA_2_DATA_RW_FIS = 0x00533000;
+
+  .tarea_2_data_r_out 0x00613000 :                            /* El vector "." de VMA le digo que arranque en 0x00423000 */
+    { __TAREA_2_DATA_R_LIN = .;                               /* Cargo el valor anterior en la etiqueta __TAREA_2_DATA_R_RAM (VALOR EN VMA) */
+      __TAREA_2_DATA_R_ROM = LOADADDR(.tarea_2_data_r_out);   /* Como no se en que parte de la rom me lo cargan (LMA), tengo que usar la funcion LOADADDR para que me diga donde cargó esa seccion */
+      bin/tarea_2.elf(.tarea_2_data_r);                       /* Que copie la sección .tarea_2_data_r del archivo ensamblado */
+    } AT >rom                                                 /* Le pido que me cargue todo eso en ROM (LMA) */
+    __TAREA_2_DATA_R_LENGHT = SIZEOF(.tarea_2_data_r_out);    /* Le pido el largo de la seccion de .tarea_2_data_r_out */
+    __TAREA_2_DATA_R_FIS = 0x00534000;
 
   /*-----------DATOS------------*/
-  .datos_out 0x004E0000 :    /* El vector "." de VMA le digo que arranque en 0x004E0000 */
-  {*(.datos)}                /* Todos los archivos de datos que los cargue en ese lugar */
+  .datos_out 0x005E0000 :    /* El vector "." de VMA le digo que arranque en 0x004E0000 */
+  { __DATOS_LIN = .;
+    *(.datos);              /* Todos los archivos de datos que los cargue en ese lugar */
+  }
+  __DATOS_FIS = __DATOS_LIN;
 
-  /*------------TABLAS DINÁMICAS------------*/
-  __TABLAS_DINAMICAS_FIS = 0x08000000;
-  __FIN_TABLAS_DINAMICAS_FIS = 0x20000000;
-  __SIZE_TABLAS_DINAMICAS = __FIN_TABLAS_DINAMICAS_FIS - __TABLAS_DINAMICAS_FIS;
+  /*-----------PILA NUCLEO TAREA 0------------*/
+  __INICIO_PILA_NUCLEO_TAREA_0_LIN = 0x1FFF8000;                               /* Principio del stack */
+  __SIZE_PILA_NUCLEO_TAREA_0 = 0x00000FFC; /* Calculo el largo de la pila */
+  __FIN_PILA_NUCLEO_TAREA_0_LIN = __INICIO_PILA_NUCLEO_TAREA_0_LIN + __SIZE_PILA_NUCLEO_TAREA_0;
+  __INICIO_PILA_NUCLEO_TAREA_0_FIS = 0x00614000;
 
-  /*-----------PILA GENERAL------------*/
-  __INICIO_PILA_GENERAL_LIN = 0x1FFFB000;                   /* Principio del stack */
-  __FIN_PILA_GENERAL_LIN = 0x1FFFDFF0;                      /* La termino al principop de la pila de la tarea 1 */
-  __SIZE_PILA_GENERAL = __FIN_PILA_GENERAL_LIN - __INICIO_PILA_GENERAL_LIN;     /* Calculo el largo de la pila */
-  __INICIO_PILA_GENERAL_FIS = __INICIO_PILA_GENERAL_LIN;
-  __FIN_PILA_GENERAL_FIS = __INICIO_PILA_GENERAL_FIS + __SIZE_PILA_GENERAL;
+  /*-----------PILA NUCLEO TAREA 1------------*/
+  __INICIO_PILA_NUCLEO_TAREA_1_LIN = 0x1FFF9000;                               /* Principio del stack */
+  __SIZE_PILA_NUCLEO_TAREA_1 = 0x00000FFC;
+  __FIN_PILA_NUCLEO_TAREA_1_LIN = __INICIO_PILA_NUCLEO_TAREA_1_LIN + __SIZE_PILA_NUCLEO_TAREA_1; /* Calculo el largo de la pila */
+  __INICIO_PILA_NUCLEO_TAREA_1_FIS = 0x00614000;
 
-  /*-----------PILA TAREA 1------------*/
-  __INICIO_PILA_TAREA_1_LIN = 0x1FFFE000;                               /* Principio del stack */
-  __FIN_PILA_TAREA_1_LIN = 0x1FFFFFF0;                                  /* La termino al final de la RAM */
-  __SIZE_PILA_TAREA_1 = __FIN_PILA_TAREA_1_LIN - __INICIO_PILA_TAREA_1_LIN; /* Calculo el largo de la pila */
-  __INICIO_PILA_TAREA_1_FIS = __INICIO_PILA_TAREA_1_LIN;
-  __FIN_PILA_TAREA_1_FIS = __INICIO_PILA_TAREA_1_FIS + __SIZE_PILA_TAREA_1;
+  /*-----------PILA NUCLEO TAREA 2------------*/
+  __INICIO_PILA_NUCLEO_TAREA_2_LIN = 0x1FFFA000;                               /* Principio del stack */
+  __SIZE_PILA_NUCLEO_TAREA_2 = 0x00000FFC;
+  __FIN_PILA_NUCLEO_TAREA_2_LIN = __INICIO_PILA_NUCLEO_TAREA_2_LIN + __SIZE_PILA_NUCLEO_TAREA_2; /* Calculo el largo de la pila */
+  __INICIO_PILA_NUCLEO_TAREA_2_FIS = 0x00614000;
+
+  /*-----------PILA NUCLEO------------*/
+  __INICIO_PILA_NUCLEO_LIN = 0x1FFFB000;                   /* Principio del stack */
+  __FIN_PILA_NUCLEO_LIN = 0x1FFFBFFC;                      /* La termino al principop de la pila de la tarea 1 */
+  __SIZE_PILA_NUCLEO = __FIN_PILA_NUCLEO_LIN - __INICIO_PILA_NUCLEO_LIN;     /* Calculo el largo de la pila */
+  __INICIO_PILA_NUCLEO_FIS = __INICIO_PILA_NUCLEO_LIN;
+  __FIN_PILA_NUCLEO_FIS = __INICIO_PILA_NUCLEO_FIS + __SIZE_PILA_NUCLEO;
+
+  /*-----------PILA USUARIO TAREA 0------------*/
+  __INICIO_PILA_USUARIO_TAREA_0_LIN = 0x1FFFC000;                               /* Principio del stack */
+  __SIZE_PILA_USUARIO_TAREA_0 = 0x00000FFC; /* Calculo el largo de la pila */
+  __FIN_PILA_USUARIO_TAREA_0_LIN = __INICIO_PILA_USUARIO_TAREA_0_LIN + __SIZE_PILA_USUARIO_TAREA_0;
+  __INICIO_PILA_USUARIO_TAREA_0_FIS = 0x00613000;
+
+  /*-----------PILA USUARIO TAREA 1------------*/
+  __INICIO_PILA_USUARIO_TAREA_1_LIN = 0x1FFFD000;                               /* Principio del stack */
+  __SIZE_PILA_USUARIO_TAREA_1 = 0x00000FFC; /* Calculo el largo de la pila */
+  __FIN_PILA_USUARIO_TAREA_1_LIN = __INICIO_PILA_USUARIO_TAREA_1_LIN + __SIZE_PILA_USUARIO_TAREA_1;
+  __INICIO_PILA_USUARIO_TAREA_1_FIS = 0x00613000;
+
+  /*-----------PILA USUARIO TAREA 2------------*/
+  __INICIO_PILA_USUARIO_TAREA_2_LIN = 0x1FFFE000;                               /* Principio del stack */
+  __SIZE_PILA_USUARIO_TAREA_2 = 0x00000FFC; /* Calculo el largo de la pila */
+  __FIN_PILA_USUARIO_TAREA_2_LIN = __INICIO_PILA_USUARIO_TAREA_2_LIN + __SIZE_PILA_USUARIO_TAREA_2;
+  __INICIO_PILA_USUARIO_TAREA_2_FIS = 0x00613000;
 
 }

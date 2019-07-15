@@ -75,7 +75,7 @@ USE32
 ;--------- Variables compartidas -----------
 
 ;--------- Variables externas ------------
-EXTERN __FIN_PILA_GENERAL_LIN
+EXTERN __FIN_PILA_NUCLEO_LIN
 EXTERN __NUCLEO_ROM
 EXTERN __NUCLEO_LIN
 EXTERN __NUCLEO_LENGHT
@@ -106,7 +106,7 @@ EXTERN _pit_configure
     mov ss, ax
 
     ;--------- Cargo la dirección del stack (pila) ------------
-    mov esp, __FIN_PILA_GENERAL_LIN ; La pila se carga al revés (es decreciente)
+    mov esp, __FIN_PILA_NUCLEO_LIN ; La pila se carga al revés (es decreciente)
 
     ;--------- Inicializo las tablas y activo paginación ------------
 
