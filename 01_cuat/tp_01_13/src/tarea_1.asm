@@ -108,7 +108,7 @@ GLOBAL check_keyboard_buffer
 
         call mostrar_digitos  ; Muestro resultado en pantalla
 
-        call leer_memoria
+        ;call leer_memoria
 
         jmp end_check_keyboard_buffer
 
