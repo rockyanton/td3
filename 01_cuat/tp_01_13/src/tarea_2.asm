@@ -19,16 +19,16 @@ EXTERN puntero_tabla_digitos
 EXTERN mostrar_digitos
 
 ;--------- Variables compartidas -----------
-GLOBAL check_keyboard_buffer
+GLOBAL tarea_2
 
-  check_keyboard_buffer:
+  tarea_2:
     pushad
     xor eax, eax      ; Limpio registro
     mov al, [keyboard_buffer_status]
     mov bl, al        ; Guardo el valor
     and bl, 0x80      ; El bit 8 es el de flag de enter
     cmp bl, 0x80
-    jnz end_check_keyboard_buffer   ; Si no hay enter me voy
+    jnz end_tarea_2   ; Si no hay enter me voy
 
     and al, 0x1F    ; Los primeros 5 bytes son el contador
     mov dl, 0x02
@@ -106,11 +106,17 @@ GLOBAL check_keyboard_buffer
 
         call sumar_tabla
 
+        push ebx
+        push eax
+
         call mostrar_digitos  ; Muestro resultado en pantalla
+
+        pop ecx
+        pop ecx
 
         ;call leer_memoria
 
-        jmp end_check_keyboard_buffer
+        jmp end_tarea_2
 
 
       guardar_en_tabla:
@@ -139,8 +145,8 @@ GLOBAL check_keyboard_buffer
 
         mov esi, 0x04     ; Para acceder a los 32 otros altos
 
-        mov eax, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
-        mov ebx, [suma_tabla_digitos + esi]
+        mov eax, [suma_tabla_digitos_2]         ; Traigo el resulatdo de la suma acumulado
+        mov ebx, [suma_tabla_digitos_2 + esi]
 
         mov ecx, [tabla_digitos + ebp*8]        ; Traigo el valor del dato
         mov edx, [tabla_digitos + ebp*8 + esi]
@@ -158,8 +164,8 @@ GLOBAL check_keyboard_buffer
           jmp guardar_suma
 
         guardar_suma:
-          mov [suma_tabla_digitos], eax         ; Guardo el resultado
-          mov [suma_tabla_digitos + esi], ebx
+          mov [suma_tabla_digitos_2], eax         ; Guardo el resultado
+          mov [suma_tabla_digitos_2 + esi], ebx
 
         ret ; Vuelvo
 
@@ -184,7 +190,7 @@ GLOBAL check_keyboard_buffer
         end_leer_memoria:
         ret
 
-    end_check_keyboard_buffer:
+    end_tarea_2:
       popad
       ret
 
@@ -225,7 +231,6 @@ section .tarea_2_bss nobits
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
-GLOBAL suma_tabla_digitos
 
-suma_tabla_digitos:
+suma_tabla_digitos_2:
   resb 8        ; Reservo 8 bytes para la suma (64 bits)

@@ -112,7 +112,6 @@ section .screen
 
 ;--------- Variables externas ------------
 EXTERN __BUFFER_DE_VIDEO_LIN
-EXTERN suma_tabla_digitos
 
 ;--------- Variables compartidas -----------
 GLOBAL mostrar_nombre
@@ -122,14 +121,15 @@ GLOBAL mostrar_page_fault
     mostrar_digitos:
       pushad
 
+      mov ebp, esp
+
+      mov ecx, [ebp + 0x04*9]         ; Traigo el resulatdo de la suma acumulado
+      mov edx, [ebp + 0x04*10]
+
       call limpiar_pantalla
 
       mov edi, buffer_pantalla_digitos
       xor ebx, ebx     ; Contador de digitos en 0
-
-      mov esi, 0x04
-      mov ecx, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
-      mov edx, [suma_tabla_digitos + esi]
 
       guardar_parte_alta:
         rol edx, 0x04    ; Roto para guardar del mas significativo al menos

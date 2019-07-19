@@ -181,7 +181,7 @@ EXTERN _pit_configure
 ;--------- Parámetros globales ------------
 
 ;--------- Variables externas ------------
-EXTERN check_keyboard_buffer
+EXTERN tarea_1
 EXTERN mostrar_nombre
 
 ;--------- Variables compartidas -----------
@@ -191,5 +191,5 @@ EXTERN mostrar_nombre
 
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
-    call check_keyboard_buffer    ; Llamo a la funcion que carga el digito en tabla
+    call tarea_1    ; Llamo a la funcion que carga el digito en tabla
     jmp main          ; Vuelvo a esperar

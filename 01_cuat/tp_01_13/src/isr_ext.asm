@@ -17,7 +17,6 @@ section .isr
 ;--------- Variables compartidas -----------
 GLOBAL isr_irq_00_pit
 GLOBAL isr_irq_01_keyboard
-GLOBAL pit_flag
 
 ;--------- Variables externas ------------
 EXTERN handle_keyboard
@@ -53,6 +52,8 @@ EXTERN handle_keyboard
     popad
     iret    ; Vuelvo de la interrupción
 
+    pit_status:
+    db 0x00
     pit_counter:
     db 0x00
     pit_flag:

@@ -82,6 +82,7 @@ GLOBAL exc_handler_014_pf
       push eax                        ; Lo pusheo a pila
       ;call paginacion_dinamica
       call mostrar_page_fault
+      breakpoint
       pop eax
       pop eax
 

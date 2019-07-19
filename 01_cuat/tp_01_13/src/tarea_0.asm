@@ -14,6 +14,7 @@ section .tarea_0_text progbits
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
+GLOBAL tarea_0
 
   tarea_0:
     hlt
