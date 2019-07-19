@@ -104,8 +104,6 @@ GLOBAL tarea_1
         and al, 0x7F
         mov [keyboard_buffer_status], al
 
-        breakpoint
-
         call sumar_tabla
 
         push ebx
