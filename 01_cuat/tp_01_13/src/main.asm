@@ -75,6 +75,7 @@ USE32
 ;--------- Variables compartidas -----------
 
 ;--------- Variables externas ------------
+EXTERN __FIN_PILA_NUCLEO_FIS
 EXTERN __FIN_PILA_NUCLEO_LIN
 EXTERN __NUCLEO_ROM
 EXTERN __NUCLEO_LIN
@@ -106,7 +107,7 @@ EXTERN _pit_configure
     mov ss, ax
 
     ;--------- Cargo la dirección del stack (pila) ------------
-    mov esp, __FIN_PILA_NUCLEO_LIN ; La pila se carga al revés (es decreciente)
+    mov esp, __FIN_PILA_NUCLEO_FIS    ; La pila se carga al revés (es decreciente)
 
     ;--------- Inicializo las tablas y activo paginación ------------
 
@@ -118,6 +119,7 @@ EXTERN _pit_configure
     mov eax,cr0           ; Pongo en 1 el bit 31 de cr0: Paginacion activada
     or eax,0x80000000
     mov cr0,eax
+    mov esp, __FIN_PILA_NUCLEO_LIN    ; La pila se carga al revés (es decreciente)
 
     ;--------- Paso el NUCLEO a RAM (se copia a si mismo con la rutina copy) ------------
     push __NUCLEO_ROM     ; Pusheo ORIGEN
@@ -132,15 +134,6 @@ EXTERN _pit_configure
     push __HANDLERS_ROM    ; Pusheo ORIGEN
     push __HANDLERS_LIN    ; Pusheo DESTINO
     push __HANDLERS_LENGHT ; Pusheo LARGO
-    call copy             ; LLamo a la rutina en RAM
-    pop eax               ; Saco los 3 push que hice antes
-    pop eax
-    pop eax
-
-    ;--------- Copio las TAREAS a RAM ------------
-    push __TAREA_1_TEXT_ROM    ; Pusheo ORIGEN
-    push __TAREA_1_TEXT_LIN    ; Pusheo DESTINO
-    push __TAREA_1_TEXT_LENGHT ; Pusheo LARGO
     call copy             ; LLamo a la rutina en RAM
     pop eax               ; Saco los 3 push que hice antes
     pop eax
@@ -181,7 +174,6 @@ EXTERN _pit_configure
 ;--------- Parámetros globales ------------
 
 ;--------- Variables externas ------------
-EXTERN tarea_1
 EXTERN mostrar_nombre
 
 ;--------- Variables compartidas -----------
@@ -191,5 +183,4 @@ EXTERN mostrar_nombre
 
   main:
     hlt       ; Halteo el procesador hasta que me llegue algo
-    call tarea_1    ; Llamo a la funcion que carga el digito en tabla
     jmp main          ; Vuelvo a esperar

@@ -4,12 +4,11 @@
 %define breakpoint  xchg bx,bx
 
 %define Table_Attrib_S_RW_P   0x03
+%define Table_Attrib_U_RW_P   0x01
 %define Page_Attrib_S_RW_P    0x03
-%define Page_Attrib_S_R_P     0x03
-
-;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (DATA) +++++++++++++++++++++++
-;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%define Page_Attrib_S_R_P     0x01
+%define Page_Attrib_U_RW_P    0x07
+%define Page_Attrib_U_R_P     0x05
 
 ;  |11|10|9|8|7|6|5|4|3|2|1|0| ==> Page Directory Entry (Table)
 ;   |  |  | | | | | | | | | `----- Present (1) -- Not Present (0)
@@ -26,7 +25,7 @@
 ;  |11|10|9|8|7|6|5|4|3|2|1|0| ==> Page Table Entry (Page)
 ;   |  |  | | | | | | | | | `----- Present (1) -- Not Present (0)
 ;   |  |  | | | | | | | | `------- Read/Write (1) -- Read Only (0)
-;   |  |  | | | | | | | `--------- User/Spervisor
+;   |  |  | | | | | | | `--------- User/Spervisor (1) -- Supervisor (0)
 ;   |  |  | | | | | | `----------- Write-through
 ;   |  |  | | | | | `------------- Cache disabled
 ;   |  |  | | | | `--------------- Accesed
@@ -36,24 +35,38 @@
 ;   `--`--`----------------------- Available for system programer's use
 
 
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (DATA) +++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 ;________________________________________________________________________________________________________________
 ;                       |   Dirección  |              |  Cantidad  | Indice Tabla |  Indice Página  |           |
 ;        Sección        |    Lineal    |   Longitud   | de Páginas | (Directorio) |     (Tabla)     | ¿Paginar? |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
-; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00D1 |     1      |    0x 000    |     0x 000      |     SI    |
-; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000    |     0x 0B8      |     SI    |
+; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00C7 |     1      |    0x 000    |     0x 000      |     SI    |
+; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000    |     0x 010      |     SI    |
 ; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0810 |     1      |    0x 000    |     0x 100      |     SI    |
-; Tablas de Paginacion  | 0x 0011 0000 | 0x 001F 9008 |    506     |    0x 000    |     0x 110      |     SI    |
-; Nucleo                | 0x 0040 0000 | 0x 0000 04D9 |     1      |    0x 001    |     0x 000      |     SI    |
-; Tabla de Digitos      | 0x 0041 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
-; Tarea 1 (Text)        | 0x 0051 0000 | 0x 0000 0140 |     1      |    0x 001    |     0x 110      |     SI    |
-; Tarea 1 (BSS)         | 0x 0051 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 111      |     NO    |
-; Tarea 1 (Data RW)     | 0x 0051 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 112      |     NO    |
-; Tarea 1 (Data R)      | 0x 0051 3000 | 0x 0000 0000 |     0      |    0x 001    |     0x 113      |     NO    |
-; Datos                 | 0x 004E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 0E0      |     NO    |
-; Pila General          | 0x 1FFF B000 | 0x 0000 2FF0 |     3      |    0x 07F    | 0x 3FB - 0x 3FD |     SI    |
-; Pila Tarea 1          | 0x 0041 3000 | 0x 0000 1FF0 |     2      |    0x 07F    | 0x 013 - 0x 015 |     SI    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 1732 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
+; Tablas de Paginacion  | 0x 0011 0000 | 0x 0006 5008 |    101     |    0x 000    | 0x 110 - 0x 211 |     SI    |
+; Nucleo                | 0x 0050 0000 | 0x 0000 04D0 |     1      |    0x 001    |     0x 100      |     SI    |
+; Tabla de Digitos      | 0x 0051 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
+; Tarea 0 (Text)        | 0x 0061 0000 | 0x 0000 0003 |     1      |    0x 001    |     0x 210      |     NO    |
+; Tarea 0 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
+; Tarea 0 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
+; Tarea 1 (Text)        | 0x 0061 0000 | 0x 0000 0140 |     1      |    0x 001    |     0x 210      |     NO    |
+; Tarea 1 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
+; Tarea 1 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
+; Tarea 2 (Text)        | 0x 0061 0000 | 0x 0000 0140 |     1      |    0x 001    |     0x 210      |     NO    |
+; Tarea 2 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
+; Tarea 2 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
+; Datos                 | 0x 005E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 1E0      |     NO    |
+; Pila Núcleo Tarea 0   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
+; Pila Núcleo Tarea 1   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
+; Pila Núcleo Tarea 2   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
+; Pila Núcleo           | 0x 1FFF B000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 3FB      |     SI    |
+; Pila Usuario Tarea 0  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
+; Pila Usuario Tarea 1  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
+; Pila Usuario Tarea 2  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 1732 |     1      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
 ; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
 
@@ -88,6 +101,34 @@ EXTERN __TABLA_DE_DIGITOS_LIN
 EXTERN __TABLA_DE_DIGITOS_FIS
 EXTERN __SIZE_TABLA_DE_DIGITOS
 
+EXTERN __INICIO_PILA_NUCLEO_LIN
+EXTERN __INICIO_PILA_NUCLEO_FIS
+EXTERN __SIZE_PILA_NUCLEO
+
+EXTERN __INIT_ROM_LIN
+EXTERN __INIT_ROM_FIS
+EXTERN __SIZE_INIT
+
+EXTERN __TAREA_0_TEXT_LIN
+EXTERN __TAREA_0_TEXT_FIS
+EXTERN __TAREA_0_TEXT_LENGHT
+
+EXTERN __TAREA_0_BSS_LIN
+EXTERN __TAREA_0_BSS_FIS
+EXTERN __TAREA_0_BSS_LENGHT
+
+EXTERN __TAREA_0_DATA_RW_LIN
+EXTERN __TAREA_0_DATA_RW_FIS
+EXTERN __TAREA_0_DATA_RW_LENGHT
+
+EXTERN __INICIO_PILA_NUCLEO_TAREA_0_LIN
+EXTERN __INICIO_PILA_NUCLEO_TAREA_0_FIS
+EXTERN __SIZE_PILA_NUCLEO_TAREA_0
+
+EXTERN __INICIO_PILA_USUARIO_TAREA_0_LIN
+EXTERN __INICIO_PILA_USUARIO_TAREA_0_FIS
+EXTERN __SIZE_PILA_USUARIO_TAREA_0
+
 EXTERN __TAREA_1_TEXT_LIN
 EXTERN __TAREA_1_TEXT_FIS
 EXTERN __TAREA_1_TEXT_LENGHT
@@ -96,23 +137,42 @@ EXTERN __TAREA_1_BSS_LIN
 EXTERN __TAREA_1_BSS_FIS
 EXTERN __TAREA_1_BSS_LENGHT
 
-EXTERN __INICIO_PILA_NUCLEO_LIN
-EXTERN __INICIO_PILA_NUCLEO_FIS
-EXTERN __SIZE_PILA_NUCLEO
+EXTERN __TAREA_1_DATA_RW_LIN
+EXTERN __TAREA_1_DATA_RW_FIS
+EXTERN __TAREA_1_DATA_RW_LENGHT
 
 EXTERN __INICIO_PILA_NUCLEO_TAREA_1_LIN
 EXTERN __INICIO_PILA_NUCLEO_TAREA_1_FIS
 EXTERN __SIZE_PILA_NUCLEO_TAREA_1
 
-EXTERN __INIT_ROM_LIN
-EXTERN __INIT_ROM_FIS
-EXTERN __SIZE_INIT
+EXTERN __INICIO_PILA_USUARIO_TAREA_1_LIN
+EXTERN __INICIO_PILA_USUARIO_TAREA_1_FIS
+EXTERN __SIZE_PILA_USUARIO_TAREA_1
 
-%DEFINE __TABLAS_DINAMICAS_FIS 0x00300000
+EXTERN __TAREA_2_TEXT_LIN
+EXTERN __TAREA_2_TEXT_FIS
+EXTERN __TAREA_2_TEXT_LENGHT
+
+EXTERN __TAREA_2_BSS_LIN
+EXTERN __TAREA_2_BSS_FIS
+EXTERN __TAREA_2_BSS_LENGHT
+
+EXTERN __TAREA_2_DATA_RW_LIN
+EXTERN __TAREA_2_DATA_RW_FIS
+EXTERN __TAREA_2_DATA_RW_LENGHT
+
+EXTERN __INICIO_PILA_NUCLEO_TAREA_2_LIN
+EXTERN __INICIO_PILA_NUCLEO_TAREA_2_FIS
+EXTERN __SIZE_PILA_NUCLEO_TAREA_2
+
+EXTERN __INICIO_PILA_USUARIO_TAREA_2_LIN
+EXTERN __INICIO_PILA_USUARIO_TAREA_2_FIS
+EXTERN __SIZE_PILA_USUARIO_TAREA_2
 
 ;--------- Variables compartidas -----------
 GLOBAL init_paginar
 GLOBAL paginacion_dinamica
+GLOBAL paginar_tareas
 
   init_paginar:
 
@@ -197,45 +257,9 @@ GLOBAL paginacion_dinamica
 
     push Table_Attrib_S_RW_P
     push Page_Attrib_S_RW_P
-    push __TAREA_1_TEXT_LENGHT
-    push __TAREA_1_TEXT_FIS
-    push __TAREA_1_TEXT_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __TAREA_1_BSS_LENGHT
-    push __TAREA_1_BSS_FIS
-    push __TAREA_1_BSS_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
     push __SIZE_PILA_NUCLEO
     push __INICIO_PILA_NUCLEO_FIS
     push __INICIO_PILA_NUCLEO_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __SIZE_PILA_NUCLEO_TAREA_1
-    push __INICIO_PILA_NUCLEO_TAREA_1_FIS
-    push __INICIO_PILA_NUCLEO_TAREA_1_LIN
     call paginar
     pop eax
     pop eax
@@ -256,7 +280,6 @@ GLOBAL paginacion_dinamica
     pop eax
 
     ret
-
 
 ;-------------------------------------------------------------
 
@@ -329,44 +352,187 @@ GLOBAL paginacion_dinamica
 
     ret   ; Vuelvo
 
-    paginacion_dinamica:
-      pushad
-      mov ebp, esp
-      mov edx, [ebp + 0x04*9]           ; Traigo la dirección lineal que me generó error
+;-------------------------------------------------------------
 
-      mov eax, [tablas_dinamicas]     ; Traigo el contador de págianas dinamicas
-      mov ebx, eax                    ; Copio el valor
-      inc eax                         ; Incremento el valor
-      mov [tablas_dinamicas], eax     ; Guardo el valor incrementado en memoria
-      mov [ebp + 0x04*10], eax        ; Retorno valor de paginas creadas
+  paginacion_dinamica:
+    pushad
+    mov ebp, esp
+    mov edx, [ebp + 0x04*9]           ; Traigo la dirección lineal que me generó error
 
-      shl ebx, 0x0C                   ; Shifteo 12 bits
-      mov eax, __TABLAS_DINAMICAS_FIS ; Inico de la dirección de memoria para las paginas creadas dinamicamente
-      add eax, ebx                    ; Le sumo para saltear las ya paginadas
+    mov eax, [tablas_dinamicas]     ; Traigo el contador de págianas dinamicas
+    mov ebx, eax                    ; Copio el valor
+    inc eax                         ; Incremento el valor
+    mov [tablas_dinamicas], eax     ; Guardo el valor incrementado en memoria
+    mov [ebp + 0x04*10], eax        ; Retorno valor de paginas creadas
 
-      mov ecx, 0x01                   ; Le pongo largo de 1 byte (para que me haga 1 sola pagina)
+    shl ebx, 0x0C                   ; Shifteo 12 bits
+    ;mov eax, __TABLAS_DINAMICAS_FIS ; Inico de la dirección de memoria para las paginas creadas dinamicamente
+    add eax, ebx                    ; Le sumo para saltear las ya paginadas
 
-      ; ORDEN DE PUSHEO
-      ;    1 - Atributos del directorio (tabla)
-      ;    2 - Atributos de pagina
-      ;    3 - Largo de la sección
-      ;    4 - Direccion Física
-      ;    5 - Dirección Lineal
+    mov ecx, 0x01                   ; Le pongo largo de 1 byte (para que me haga 1 sola pagina)
 
-      push Table_Attrib_S_RW_P
-      push Page_Attrib_S_RW_P
-      push ecx
-      push eax
-      push edx
+    ; ORDEN DE PUSHEO
+    ;    1 - Atributos del directorio (tabla)
+    ;    2 - Atributos de pagina
+    ;    3 - Largo de la sección
+    ;    4 - Direccion Física
+    ;    5 - Dirección Lineal
+
+    push Table_Attrib_S_RW_P
+    push Page_Attrib_S_RW_P
+    push ecx
+    push eax
+    push edx
+    call paginar
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
+    popad
+    ret
+
+;-------------------------------------------------------------
+
+  paginar_tareas:
+    pushad
+    mov ebp, esp
+    mov edx, [ebp + 0x04*9]         ; Traigo la tarea a paginar
+
+    cmp edx, 0x00
+    jz paginar_tarea_0
+    cmp edx, 0x01
+    jz paginar_tarea_1
+    cmp edx, 0x02
+    jz paginar_tarea_2
+    jmp end_paginar_tareas
+
+    ; ORDEN DE PUSHEO
+    ;    1 - Atributos del directorio (tabla)
+    ;    2 - Atributos de pagina
+    ;    3 - Largo de la sección
+    ;    4 - Direccion Física
+    ;    5 - Dirección Lineal
+
+    paginar_tarea_0:
+
+      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
+      push Page_Attrib_U_RW_P
+      push __TAREA_0_TEXT_LENGHT
+      push __TAREA_0_TEXT_FIS
+      push __TAREA_0_TEXT_LIN
       call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_0_BSS_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_0_BSS_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_0_BSS_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_0_DATA_RW_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_0_DATA_RW_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_0_DATA_RW_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_0
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_0_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_0_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P    ; La pila nucleo es con privilegio supervisor
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_0
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_0_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_0_LIN
+      call paginar
+
       pop eax
       pop eax
       pop eax
       pop eax
       pop eax
 
+      jmp end_paginar_tareas
+
+    paginar_tarea_1:
+
+      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
+      push Page_Attrib_U_RW_P
+      push __TAREA_1_TEXT_LENGHT
+      push __TAREA_1_TEXT_FIS
+      push __TAREA_1_TEXT_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_1_BSS_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_1_BSS_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_1_BSS_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_1_DATA_RW_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_1_DATA_RW_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_1_DATA_RW_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_1
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_1_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_1_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P        ; La pila nucleo es con privilegio supervisor
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_1
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_1_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_1_LIN
+      call paginar
+
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      jmp end_paginar_tareas
+
+    paginar_tarea_2:
+
+      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
+      push Page_Attrib_U_RW_P
+      push __TAREA_2_TEXT_LENGHT
+      push __TAREA_2_TEXT_FIS
+      push __TAREA_2_TEXT_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_2_BSS_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_2_BSS_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_2_BSS_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __TAREA_2_DATA_RW_LENGHT
+      mov [ebp - 0x04*4], DWORD __TAREA_2_DATA_RW_FIS
+      mov [ebp - 0x04*5], DWORD __TAREA_2_DATA_RW_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_2
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_2_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_2_LIN
+      call paginar
+
+      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P    ; La pila nucleo es con privilegio supervisor
+      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_2
+      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_2_FIS
+      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_2_LIN
+      call paginar
+
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      jmp end_paginar_tareas
+
+    end_paginar_tareas:
       popad
       ret
+
 
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -384,7 +550,7 @@ section .tablas_de_paginacion nobits     ; nobits le dice al linker que esa secc
   directorio:
     resd 1024       ; Reservo los 1024 bytes del directorio
   inicio_tablas:
-    resd 1024*504     ; Tengo 4 tablas estaticas + 500 dinamicas
+    resd 1024*100   ; Reservo espacio para 100 tablas
   tablas_creadas:
     resd 1          ; Reservo un indicador de tabla creada
   tablas_dinamicas:
