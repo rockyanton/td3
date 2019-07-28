@@ -169,10 +169,14 @@ EXTERN __INICIO_PILA_USUARIO_TAREA_2_LIN
 EXTERN __INICIO_PILA_USUARIO_TAREA_2_FIS
 EXTERN __SIZE_PILA_USUARIO_TAREA_2
 
+EXTERN tarea_actual
+
 ;--------- Variables compartidas -----------
 GLOBAL init_paginar
 GLOBAL paginacion_dinamica
 GLOBAL paginar_tareas
+
+;-------------------------------------------------------------
 
   init_paginar:
 

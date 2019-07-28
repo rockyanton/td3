@@ -102,7 +102,7 @@ EXTERN _pit_configure
 ;---------------------------------------------------------------------------
   modo_proteg:
   ;--------- Cargo los selectores ------------
-    mov ax,ds_sel_prim
+    mov ax, ds_sel_prim
     mov ds, ax
     mov ss, ax
 
@@ -120,15 +120,19 @@ EXTERN _pit_configure
     or eax,0x80000000
     mov cr0,eax
     mov esp, __FIN_PILA_NUCLEO_LIN    ; La pila se carga al revés (es decreciente)
+    breakpoint
 
     ;--------- Paso el NUCLEO a RAM (se copia a si mismo con la rutina copy) ------------
     push __NUCLEO_ROM     ; Pusheo ORIGEN
     push __NUCLEO_LIN     ; Pusheo DESTINO
     push __NUCLEO_LENGHT  ; Pusheo LARGO
+    breakpoint
     call __COPY_ROM       ; LLamo a la rutina en ROM
+    breakpoint
     pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
+    breakpoint
 
     ;--------- Copio los HANDLERS a RAM ------------
     push __HANDLERS_ROM    ; Pusheo ORIGEN
@@ -138,6 +142,7 @@ EXTERN _pit_configure
     pop eax               ; Saco los 3 push que hice antes
     pop eax
     pop eax
+    breakpoint
 
     ;--------- Copio la GDT a RAM  ------------
     push gdt_prim       ; Pusheo ORIGEN
@@ -147,10 +152,11 @@ EXTERN _pit_configure
     pop eax             ; Saco los 3 push que hice antes
     pop eax
     pop eax
+    breakpoint
 
     ;--------- Cargo la nueva GDT de RAM  y los selectores ------------
     lgdt [cs:img_gdtr]    ; Cargo la GDTR con la gdt nueva
-    mov ax,ds_sel
+    mov ax, ds_sel
     mov ds, ax
     mov ss, ax
 

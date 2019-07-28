@@ -67,6 +67,7 @@ SECTIONS
       bin/copy.elf(.copy);                  /* Que copie la sección .copy del archivo copy ensamblado */
       bin/keyboard.elf(.keyboard);          /* Que copie la sección .teclado del archivo teclado.elf ensamblado */
       bin/screen.elf(.screen)               /* Que copie la sección .screen del archivo screen.elf ensamblado */
+      bin/scheduler.elf(.scheduler)         /* Que copie la sección .scheduler del archivo scheduler.elf ensamblado */
     } AT >rom                               /* Le pido que me cargue todo eso en ROM (LMA) */
     __NUCLEO_LENGHT = SIZEOF(.nucleo_out);  /* Le pido el largo de la seccion de .copy_out */
     __NUCLEO_FIS = __NUCLEO_LIN;

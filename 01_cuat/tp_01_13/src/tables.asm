@@ -195,3 +195,72 @@ GLOBAL puntero_tabla_digitos
     resb 63*1024  ; Reservo 63k bytes para tabla
   puntero_tabla_digitos:
     resb 1
+
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++ TSS DE TAREAS +++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .tablas_de_sistema nobits
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+GLOBAL TSS_eax
+GLOBAL TSS_ebx
+GLOBAL TSS_ecx
+GLOBAL TSS_edx
+GLOBAL TSS_edi
+GLOBAL TSS_esi
+GLOBAL TSS_ebp
+GLOBAL TSS_esp
+GLOBAL TSS_eip
+GLOBAL TSS_eflags
+GLOBAL TSS_cs
+GLOBAL TSS_ds
+GLOBAL TSS_es
+GLOBAL TSS_ss
+
+;-------------------------------- TAREA 0 ---------------------------------------
+
+  TSS:
+  ; 4 bytes (10): eax, ebx, ecx, edx, edi, esi, ebp, esp, eip, eflags => 40 bytes
+  ; 2 bytes (4): cs, ds, es, ss => 8 bytes
+  ; Total 48 bytes
+  TSS_tarea_0:
+    TSS_eax:
+      resd 1
+    TSS_ebx:
+      resd 1
+    TSS_ecx:
+      resd 1
+    TSS_edx:
+      resd 1
+    TSS_edi:
+      resd 1
+    TSS_esi:
+      resd 1
+    TSS_ebp:
+      resd 1
+    TSS_esp:
+      resd 1
+    TSS_eip:
+      resd 1
+    TSS_eflags:
+      resd 1
+    TSS_cs:
+      resw 1
+    TSS_ds:
+      resw 1
+    TSS_es:
+      resw 1
+    TSS_ss:
+      resw 1
+  TSS_tarea_1:
+    resd 10
+    resw 4
+  TSS_tarea_2:
+    resd 10
+    resw 4
