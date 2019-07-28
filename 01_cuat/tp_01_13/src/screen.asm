@@ -112,11 +112,13 @@ section .screen
 
 ;--------- Variables externas ------------
 EXTERN __BUFFER_DE_VIDEO_LIN
+EXTERN tarea_actual
 
 ;--------- Variables compartidas -----------
 GLOBAL mostrar_nombre
 GLOBAL mostrar_digitos
 GLOBAL mostrar_page_fault
+GLOBAL mostrar_tarea
 
     mostrar_digitos:
       pushad
@@ -126,7 +128,7 @@ GLOBAL mostrar_page_fault
       mov ecx, [ebp + 0x04*9]         ; Traigo el resulatdo de la suma acumulado
       mov edx, [ebp + 0x04*10]
 
-      call limpiar_pantalla
+      ;call limpiar_pantalla
 
       mov edi, buffer_pantalla_digitos
       xor ebx, ebx     ; Contador de digitos en 0
@@ -204,7 +206,7 @@ GLOBAL mostrar_page_fault
 
 ;----------------------------------------------------------
 
-      mostrar_page_fault:
+    mostrar_page_fault:
       pushad
       mov ebp, esp  ; Puntero a pila
       mov ebx, [ebp + 0x04*9] ; Traigo el direccion lineal de error
@@ -318,6 +320,58 @@ GLOBAL mostrar_page_fault
       ret
 
 ;----------------------------------------------------------
+
+  mostrar_tarea:
+    pushad
+
+    mov ebp, esp  ; Puntero a pila
+    mov eax, [ebp + 0x04*9] ; Traigo tarea actual
+    call convertir_ascii
+    mov bl, al
+
+    mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
+    add ebp, Screen_Row_07
+    add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+
+    mov cl, Font_Color_White   ; Color del Caracter
+    or cl, Font_Background_Green  ; Color del fondo
+
+    ; Pongo en pantalla "CURRENT TASK: "
+    mov al, ASCII_C
+    call imprimir_caracter
+    mov al, ASCII_U
+    call imprimir_caracter
+    mov al, ASCII_R
+    call imprimir_caracter
+    mov al, ASCII_R
+    call imprimir_caracter
+    mov al, ASCII_E
+    call imprimir_caracter
+    mov al, ASCII_N
+    call imprimir_caracter
+    mov al, ASCII_T
+    call imprimir_caracter
+    mov al, ASCII_Space
+    call imprimir_caracter
+    mov al, ASCII_T
+    call imprimir_caracter
+    mov al, ASCII_A
+    call imprimir_caracter
+    mov al, ASCII_S
+    call imprimir_caracter
+    mov al, ASCII_K
+    call imprimir_caracter
+    mov al, ASCII_Colon
+    call imprimir_caracter
+    mov al, ASCII_Space
+    call imprimir_caracter
+
+    mov al, bl
+    call imprimir_caracter
+
+    popad
+    ret
+
 
     limpiar_pantalla:
       pushad

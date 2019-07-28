@@ -424,32 +424,31 @@ GLOBAL paginar_tareas
 
     paginar_tarea_0:
 
-      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
-      push Page_Attrib_U_RW_P
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
       push __TAREA_0_TEXT_LENGHT
       push __TAREA_0_TEXT_FIS
       push __TAREA_0_TEXT_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_0_BSS_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_0_BSS_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_0_BSS_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_0_BSS_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_0_BSS_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_0_BSS_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_0_DATA_RW_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_0_DATA_RW_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_0_DATA_RW_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_0_DATA_RW_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_0_DATA_RW_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_0_DATA_RW_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_0
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_0_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_0_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_0
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_0_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_0_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P    ; La pila nucleo es con privilegio supervisor
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_0
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_0_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_0_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_0
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_0_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_0_LIN
       call paginar
 
       pop eax
@@ -462,32 +461,31 @@ GLOBAL paginar_tareas
 
     paginar_tarea_1:
 
-      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
-      push Page_Attrib_U_RW_P
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
       push __TAREA_1_TEXT_LENGHT
       push __TAREA_1_TEXT_FIS
       push __TAREA_1_TEXT_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_1_BSS_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_1_BSS_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_1_BSS_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_1_BSS_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_1_BSS_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_1_BSS_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_1_DATA_RW_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_1_DATA_RW_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_1_DATA_RW_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_1_DATA_RW_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_1_DATA_RW_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_1_DATA_RW_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_1
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_1_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_1_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_1
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_1_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_1_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P        ; La pila nucleo es con privilegio supervisor
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_1
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_1_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_1_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_1
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_1_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_1_LIN
       call paginar
 
       pop eax
@@ -500,32 +498,31 @@ GLOBAL paginar_tareas
 
     paginar_tarea_2:
 
-      push Table_Attrib_S_RW_P    ; Le asigno permiso de usuario
-      push Page_Attrib_U_RW_P
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
       push __TAREA_2_TEXT_LENGHT
       push __TAREA_2_TEXT_FIS
       push __TAREA_2_TEXT_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_2_BSS_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_2_BSS_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_2_BSS_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_2_BSS_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_2_BSS_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_2_BSS_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __TAREA_2_DATA_RW_LENGHT
-      mov [ebp - 0x04*4], DWORD __TAREA_2_DATA_RW_FIS
-      mov [ebp - 0x04*5], DWORD __TAREA_2_DATA_RW_LIN
+      mov [ebp + 0x04*3], DWORD __TAREA_2_DATA_RW_LENGHT
+      mov [ebp + 0x04*2], DWORD __TAREA_2_DATA_RW_FIS
+      mov [ebp + 0x04*1], DWORD __TAREA_2_DATA_RW_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_2
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_USUARIO_TAREA_2_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_USUARIO_TAREA_2_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_2
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_2_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_2_LIN
       call paginar
 
-      mov [ebp - 0x04*3], DWORD Page_Attrib_S_RW_P    ; La pila nucleo es con privilegio supervisor
-      mov [ebp - 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_2
-      mov [ebp - 0x04*4], DWORD __INICIO_PILA_NUCLEO_TAREA_2_FIS
-      mov [ebp - 0x04*5], DWORD __INICIO_PILA_NUCLEO_TAREA_2_LIN
+      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_2
+      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_2_FIS
+      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_2_LIN
       call paginar
 
       pop eax

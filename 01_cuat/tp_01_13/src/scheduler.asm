@@ -15,6 +15,7 @@ section .scheduler
 ;--------- Variables externas ------------
 EXTERN paginar_tareas
 EXTERN copy
+EXTERN mostrar_tarea
 EXTERN tarea_0
 EXTERN tarea_1
 EXTERN tarea_2
@@ -43,6 +44,7 @@ EXTERN __TAREA_2_TEXT_LENGHT
 
 ;--------- Variables compartidas -----------
 GLOBAL cambiar_tarea
+GLOBAL arrancar_scheduler
 
 ;-------------------------------------------------------------
   cambiar_tarea:
@@ -97,7 +99,7 @@ GLOBAL cambiar_tarea
         mov [tarea_futura], dword 0x02
       no_tarea_1:
 
-      cmp esi, 0x02   ; Si estaba en la 1, la tarea actual es la 0 y la siguiente la 2
+      cmp esi, 0x02   ; Si estaba en la 2, la tarea actual es la 0 y la siguiente la 1
       jnz no_tarea_2
         mov [tarea_futura], dword 0x01
       no_tarea_2:
@@ -110,37 +112,37 @@ GLOBAL cambiar_tarea
 
       mov eax, [tarea_inicializada]   ; Flag para saber si la tarea existe en ram
       mov ecx, edi
-      mov ecx, 0x01
+      mov edx, 0x01
 
       loop_shift_ini:
       cmp ecx, 0x00
       je end_loop_shift_ini
-        shl ecx, 0x01
+        shl edx, 0x01
         dec ecx
         jmp loop_shift_ini
       end_loop_shift_ini:
 
-      and eax, ecx
+      and eax, edx
       cmp eax, 0x00         ; Si es 1, ya está inicalizada, voy a copiar el contexto. Si es 0 tengo copiarla primero
       jnz copiar_contexto
         mov eax, [tarea_inicializada]   ; Actualizo valor de flag
-        and eax, ecx
+        and eax, edx
         mov [tarea_inicializada], eax
         call copiar_tarea
 
     copiar_contexto:
-      mov eax, edi
+      push edi
+      call mostrar_tarea
+      pop eax
       mov ecx, TSS_Lenght
       mul ecx  ; (48 bytes)
       mov edi, eax
       mov ax, [TSS_es + edi]
-      mov es, ax
+      ;mov es, ax
       mov ax, [TSS_ss + edi]
       mov ss, ax
       mov ax, [TSS_ds + edi]
       mov ds, ax
-      mov ax, [TSS_cs + edi]
-      mov cs, ax
 
       mov eax, [TSS_eax + edi]
       mov ebx, [TSS_ebx + edi]
@@ -182,20 +184,21 @@ GLOBAL cambiar_tarea
     call cambiar_tarea
 
 ;-------------------------------------------------------------
-  start_scheduler:
+  arrancar_scheduler:
     mov eax, esp
     mov [pila_nucleo], esp
     xor eax, eax    ; Pusheo eip, cs y eflags vacíos
     push eax
     push eax
     push eax
+    sti ; Enciendo las interrupciones
     call cambiar_tarea
 
 ;-------------------------------------------------------------
   copiar_tarea:
-
+    pushad
     cmp edi, 0x00
-    jmp no_copio_tarea_0
+    jnz no_copio_tarea_0
       push __TAREA_0_TEXT_ROM     ; Pusheo ORIGEN
       push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
       push __TAREA_0_TEXT_LENGHT  ; Pusheo LARGO
@@ -207,7 +210,7 @@ GLOBAL cambiar_tarea
     no_copio_tarea_0:
 
     cmp edi, 0x01
-    jmp no_copio_tarea_1
+    jnz no_copio_tarea_1
       push __TAREA_1_TEXT_ROM     ; Pusheo ORIGEN
       push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
       push __TAREA_1_TEXT_LENGHT  ; Pusheo LARGO
@@ -218,7 +221,7 @@ GLOBAL cambiar_tarea
     no_copio_tarea_1:
 
     cmp edi, 0x02
-    jmp no_copio_tarea_2
+    jnz no_copio_tarea_2
       push __TAREA_2_TEXT_ROM     ; Pusheo ORIGEN
       push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
       push __TAREA_2_TEXT_LENGHT  ; Pusheo LARGO
@@ -226,9 +229,9 @@ GLOBAL cambiar_tarea
       pop eax               ; Saco los 3 push que hice antes
       pop eax
       pop eax
-
     no_copio_tarea_2:
 
+    popad
     mov ebp, esp  ; Guardo la pila
     mov ecx, __FIN_PILA_NUCLEO_TAREA_0_LIN  ; Todas tienen la pila en la misma direccion de memoria
     mov esp, ecx
@@ -239,11 +242,15 @@ GLOBAL cambiar_tarea
     mov eax, edi
     mov edx, TSS_Lenght
     mul edx
-    mov [TSS_ebp + eax], ecx
+    mov [TSS_esp + eax], ecx
     mov [TSS_eip + eax], dword tarea_0   ; Todas arrancan en la misma posicion de memoria
     pushfd
     pop ecx
     mov [TSS_eflags + eax], ecx
+    mov [TSS_ds + eax], ds
+    mov [TSS_es + eax], es
+    mov [TSS_ss + eax], ss
+    mov [TSS_cs + eax], cs
 
     ret
 

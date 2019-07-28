@@ -164,9 +164,6 @@ EXTERN _pit_configure
     ;--------- Inicializo el PIT ------------
     call _pit_configure
 
-    ;--------- Enciendo las interrupciones ------------
-    sti
-
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -175,6 +172,7 @@ EXTERN _pit_configure
 
 ;--------- Variables externas ------------
 EXTERN mostrar_nombre
+EXTERN arrancar_scheduler
 
 ;--------- Variables compartidas -----------
 
@@ -182,5 +180,5 @@ EXTERN mostrar_nombre
   call mostrar_nombre
 
   main:
-    hlt       ; Halteo el procesador hasta que me llegue algo
+    call arrancar_scheduler
     jmp main          ; Vuelvo a esperar

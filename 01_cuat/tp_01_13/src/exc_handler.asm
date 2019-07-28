@@ -56,7 +56,7 @@ GLOBAL exc_handler_014_pf
       mov dx, 0x0D        ; Guardo el número de excepción "13"
 
       mov ebp, esp          ; Copio la esp para no usarla directamente
-      mov ecx, [ebp + 4*8]  ; Traigo el código de error (los primeros 8 son los registros)
+      mov ecx, [ebp + 0x04*9]  ; Traigo el código de error (los primeros 8 son los registros)
       mov eax, ecx
       and eax, 0x01         ; El primer valor me dice si la excepción fue interna "0" o externa "1"
       mov ebx, ecx
@@ -65,7 +65,7 @@ GLOBAL exc_handler_014_pf
       sar ecx, 3
       and ecx, 0x1FFF       ; Los bytes del 15-3 son el número de excepción/interrupción
 
-      call ISR_Main
+      ;call ISR_Main
 
       popad               ; Vuelvo a traer los registros
       add esp, 4          ; Como el #GP me genera un código de error, lo tengo que sacar antes de retornar
