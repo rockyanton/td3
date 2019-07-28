@@ -38,7 +38,8 @@ EXTERN cambiar_tarea
       xor ebx, ebx
       mov [pit_status], bl   ; Pongo el contador en 0
       popad                  ; Traaigo los registros de la tarea vieja
-      call cambiar_tarea
+      ;call cambiar_tarea
+      iret
 
     continua_tarea:
       inc bl                  ; Incrmento el contador

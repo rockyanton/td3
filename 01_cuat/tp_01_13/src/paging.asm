@@ -47,7 +47,7 @@
 ; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000    |     0x 010      |     SI    |
 ; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0810 |     1      |    0x 000    |     0x 100      |     SI    |
 ; Tablas de Paginacion  | 0x 0011 0000 | 0x 0006 5008 |    101     |    0x 000    | 0x 110 - 0x 211 |     SI    |
-; Nucleo                | 0x 0050 0000 | 0x 0000 04D0 |     1      |    0x 001    |     0x 100      |     SI    |
+; Nucleo                | 0x 0050 0000 | 0x 0000 06f7 |     1      |    0x 001    |     0x 100      |     SI    |
 ; Tabla de Digitos      | 0x 0051 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
 ; Tarea 0 (Text)        | 0x 0061 0000 | 0x 0000 0003 |     1      |    0x 001    |     0x 210      |     NO    |
 ; Tarea 0 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
@@ -66,7 +66,7 @@
 ; Pila Usuario Tarea 0  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
 ; Pila Usuario Tarea 1  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
 ; Pila Usuario Tarea 2  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 1732 |     1      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 18a2 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
 ; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
 
@@ -168,6 +168,9 @@ EXTERN __SIZE_PILA_NUCLEO_TAREA_2
 EXTERN __INICIO_PILA_USUARIO_TAREA_2_LIN
 EXTERN __INICIO_PILA_USUARIO_TAREA_2_FIS
 EXTERN __SIZE_PILA_USUARIO_TAREA_2
+
+EXTERN __ROM_INICIO
+EXTERN __ROM_LENGTH
 
 EXTERN tarea_actual
 
@@ -272,10 +275,10 @@ GLOBAL paginar_tareas
     pop eax
 
     push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __SIZE_INIT
-    push __INIT_ROM_FIS
-    push __INIT_ROM_LIN
+    push Page_Attrib_S_R_P
+    push __ROM_LENGTH
+    push __ROM_INICIO
+    push __ROM_INICIO
     call paginar
     pop eax
     pop eax

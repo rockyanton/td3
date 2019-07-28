@@ -208,7 +208,6 @@ GLOBAL handle_keyboard
       mov al, [keyboard_buffer_status]    ; Levanto el bit 8 del keyboard_buffer_status como flag de enter
       or al, 0x80
       mov [keyboard_buffer_status], al
-      ;breakpoint
       jmp handle_key_end
 
 
