@@ -19,7 +19,7 @@ EXTERN mostrar_digitos
 ;--------- Variables compartidas -----------
 GLOBAL tarea_1
 
-  tarea_1:
+  tarea_1:      ; Suma aritmética en quadruple word
     pushad
       mov al, [indice_suma_tabla]
       mov ah, [puntero_tabla_digitos]
@@ -31,39 +31,25 @@ GLOBAL tarea_1
         dec ebp           ; Lo decremento porque lo vuelvo a incrementar en el loop
         mov bl, ah        ; Copio el indice del ultimo digito en la tabla
         mov edi, ebx
-        mov esi, 0x04     ; Para acceder a los 32 otros altos
 
         sumar_tabla_loop:
           inc ebp
-          mov eax, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
-          mov ebx, [suma_tabla_digitos + esi]
+          movdqu xmm0, [suma_tabla_digitos]         ; Traigo el resulatdo de la suma acumulado
+          movdqu xmm1, [tabla_digitos + ebp*8]      ; Traigo el valor del dato
+          paddq  xmm0, xmm1                         ; Sumo los dos
+     	    movdqu  [suma_tabla_digitos], xmm0        ; Guardo el valor
 
-          mov ecx, [tabla_digitos + ebp*8]        ; Traigo el valor del dato
-          mov edx, [tabla_digitos + ebp*8 + esi]
-
-          add eax, ecx
-          jc sumar_carry
-          jmp sumar_sin_carry
-          sumar_carry:
-            adc ebx, edx
-            jmp guardar_suma
-          sumar_sin_carry:
-            add ebx, edx
-            jmp guardar_suma
-
-          guardar_suma:
-            mov [suma_tabla_digitos], eax         ; Guardo el resultado
-            mov [suma_tabla_digitos + esi], ebx
-
-        cmp ebp, edi            ; Si son iguales los punteros itero
+        cmp ebp, edi            ; Si no son iguales los punteros itero
         jnz sumar_tabla_loop
 
         mov ecx, ebp    ; Guardo el valor de puntero actualizado
         mov [indice_suma_tabla], cl
 
-        push ebx    ; En eax y ebx tengo el resultado de la suma
+        mov ebx, [suma_tabla_digitos + 0x04]  ; Traigo el resultado
+        push ebx
+        mov eax, [suma_tabla_digitos]
         push eax
-        call mostrar_digitos  ; Muestro resultado en pantalla
+        call mostrar_digitos    ; Muestro resultado en pantalla
         pop ecx
         pop ecx
 
@@ -72,7 +58,6 @@ GLOBAL tarea_1
       end_tarea_1:
         popad
         ret
-
 
       leer_memoria:
         cmp ebx, 0x00           ; Si la direccion de memoria es mayor a 32 bits, no leoo

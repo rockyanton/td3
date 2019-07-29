@@ -2,6 +2,7 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
+%define TSS_Lenght  0x240      ; 576 bytes
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
@@ -14,6 +15,8 @@ section .exc
 ;--------- Variables externas ------------
 EXTERN mostrar_page_fault
 EXTERN paginacion_dinamica
+EXTERN tarea_actual
+EXTERN TSS_simd
 
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
@@ -26,16 +29,14 @@ GLOBAL exc_handler_014_pf
 ;--------------------------- 0x00 Divide Error -----------------------------------
     exc_handler_000_de:
       pushad              ;  Guardo los registros
-      xor edx, edx        ; Pongo en "0" edx
-      mov dx, 0x0         ; Guardo el número de excepción "0"
+      mov edx, 0x0         ; Guardo el número de excepción "0"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
 ;------------------------ 0x06 Undefined Opcode ----------------------------------
     exc_handler_006_ud:
       pushad              ; Guardo los registros
-      xor edx, edx        ; Pongo en "0" edx
-      mov dx, 0x06        ; Guardo el número de excepción "6"
+      mov edx, 0x06        ; Guardo el número de excepción "6"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
@@ -43,17 +44,19 @@ GLOBAL exc_handler_014_pf
 ;-------------------------- 0x07 Device Not Available (No Math Coprocessor) ------
     exc_handler_007_nm:
       pushad                ; Guardo los registros
-      xor edx, edx          ; Pongo en "0" edx
-      mov dx, 0x07          ; Guardo el número de excepción "8"
-      call ISR_Main
+      mov edx, 0x07          ; Guardo el número de excepción "7"
+      clts
+      mov eax, [tarea_actual]
+      mov ecx, TSS_Lenght
+      mul ecx
+      fxrstor [TSS_simd + eax]
       popad               ; Vuelvo a traer los registros
       iret
 
 ;-------------------------- 0x08 Double Fault ------------------------------------
     exc_handler_008_df:
       pushad                ; Guardo los registros
-      xor edx, edx          ; Pongo en "0" edx
-      mov dx, 0x08          ; Guardo el número de excepción "8"
+      mov edx, 0x08          ; Guardo el número de excepción "8"
       call ISR_Main
       popad               ; Vuelvo a traer los registros
       add esp, 4          ; Como el #DF me genera un código de error, lo tengo que sacar antes de retornar
@@ -62,8 +65,7 @@ GLOBAL exc_handler_014_pf
 ;----------------------- 0x0D General Protection -----------------------------
     exc_handler_013_gp:
       pushad              ; Guardo los registros
-      xor edx, edx        ; Pongo en 0 edx
-      mov dx, 0x0D        ; Guardo el número de excepción "13"
+      mov edx, 0x0D        ; Guardo el número de excepción "13"
 
       mov ebp, esp          ; Copio la esp para no usarla directamente
       mov ecx, [ebp + 0x04*9]  ; Traigo el código de error (los primeros 8 son los registros)
@@ -75,7 +77,7 @@ GLOBAL exc_handler_014_pf
       sar ecx, 3
       and ecx, 0x1FFF       ; Los bytes del 15-3 son el número de excepción/interrupción
 
-      ;call ISR_Main
+      call ISR_Main
 
       popad               ; Vuelvo a traer los registros
       add esp, 4          ; Como el #GP me genera un código de error, lo tengo que sacar antes de retornar
@@ -84,8 +86,7 @@ GLOBAL exc_handler_014_pf
 ;-------------------------- 0x14 Page Fault --------------------------------
     exc_handler_014_pf:
       pushad                ; Guardo los registros
-      xor edx, edx          ; Pongo en "0" edx
-      mov dx, 0x0E          ; Guardo el número de excepción "14"
+      mov edx, 0x0E          ; Guardo el número de excepción "14"
 
       mov eax, cr2                    ; Treigo el numero de la pagina que generó la excepción
       push eax
