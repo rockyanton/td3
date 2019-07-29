@@ -18,11 +18,12 @@ EXTERN paginacion_dinamica
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
 GLOBAL exc_handler_006_ud
+GLOBAL exc_handler_007_nm
 GLOBAL exc_handler_008_df
 GLOBAL exc_handler_013_gp
 GLOBAL exc_handler_014_pf
 
-;--------------------------- 0x00 Divide Error -------------------------------
+;--------------------------- 0x00 Divide Error -----------------------------------
     exc_handler_000_de:
       pushad              ;  Guardo los registros
       xor edx, edx        ; Pongo en "0" edx
@@ -30,7 +31,7 @@ GLOBAL exc_handler_014_pf
       call ISR_Main
       popad               ; Vuelvo a traer los registros
       iret
-;------------------------ 0x06 Undefined Opcode ------------------------------
+;------------------------ 0x06 Undefined Opcode ----------------------------------
     exc_handler_006_ud:
       pushad              ; Guardo los registros
       xor edx, edx        ; Pongo en "0" edx
@@ -39,7 +40,16 @@ GLOBAL exc_handler_014_pf
       popad               ; Vuelvo a traer los registros
       iret
 
-;-------------------------- 0x08 Double Fault --------------------------------
+;-------------------------- 0x07 Device Not Available (No Math Coprocessor) ------
+    exc_handler_007_nm:
+      pushad                ; Guardo los registros
+      xor edx, edx          ; Pongo en "0" edx
+      mov dx, 0x07          ; Guardo el número de excepción "8"
+      call ISR_Main
+      popad               ; Vuelvo a traer los registros
+      iret
+
+;-------------------------- 0x08 Double Fault ------------------------------------
     exc_handler_008_df:
       pushad                ; Guardo los registros
       xor edx, edx          ; Pongo en "0" edx

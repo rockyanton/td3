@@ -45,6 +45,7 @@ section .init progbits
 ;--------- Variables externas ------------
 EXTERN exc_handler_000_de
 EXTERN exc_handler_006_ud
+EXTERN exc_handler_007_nm
 EXTERN exc_handler_008_df
 EXTERN exc_handler_013_gp
 EXTERN exc_handler_014_pf
@@ -79,6 +80,13 @@ GLOBAL img_idtr
       ; Excepcion de Opcode inválido (UD), codigo 6 (0x06)
       push exc_handler_006_ud
       push 0x06
+      call load_isr_idt
+      pop eax
+      pop eax
+
+      ; Excepcion de Device Not Available (No Math Coprocessor) (nm), codigo 7 (0x07)
+      push exc_handler_007_nm
+      push 0x07
       call load_isr_idt
       pop eax
       pop eax
