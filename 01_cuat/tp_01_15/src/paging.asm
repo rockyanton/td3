@@ -4,7 +4,9 @@
 %define breakpoint  xchg bx,bx
 
 %define Table_Attrib_S_RW_P   0x03
-%define Table_Attrib_U_RW_P   0x01
+%define Table_Attrib_S_R_P    0x01
+%define Table_Attrib_U_RW_P   0x07
+%define Table_Attrib_U_R_P    0x05
 %define Page_Attrib_S_RW_P    0x03
 %define Page_Attrib_S_R_P     0x01
 %define Page_Attrib_U_RW_P    0x07
@@ -39,37 +41,37 @@
 ;++++++++++++++++++++++ TAREA QUE LEE EL BUFFER (DATA) +++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-;________________________________________________________________________________________________________________
-;                       |   Dirección  |              |  Cantidad  | Indice Tabla |  Indice Página  |           |
-;        Sección        |    Lineal    |   Longitud   | de Páginas | (Directorio) |     (Tabla)     | ¿Paginar? |
-;_______________________|______________|______________|____________|______________|_________________|___________|
-; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00D0 |     1      |    0x 000    |     0x 000      |     SI    |
-; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000    |     0x 010      |     SI    |
-; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0EB0 |     1      |    0x 000    |     0x 100      |     SI    |
-; Tablas de Paginacion  | 0x 0011 0000 | 0x 0006 5008 |    101     |    0x 000    | 0x 110 - 0x 211 |     SI    |
-; Nucleo                | 0x 0050 0000 | 0x 0000 0884 |     1      |    0x 001    |     0x 100      |     SI    |
-; Tabla de Digitos      | 0x 0051 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
-; Tarea 0 (Text)        | 0x 0061 0000 | 0x 0000 0003 |     1      |    0x 001    |     0x 210      |     NO    |
-; Tarea 0 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
-; Tarea 0 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
-; Tarea 1 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001    |     0x 210      |     NO    |
-; Tarea 1 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001    |     0x 211      |     NO    |
-; Tarea 1 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
-; Tarea 2 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001    |     0x 210      |     NO    |
-; Tarea 2 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001    |     0x 211      |     NO    |
-; Tarea 2 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
-; Datos                 | 0x 005E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 1E0      |     NO    |
-; Pila Núcleo Tarea 0   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
-; Pila Núcleo Tarea 1   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
-; Pila Núcleo Tarea 2   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001    |     0x 214      |     NO    |
-; Pila Núcleo           | 0x 1FFF B000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 3FB      |     SI    |
-; Pila Usuario Tarea 0  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
-; Pila Usuario Tarea 1  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
-; Pila Usuario Tarea 2  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 18A6 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
-; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
-; ROM                   | 0x FFFF 0000 | 0x 0000 FFFF |    16      |    0x 3FF    | 0x 3F0 - 0x 3FF |     SI    |
-;_______________________|______________|______________|____________|______________|_________________|___________|
+;_______________________________________________________________________________________________________________________
+;                       |   Dirección  |              |  Cantidad  |  Indice Tabla  |     Indice Página    |           |
+;        Sección        |    Lineal    |   Longitud   | de Páginas |  (Directorio)  |        (Tabla)       | ¿Paginar? |
+;_______________________|______________|______________|____________|________________|______________________|___________|
+; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00D0 |     1      |    0x 000 S RW |      0x 000 S R      |     SI    |
+; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000 S RW |      0x 010 S RW     |     SI    |
+; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0EB0 |     1      |    0x 000 S RW |      0x 100 S RW     |     SI    |
+; Tablas de Paginacion  | 0x 0011 0000 | 0x 0006 5008 |    101     |    0x 000 S RW | 0x 110 - 0x 211 S RW |     SI    |
+; Nucleo                | 0x 0050 0000 | 0x 0000 0884 |     1      |    0x 001 U RW |      0x 100 S R      |     SI    |
+; Tabla de Digitos      | 0x 0051 0000 | 0x 0000 FC01 |    16      |    0x 001 U RW | 0x 010 - 0x 01F U RW |     SI    |
+; Tarea 0 (Text)        | 0x 0061 0000 | 0x 0000 0003 |     1      |    0x 001 U RW |      0x 210 U R      |     NO    |
+; Tarea 0 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001 U RW |      0x 211 U RW     |     NO    |
+; Tarea 0 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001 U RW |      0x 212 U RW     |     NO    |
+; Tarea 1 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001 U RW |      0x 210 U R      |     NO    |
+; Tarea 1 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001 U RW |      0x 211 U RW     |     NO    |
+; Tarea 1 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001 U RW |      0x 212 U RW     |     NO    |
+; Tarea 2 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001 U RW |      0x 210 U R      |     NO    |
+; Tarea 2 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001 U RW |      0x 211 U RW     |     NO    |
+; Tarea 2 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001 U RW |      0x 212 U RW     |     NO    |
+; Datos                 | 0x 005E 0000 | 0x 0000 0000 |     1      |    0x 001 U RW |      0x 1E0 S RW     |     SI    |
+; Pila Núcleo Tarea 0   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 214 S RW     |     NO    |
+; Pila Núcleo Tarea 1   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 214 S RW     |     NO    |
+; Pila Núcleo Tarea 2   | 0x 0061 4000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 214 S RW     |     NO    |
+; Pila Núcleo           | 0x 1FFF B000 | 0x 0000 0FFC |     1      |    0x 07F S RW |      0x 3FB S RW     |     SI    |
+; Pila Usuario Tarea 1  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 213 U RW     |     NO    |
+; Pila Usuario Tarea 0  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 213 U RW     |     NO    |
+; Pila Usuario Tarea 2  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 001 U RW |      0x 213 U RW     |     NO    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 18A6 |     2      |    0x 3FF S R  | 0x 3F0 - 0x 3F1 S R  |     SI    |
+; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF S R  |      0x 3FF S F      |     NO    |
+; ROM                   | 0x FFFF 0000 | 0x 0000 FFFF |    16      |    0x 3FF S R  | 0x 3F0 - 0x 3FF S R  |     SI    |
+;_______________________|______________|______________|____________|________________|______________________|___________|
 
 ;--------- Parámetros globales ------------
 USE32
@@ -101,6 +103,10 @@ EXTERN __NUCLEO_LENGHT
 EXTERN __TABLA_DE_DIGITOS_LIN
 EXTERN __TABLA_DE_DIGITOS_FIS
 EXTERN __SIZE_TABLA_DE_DIGITOS
+
+EXTERN __DATOS_LIN
+EXTERN __DATOS_FIS
+EXTERN __DATOS_LENGHT
 
 EXTERN __INICIO_PILA_NUCLEO_LIN
 EXTERN __INICIO_PILA_NUCLEO_FIS
@@ -192,7 +198,7 @@ GLOBAL paginar_tareas
     ;    5 - Dirección Lineal
 
     push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
+    push Page_Attrib_S_R_P
     push __HANDLERS_LENGHT
     push __HANDLERS_FIS
     push __HANDLERS_LIN
@@ -239,8 +245,8 @@ GLOBAL paginar_tareas
     pop eax
     pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
+    push Table_Attrib_U_RW_P
+    push Page_Attrib_S_R_P
     push __NUCLEO_LENGHT
     push __NUCLEO_FIS
     push __NUCLEO_LIN
@@ -251,11 +257,23 @@ GLOBAL paginar_tareas
     pop eax
     pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
+    push Table_Attrib_U_RW_P
+    push Page_Attrib_U_RW_P
     push __SIZE_TABLA_DE_DIGITOS
     push __TABLA_DE_DIGITOS_FIS
     push __TABLA_DE_DIGITOS_LIN
+    call paginar
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+    pop eax
+
+    push Table_Attrib_S_RW_P
+    push Page_Attrib_S_RW_P
+    push __DATOS_LENGHT
+    push __DATOS_FIS
+    push __DATOS_LIN
     call paginar
     pop eax
     pop eax
@@ -275,7 +293,7 @@ GLOBAL paginar_tareas
     pop eax
     pop eax
 
-    push Table_Attrib_S_RW_P
+    push Table_Attrib_S_R_P
     push Page_Attrib_S_R_P
     push __ROM_LENGTH
     push __ROM_INICIO
@@ -386,8 +404,8 @@ GLOBAL paginar_tareas
     ;    4 - Direccion Física
     ;    5 - Dirección Lineal
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
+    push Table_Attrib_U_RW_P
+    push Page_Attrib_U_RW_P
     push ecx
     push eax
     push edx
@@ -425,13 +443,14 @@ GLOBAL paginar_tareas
 
     paginar_tarea_0:
 
-      push Table_Attrib_S_RW_P
-      push Page_Attrib_S_RW_P
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
       push __TAREA_0_TEXT_LENGHT
       push __TAREA_0_TEXT_FIS
       push __TAREA_0_TEXT_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
       mov [ebp + 0x04*3], DWORD __TAREA_0_BSS_LENGHT
       mov [ebp + 0x04*2], DWORD __TAREA_0_BSS_FIS
       mov [ebp + 0x04*1], DWORD __TAREA_0_BSS_LIN
@@ -447,6 +466,7 @@ GLOBAL paginar_tareas
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_0_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
       mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_0
       mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_0_FIS
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_0_LIN
@@ -462,13 +482,14 @@ GLOBAL paginar_tareas
 
     paginar_tarea_1:
 
-      push Table_Attrib_S_RW_P
-      push Page_Attrib_S_RW_P
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
       push __TAREA_1_TEXT_LENGHT
       push __TAREA_1_TEXT_FIS
       push __TAREA_1_TEXT_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
       mov [ebp + 0x04*3], DWORD __TAREA_1_BSS_LENGHT
       mov [ebp + 0x04*2], DWORD __TAREA_1_BSS_FIS
       mov [ebp + 0x04*1], DWORD __TAREA_1_BSS_LIN
@@ -484,6 +505,7 @@ GLOBAL paginar_tareas
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_1_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
       mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_1
       mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_1_FIS
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_1_LIN
@@ -499,13 +521,14 @@ GLOBAL paginar_tareas
 
     paginar_tarea_2:
 
-      push Table_Attrib_S_RW_P
-      push Page_Attrib_S_RW_P
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
       push __TAREA_2_TEXT_LENGHT
       push __TAREA_2_TEXT_FIS
       push __TAREA_2_TEXT_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
       mov [ebp + 0x04*3], DWORD __TAREA_2_BSS_LENGHT
       mov [ebp + 0x04*2], DWORD __TAREA_2_BSS_FIS
       mov [ebp + 0x04*1], DWORD __TAREA_2_BSS_LIN
@@ -521,6 +544,7 @@ GLOBAL paginar_tareas
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_2_LIN
       call paginar
 
+      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
       mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_2
       mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_2_FIS
       mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_2_LIN

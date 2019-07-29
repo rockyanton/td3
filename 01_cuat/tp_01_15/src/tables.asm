@@ -235,49 +235,90 @@ GLOBAL TSS_simd
 
 ;-------------------------------- TAREA 0 ---------------------------------------
 
-  TSS:
-  ; 4 bytes (10): eax, ebx, ecx, edx, edi, esi, ebp, esp, eip, eflags => 40 bytes
-  ; 2 bytes (4): cs, ds, es, ss => 8 bytes
-  ; 1 byte(520): reservado, simd
-  ; Total 576 bytes (0x238)
+  TSS:      ; Total 564 bytes (0x270)
+  
   TSS_tarea_0:
-    TSS_eax:
+    TSS_Backlink:
+      resw 1
+    TSS_reservado_1:
+      resw 1
+    TSS_esp0:
       resd 1
-    TSS_ebx:
+    TSS_ss0:
+      resw 1
+    TSS_reservado_2:
+      resw 1
+    TSS_esp1:
       resd 1
-    TSS_ecx:
+    TSS_ss1:
+      resw 1
+    TSS_reservado_3:
+      resw 1
+    TSS_esp2:
       resd 1
-    TSS_edx:
-      resd 1
-    TSS_edi:
-      resd 1
-    TSS_esi:
-      resd 1
-    TSS_ebp:
-      resd 1
-    TSS_esp:
+    TSS_ss2:
+      resw 1
+    TSS_reservado_4:
+      resw 1
+    TSS_cr3:
       resd 1
     TSS_eip:
       resd 1
     TSS_eflags:
       resd 1
+    TSS_eax:
+      resd 1
+    TSS_ecx:
+      resd 1
+    TSS_edx:
+      resd 1
+    TSS_ebx:
+      resd 1
+    TSS_esp:
+      resd 1
+    TSS_ebp:
+      resd 1
+    TSS_esi:
+      resd 1
+    TSS_edi:
+      resd 1
+    TSS_es:
+      resw 1
+    TSS_reservado_5:
+      resw 1
     TSS_cs:
       resw 1
-    TSS_ds:
-      resw 1
-    TSS_es:
+    TSS_reservado_6:
       resw 1
     TSS_ss:
       resw 1
-    TSS_reservado:
-      resb 16
+    TSS_reservado_7:
+      resw 1
+    TSS_ds:
+      resw 1
+    TSS_reservado_8:
+      resw 1
+    TSS_fs:
+      resw 1
+    TSS_reservado_9:
+      resw 1
+    TSS_gs:
+      resw 1
+    TSS_reservado_A:
+      resw 1
+    TSS_ldtr:
+      resw 1
+    TSS_reservado_B:
+      resw 1
+    TSS_bit_t:
+      resw 1
+    TSS_Offset_Bipmap
+      resw 1
+    TSS_ajuste:
+      resb 8
     TSS_simd:
       resb 512
   TSS_tarea_1:
-    resd 10
-    resw 4
-    resb 512
+    resb 624
   TSS_tarea_2:
-    resd 10
-    resw 4
-    resb 512
+    resb 624

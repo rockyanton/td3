@@ -158,6 +158,7 @@ SECTIONS
   { __DATOS_LIN = .;
     *(.datos);              /* Todos los archivos de datos que los cargue en ese lugar */
   }
+  __DATOS_LENGHT = SIZEOF(.datos_out);
   __DATOS_FIS = __DATOS_LIN;
 
   /*-----------PILA NUCLEO TAREA 0------------*/
@@ -170,13 +171,13 @@ SECTIONS
   __INICIO_PILA_NUCLEO_TAREA_1_LIN = 0x00614000;                               /* Principio del stack */
   __SIZE_PILA_NUCLEO_TAREA_1 = 0x00000FFC;
   __FIN_PILA_NUCLEO_TAREA_1_LIN = __INICIO_PILA_NUCLEO_TAREA_1_LIN + __SIZE_PILA_NUCLEO_TAREA_1; /* Calculo el largo de la pila */
-  __INICIO_PILA_NUCLEO_TAREA_1_FIS = 0x1FFF9000;
+  __INICIO_PILA_NUCLEO_TAREA_1_FIS = 0x1FFFA000;
 
   /*-----------PILA NUCLEO TAREA 2------------*/
   __INICIO_PILA_NUCLEO_TAREA_2_LIN = 0x00614000;                               /* Principio del stack */
   __SIZE_PILA_NUCLEO_TAREA_2 = 0x00000FFC;
   __FIN_PILA_NUCLEO_TAREA_2_LIN = __INICIO_PILA_NUCLEO_TAREA_2_LIN + __SIZE_PILA_NUCLEO_TAREA_2; /* Calculo el largo de la pila */
-  __INICIO_PILA_NUCLEO_TAREA_2_FIS = 0x1FFFA000;
+  __INICIO_PILA_NUCLEO_TAREA_2_FIS = 0x1FFF9000;
 
   /*-----------PILA NUCLEO------------*/
   __INICIO_PILA_NUCLEO_LIN = 0x1FFFB000;                   /* Principio del stack */
@@ -195,13 +196,13 @@ SECTIONS
   __INICIO_PILA_USUARIO_TAREA_1_LIN = 0x00613000;                               /* Principio del stack */
   __SIZE_PILA_USUARIO_TAREA_1 = 0x00000FFC; /* Calculo el largo de la pila */
   __FIN_PILA_USUARIO_TAREA_1_LIN = __INICIO_PILA_USUARIO_TAREA_1_LIN + __SIZE_PILA_USUARIO_TAREA_1;
-  __INICIO_PILA_USUARIO_TAREA_1_FIS = 0x1FFFD000;
+  __INICIO_PILA_USUARIO_TAREA_1_FIS = 0x1FFFE000;
 
   /*-----------PILA USUARIO TAREA 2------------*/
   __INICIO_PILA_USUARIO_TAREA_2_LIN = 0x00613000;                               /* Principio del stack */
   __SIZE_PILA_USUARIO_TAREA_2 = 0x00000FFC; /* Calculo el largo de la pila */
   __FIN_PILA_USUARIO_TAREA_2_LIN = __INICIO_PILA_USUARIO_TAREA_2_LIN + __SIZE_PILA_USUARIO_TAREA_2;
-  __INICIO_PILA_USUARIO_TAREA_2_FIS = 0x1FFFE000;
+  __INICIO_PILA_USUARIO_TAREA_2_FIS = 0x1FFFD000;
 
   /*-----------------ROM---------------------*/
   __ROM_INICIO = 0xFFFF0000;

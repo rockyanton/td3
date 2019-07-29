@@ -47,9 +47,6 @@ EXTERN cambiar_tarea
       popad
       iret    ; Vuelvo a la tarea
 
-  pit_status:
-  db 0x00
-
 ;------------------------------- IRQ 1 ----------------------------------------
   isr_irq_01_keyboard:
     pushad
@@ -62,3 +59,20 @@ EXTERN cambiar_tarea
 
     popad
     iret    ; Vuelvo de la interrupción
+
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;++++++++++++++++++++++++++++++++ DATOS ++++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .datos nobits
+
+;--------- Variables compartidas -----------
+
+;--------- Variables externas ------------
+
+
+  pit_status:
+  resb 0x00

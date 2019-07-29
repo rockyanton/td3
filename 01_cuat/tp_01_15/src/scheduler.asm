@@ -2,7 +2,7 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
-%define TSS_Lenght  0x240      ; 576 bytes
+%define TSS_Lenght  0x270      ; 576 bytes
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
@@ -146,7 +146,7 @@ GLOBAL tarea_actual
         fxrstor [TSS_simd + edi]  ; Restore x87 FPU, MMX, XMM, and MXCSR State
       no_copio_simd:
       push edi
-      call mostrar_tarea
+      ;call mostrar_tarea
       pop eax
       mov ecx, TSS_Lenght
       mul ecx  ; (560 bytes)
@@ -201,6 +201,8 @@ GLOBAL tarea_actual
   arrancar_scheduler:
     mov eax, esp
     mov [pila_nucleo], esp
+    mov [tarea_actual], DWORD 0x00
+    mov [tarea_futura], DWORD 0x01
     xor eax, eax    ; Pusheo eip, cs y eflags vacíos
     push eax
     push eax
@@ -268,12 +270,27 @@ GLOBAL tarea_actual
 
     ret
 
-;-------------------------------------------------------------
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++ DATOS +++++++++++++++++++++++++++++++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+;--------- Parámetros globales ------------
+USE32
+section .datos nobits
+
+;--------- Parámetros globales ------------
+
+;--------- Variables externas ------------
+
+;--------- Variables compartidas -----------
+
+
   tarea_actual:
-    dd 0x00
+    resd 1
   tarea_futura:
-    dd 0x01
+    resd 1
   tarea_inicializada:
-    dd 0x00
+    resd 1
   pila_nucleo:
-    dd 0x00
+    resd 1

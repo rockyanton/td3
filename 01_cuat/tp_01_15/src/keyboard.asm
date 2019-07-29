@@ -415,6 +415,10 @@ GLOBAL handle_keyboard
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ;--------- Parámetros globales ------------
+USE32
+section .datos nobits
+
+;--------- Parámetros globales ------------
 
 ;--------- Variables externas ------------
 
@@ -424,6 +428,6 @@ GLOBAL keyboard_buffer_status
 
 ;--------- Buffer y Puntero ------------
   keyboard_buffer_hexa:
-    db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   ; 9 bytes
+    resb 9   ; 9 bytes
   keyboard_buffer_status:
-    db 0x00
+    resb 1
