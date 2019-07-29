@@ -43,19 +43,19 @@
 ;                       |   Dirección  |              |  Cantidad  | Indice Tabla |  Indice Página  |           |
 ;        Sección        |    Lineal    |   Longitud   | de Páginas | (Directorio) |     (Tabla)     | ¿Paginar? |
 ;_______________________|______________|______________|____________|______________|_________________|___________|
-; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00B3 |     1      |    0x 000    |     0x 000      |     SI    |
+; Handlers (ISR)        | 0x 0000 0000 | 0x 0000 00D0 |     1      |    0x 000    |     0x 000      |     SI    |
 ; Buffer de video       | 0x 0001 0000 | 0x 0000 0FA0 |     1      |    0x 000    |     0x 010      |     SI    |
-; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 08A0 |     1      |    0x 000    |     0x 100      |     SI    |
+; Tablas de Sistema     | 0x 0010 0000 | 0x 0000 0EB0 |     1      |    0x 000    |     0x 100      |     SI    |
 ; Tablas de Paginacion  | 0x 0011 0000 | 0x 0006 5008 |    101     |    0x 000    | 0x 110 - 0x 211 |     SI    |
-; Nucleo                | 0x 0050 0000 | 0x 0000 0860 |     1      |    0x 001    |     0x 100      |     SI    |
+; Nucleo                | 0x 0050 0000 | 0x 0000 0884 |     1      |    0x 001    |     0x 100      |     SI    |
 ; Tabla de Digitos      | 0x 0051 0000 | 0x 0000 FC01 |    16      |    0x 001    | 0x 010 - 0x 01F |     SI    |
 ; Tarea 0 (Text)        | 0x 0061 0000 | 0x 0000 0003 |     1      |    0x 001    |     0x 210      |     NO    |
 ; Tarea 0 (BSS)         | 0x 0061 1000 | 0x 0000 0008 |     1      |    0x 001    |     0x 211      |     NO    |
 ; Tarea 0 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
-; Tarea 1 (Text)        | 0x 0061 0000 | 0x 0000 0079 |     1      |    0x 001    |     0x 210      |     NO    |
+; Tarea 1 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001    |     0x 210      |     NO    |
 ; Tarea 1 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001    |     0x 211      |     NO    |
 ; Tarea 1 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
-; Tarea 2 (Text)        | 0x 0061 0000 | 0x 0000 0079 |     1      |    0x 001    |     0x 210      |     NO    |
+; Tarea 2 (Text)        | 0x 0061 0000 | 0x 0000 006A |     1      |    0x 001    |     0x 210      |     NO    |
 ; Tarea 2 (BSS)         | 0x 0061 1000 | 0x 0000 0009 |     1      |    0x 001    |     0x 211      |     NO    |
 ; Tarea 2 (Data RW)     | 0x 0061 2000 | 0x 0000 0000 |     0      |    0x 001    |     0x 212      |     NO    |
 ; Datos                 | 0x 005E 0000 | 0x 0000 0000 |     0      |    0x 001    |     0x 1E0      |     NO    |
@@ -66,7 +66,7 @@
 ; Pila Usuario Tarea 0  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
 ; Pila Usuario Tarea 1  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
 ; Pila Usuario Tarea 2  | 0x 0061 3000 | 0x 0000 0FFC |     1      |    0x 07F    |     0x 213      |     NO    |
-; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 1881 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
+; Inicializacion ROM    | 0x FFFF 0000 | 0x 0000 18A6 |     2      |    0x 3FF    | 0x 3F0 - 0x 3F1 |     SI    |
 ; Vector de reset       | 0x FFFF FFF0 | 0x 0000 0010 |     1      |    0x 3FF    |     0x 3FF      |     NO    |
 ; ROM                   | 0x FFFF 0000 | 0x 0000 FFFF |    16      |    0x 3FF    | 0x 3F0 - 0x 3FF |     SI    |
 ;_______________________|______________|______________|____________|______________|_________________|___________|

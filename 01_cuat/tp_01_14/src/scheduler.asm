@@ -2,7 +2,7 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
-%define TSS_Lenght  0x30
+%define TSS_Lenght  0x240      ; 576 bytes
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
@@ -33,6 +33,7 @@ EXTERN TSS_cs
 EXTERN TSS_ds
 EXTERN TSS_es
 EXTERN TSS_ss
+EXTERN TSS_simd
 EXTERN __FIN_PILA_NUCLEO_TAREA_0_LIN
 EXTERN __TAREA_0_TEXT_LIN
 EXTERN __TAREA_0_TEXT_ROM
@@ -45,6 +46,7 @@ EXTERN __TAREA_2_TEXT_LENGHT
 ;--------- Variables compartidas -----------
 GLOBAL cambiar_tarea
 GLOBAL arrancar_scheduler
+GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   cambiar_tarea:
@@ -86,6 +88,12 @@ GLOBAL arrancar_scheduler
       mov [TSS_ss + edi], ax
       mov ax, es
       mov [TSS_es + edi], ax
+
+      mov ebx, cr0    ; Traigo los registros de control 0
+      and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
+      cmp ebx, 0x08
+      jnz cambio_indicadores
+        fxsave [TSS_simd + edi]  ; Save x87 FPU, MMX Technology, and SSE State
 
     cambio_indicadores:
       mov esi, [tarea_actual]
@@ -131,11 +139,17 @@ GLOBAL arrancar_scheduler
         call copiar_tarea
 
     copiar_contexto:
+      mov ebx, cr0    ; Traigo los registros de control 0
+      and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
+      cmp ebx, 0x08
+      jnz no_copio_simd
+        fxrstor [TSS_simd + edi]  ; Restore x87 FPU, MMX, XMM, and MXCSR State
+      no_copio_simd:
       push edi
       call mostrar_tarea
       pop eax
       mov ecx, TSS_Lenght
-      mul ecx  ; (48 bytes)
+      mul ecx  ; (560 bytes)
       mov edi, eax
       mov ax, [TSS_es + edi]
       ;mov es, ax

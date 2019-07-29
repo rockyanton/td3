@@ -210,8 +210,9 @@ GLOBAL puntero_tabla_digitos
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ;--------- Parámetros globales ------------
-USE32
 section .tablas_de_sistema nobits
+USE32
+ALIGN 16
 
 ;--------- Variables externas ------------
 
@@ -230,13 +231,15 @@ GLOBAL TSS_cs
 GLOBAL TSS_ds
 GLOBAL TSS_es
 GLOBAL TSS_ss
+GLOBAL TSS_simd
 
 ;-------------------------------- TAREA 0 ---------------------------------------
 
   TSS:
   ; 4 bytes (10): eax, ebx, ecx, edx, edi, esi, ebp, esp, eip, eflags => 40 bytes
   ; 2 bytes (4): cs, ds, es, ss => 8 bytes
-  ; Total 48 bytes
+  ; 1 byte(520): reservado, simd
+  ; Total 576 bytes (0x238)
   TSS_tarea_0:
     TSS_eax:
       resd 1
@@ -266,9 +269,15 @@ GLOBAL TSS_ss
       resw 1
     TSS_ss:
       resw 1
+    TSS_reservado:
+      resb 16
+    TSS_simd:
+      resb 512
   TSS_tarea_1:
     resd 10
     resw 4
+    resb 512
   TSS_tarea_2:
     resd 10
     resw 4
+    resb 512

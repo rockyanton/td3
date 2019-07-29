@@ -164,6 +164,17 @@ EXTERN _pit_configure
     ;--------- Inicializo el PIT ------------
     call _pit_configure
 
+    ;--------- Activo SIMD ------------
+
+    mov eax, cr0          ; Traigo los registros de control 0
+    and eax, 0xFFFFFFFB		; Pongo en 0 el bit 2 (Emulation): x87 FPU present
+    or eax, 0x8						; Pongo en 1 el bit 3 (Task Switched): Allows saving x87 task context upon a task switch only after x87 instruction used
+    mov cr0, eax          ; Guardo los cambios
+
+    mov eax, cr4          ; Traigo los registros de control 4
+    or eax, 0x600         ; Pongo en 1 el bit 9 (Operating system support for FXSAVE and FXRSTOR instruction) y 10 (Operating System Support for Unmasked SIMD Floating-Point Exceptions)
+    mov cr4, eax          ; Guardo los cambios
+
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ RUTINAS  (MAIN) ++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
