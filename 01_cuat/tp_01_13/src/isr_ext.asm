@@ -49,8 +49,6 @@ EXTERN cambiar_tarea
 
   pit_status:
   db 0x00
-  cant_interrupciones:
-  dd 0x00                 ; Guardo la cant de veces que interrumpí
 
 ;------------------------------- IRQ 1 ----------------------------------------
   isr_irq_01_keyboard:
@@ -58,7 +56,9 @@ EXTERN cambiar_tarea
     mov edx, 0x21   ; Interrupción 33
 
     call handle_keyboard
+
     mov al, PIC_EOI
     out MASTER_PIC_8259_CMD_PORT, al   ; Le aviso al PIC que ya levanté la interrupción
+
     popad
     iret    ; Vuelvo de la interrupción

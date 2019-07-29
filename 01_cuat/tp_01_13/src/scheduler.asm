@@ -197,6 +197,7 @@ GLOBAL arrancar_scheduler
 ;-------------------------------------------------------------
   copiar_tarea:
     pushad
+
     cmp edi, 0x00
     jnz no_copio_tarea_0
       push __TAREA_0_TEXT_ROM     ; Pusheo ORIGEN
@@ -206,7 +207,6 @@ GLOBAL arrancar_scheduler
       pop eax               ; Saco los 3 push que hice antes
       pop eax
       pop eax
-
     no_copio_tarea_0:
 
     cmp edi, 0x01
