@@ -257,8 +257,8 @@ GLOBAL paginar_tareas
     pop eax
     pop eax
 
-    push Table_Attrib_U_RW_P
-    push Page_Attrib_U_RW_P
+    push Table_Attrib_S_RW_P
+    push Page_Attrib_S_RW_P
     push __SIZE_TABLA_DE_DIGITOS
     push __TABLA_DE_DIGITOS_FIS
     push __TABLA_DE_DIGITOS_LIN
@@ -483,7 +483,7 @@ GLOBAL paginar_tareas
     paginar_tarea_1:
 
       push Table_Attrib_U_RW_P
-      push Page_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
       push __TAREA_1_TEXT_LENGHT
       push __TAREA_1_TEXT_FIS
       push __TAREA_1_TEXT_LIN

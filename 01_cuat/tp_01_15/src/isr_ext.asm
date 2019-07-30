@@ -17,10 +17,14 @@ section .isr
 ;--------- Variables compartidas -----------
 GLOBAL isr_irq_00_pit
 GLOBAL isr_irq_01_keyboard
+GLOBAL isr_system_call
 
 ;--------- Variables externas ------------
 EXTERN handle_keyboard
 EXTERN cambiar_tarea
+EXTERN tabla_digitos
+EXTERN puntero_tabla_digitos
+EXTERN mostrar_digitos
 
 ;------------------------------- IRQ 0 ----------------------------------------
   isr_irq_00_pit:
@@ -60,6 +64,64 @@ EXTERN cambiar_tarea
     popad
     iret    ; Vuelvo de la interrupción
 
+;----------------------------- SYSTEM CALL --------------------------------------
+    isr_system_call:
+      pushad                ; Guardo los registros
+      mov edx, 0x80          ; Guardo el número de excepción "128"
+      ; Pila
+      ; 0-7:  Registros
+      ; 8-10: Interrupcion
+      ; 11:   Tipo de system call
+      ; 12:   Dirección del buffer de salida
+      ; 13:   Cantidad de bytes / Indice
+      ; 14:   Return
+      mov ebp, esp
+      mov esi, [ebp + 0x04*11]
+      cmp esi, 0x01
+      je td3_halt
+      cmp esi, 0x02
+      je td3_read
+      cmp esi, 0x03
+      je td3_print
+      jmp end_system_call
+
+      td3_halt:
+        sti
+        hlt
+        jmp end_system_call
+
+      td3_read:
+        mov edi, [ebp + 0x04*12]  ; Buffer
+        mov eax, [ebp + 0x04*13]  ; Indice de la tabla
+        mov [ebp + 0x04*14], DWORD 0x00   ; Devuelvo 0 si no copié nada
+        xor ebx, ebx
+        mov bl, [puntero_tabla_digitos]   ; Traigo el indice del último número guardado
+        cmp eax, ebx        ; Si el byte que pide es mayor, me voy
+        jg end_system_call
+          mov ebx, [tabla_digitos + eax*8]  ; Traigo parte baja
+          mov [edi], ebx    ; Guardo
+          mov ebx, [tabla_digitos + eax*8 + 0x04] ; Traigo parte alta
+          mov [edi + 0x04], ebx   ; Guardo
+          mov [ebp + 0x04*14], DWORD 0x01   ; Devuelvo 1 si copie algo
+          jmp end_system_call
+
+      td3_print:
+        mov edi, [ebp + 0x04*12]  ; Buffer
+        mov eax, [ebp + 0x04*13]  ; Cant. de bytes
+        cmp eax, 0x02     ; Para la rutina necesito 2 bytes, si son mas o menos me voy
+        jnz end_system_call
+          mov ebx, [edi + 0x04] ; Pusheo parte alta
+          push ebx
+          mov eax, [edi]        ; Pusheo parte baja
+          push eax
+          call mostrar_digitos    ; Muestro resultado en pantalla
+          pop ecx
+          pop ecx
+          jmp end_system_call
+
+      end_system_call:
+        popad               ; Vuelvo a traer los registros
+        iret
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++++ DATOS ++++++++++++++++++++++++++++++++++++++

@@ -135,12 +135,9 @@ GLOBAL tarea_actual
         call inicializar_tarea
 
     copiar_contexto:
-      mov ebx, cr0    ; Traigo los registros de control 0
-      and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
-      cmp ebx, 0x08
-      jnz no_copio_simd
-        fxrstor [TSS_simd + edi]  ; Restore x87 FPU, MMX, XMM, and MXCSR State
-      no_copio_simd:
+      mov ebx, cr0          ; Traigo los registros de control 0
+      or ebx, 0x8						; Pongo en 1 el bit 3 (Task Switched): Allows saving x87 task context upon a task switch only after x87 instruction used
+      mov cr0, ebx          ; Guardo los cambios
       push edi
       ;call mostrar_tarea
       pop eax

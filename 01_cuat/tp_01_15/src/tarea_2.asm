@@ -1,7 +1,11 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-%define breakpoint  xchg bx,bx
+%define breakpoint    xchg bx,bx
+%define system_call   int 0x80
+%define td3_halt      0x01
+%define td3_read      0x02
+%define td3_print     0x03
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++++ TAREA 2 (TEXT) +++++++++++++++++++++++++++++
@@ -12,48 +16,59 @@ USE32
 section .tarea_2_text progbits
 
 ;--------- Variables externas ------------
-EXTERN tabla_digitos
-EXTERN puntero_tabla_digitos
-EXTERN mostrar_digitos
 
 ;--------- Variables compartidas -----------
 GLOBAL tarea_2
 
   tarea_2:        ; Suma aritmética en word
     pushad
+
+    sumar_tabla_loop:
+      xor eax, eax
       mov al, [indice_suma_tabla]
-      mov ah, [puntero_tabla_digitos]
-      cmp al, ah          ; Si ambos punteros son iguales, no hubo cambios, me voy
-      jz end_tarea_2
-        xor ebx, ebx
-        mov bl, al        ; Copio el indice del ultimo digito que tengo registrado
-        mov ebp, ebx
-        dec ebp           ; Lo decremento porque lo vuelvo a incrementar en el loop
-        mov bl, ah        ; Copio el indice del ultimo digito en la tabla
-        mov edi, ebx
+      inc eax
 
-        sumar_tabla_loop:
-          inc ebp
-          movdqu xmm0, [suma_tabla_digitos]
-          movdqu xmm1, [tabla_digitos + ebp*8]
-          paddw  xmm0, xmm1
-        	movdqu  [suma_tabla_digitos], xmm0
+      push DWORD 0x00     ; Return
+      push eax        ; Indice siguiente
+      push DWORD buffer_tarea
+      push DWORD td3_read
+      system_call
+      pop ebx
+      pop ebx
+      pop ebx
+      pop ebx
 
-        cmp ebp, edi            ; Si no son iguales los punteros itero
-        jnz sumar_tabla_loop
+      cmp ebx, 0x01     ; Si me devuelve 0, es porque no hay nada nuevo
+      jnz end_tarea_2
+        dec eax   ; Traigo el último dígito
+        push DWORD 0x00     ; Return
+        push eax        ; Indice siguiente
+        push DWORD buffer_tarea
+        push DWORD td3_read
+        system_call
+        pop ebx
+        pop ebx
+        pop ebx
+        pop ebx
 
-        mov ecx, ebp    ; Guardo el valor de puntero actualizado
-        mov [indice_suma_tabla], cl
+        movdqu xmm0, [suma_tabla_digitos]   ; Traigo el resulatdo de la suma acumulado
+        movdqu xmm1, [buffer_tarea]         ; Traigo el valor del dato
+        paddw  xmm0, xmm1                   ; Los sumo
+      	movdqu  [suma_tabla_digitos], xmm0  ; Guardo la suma
+        inc eax
+        mov [indice_suma_tabla], al         ; Guardo el indice actualizado
 
-        mov ebx, [suma_tabla_digitos + 0x04]  ; Traigo el resultado
-        push ebx
-        mov eax, [suma_tabla_digitos]
-        push eax
-        call mostrar_digitos    ; Muestro resultado en pantalla
-        pop ecx
-        pop ecx
+        push DWORD 0x00   ; Return
+        push DWORD 0x02   ; 2 bytes
+        push DWORD suma_tabla_digitos   ; Que mostrar
+        push DWORD td3_print  ; Quiero mostrar
+        system_call
+        pop eax
+        pop eax
+        pop eax
+        pop eax
 
-        ;call leer_memoria
+        jmp sumar_tabla_loop
 
       end_tarea_2:
         popad
@@ -97,3 +112,5 @@ suma_tabla_digitos:
   resd 2        ; Reservo 8 bytes para guardar la suma (64 bits)
 indice_suma_tabla:
   resb 1        ; Indice para saber hasta que digito llegué
+buffer_tarea:
+  resq 1

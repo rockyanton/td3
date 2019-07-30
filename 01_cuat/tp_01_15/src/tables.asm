@@ -60,6 +60,7 @@ EXTERN exc_handler_013_gp
 EXTERN exc_handler_014_pf
 EXTERN isr_irq_00_pit
 EXTERN isr_irq_01_keyboard
+EXTERN isr_system_call
 
 ;--------- Variables compartidas -----------
 GLOBAL init_gdt
@@ -218,6 +219,13 @@ GLOBAL img_idtr
       ; Interrupción por Teclado (IRQ 1), codigo 33 (0x21)
       push isr_irq_01_keyboard
       push 0x21
+      call load_isr_idt
+      pop eax
+      pop eax
+
+      ; Excepcion de System Call (SC), codigo 128 (0x0E)
+      push isr_system_call
+      push 0x80
       call load_isr_idt
       pop eax
       pop eax
