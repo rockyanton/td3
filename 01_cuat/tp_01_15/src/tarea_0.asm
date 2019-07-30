@@ -21,9 +21,7 @@ section .tarea_0_text progbits
 GLOBAL tarea_0
 
   tarea_0:
-    push DWORD td3_halt
-    system_call
-    add esp, 0x04
+    hlt
     jmp tarea_0
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -14,11 +14,14 @@ section .tablas_de_sistema nobits
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
+GLOBAL gdt
 GLOBAL ds_sel_nucleo
 GLOBAL cs_sel_nucleo
 GLOBAL ds_sel_usuario
 GLOBAL cs_sel_usuario
-GLOBAL tss_gdt
+GLOBAL tss_sel_0
+GLOBAL tss_sel_1
+GLOBAL tss_sel_2
 
 ;-------------------------------- GDT ---------------------------------------
   gdt:
@@ -31,8 +34,12 @@ GLOBAL tss_gdt
     resb 8              ; Selector de datos usuario nulo
     cs_sel_usuario equ $ - gdt
     resb 8              ; Selector de codigo usuario nulo
-    tss_gdt equ $ - gdt
-    resb 8              ; Descriptor de la TSS
+    tss_sel_0 equ $ - gdt
+    resb 8              ; Descriptor de la TSS de la tarea 0
+    tss_sel_1 equ $ - gdt
+    resb 8              ; Descriptor de la TSS de la tarea 1
+    tss_sel_2 equ $ - gdt
+    resb 8              ; Descriptor de la TSS de la tarea 2
 
   long_gdt equ $-gdt    ; Largo de la gdt vacía
 
@@ -83,8 +90,8 @@ GLOBAL img_idtr
         db 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xF2, 0xCF, 0x00     ; Selector de datos de usuario
       cs_sel_usuario_rom  equ $ - gdt_rom + 0x03
         db 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFA, 0xCF, 0x00     ; Selector de código de usuario
-      tss_rom             equ $ - gdt_rom
-        db 0x00, 0x00, 0x00, 0x00, 0x00, 0x89, 0x40, 0x00     ; Descriptor de TSS
+      ;tss_rom             equ $ - gdt_rom
+        ;db 0x00, 0x00, 0x00, 0x00, 0x00, 0x89, 0x40, 0x00     ; Descriptor de TSS
 
       long_gdt_rom  equ $ - gdt_rom    ; Largo de la gdt
 
@@ -103,11 +110,11 @@ GLOBAL img_idtr
       ;  |7|6|5|4|3|2|1|0|  Byte 4 del descriptor GDT
       ;   `-`-`-`-`-`-`-`---- Bits 16-23 de la Base del Segmento
 
-      ;  |7|6|5|4|3|2|1|0|  Byte 5 del descriptor GDT (Access byte)
+      ;  |7|6|5|4|3|2|1|0|  Byte 5 del descriptor GDT (Access byte) 1 00 0 -- 1 0 0 1
       ;   | | | | | | | `---- A (Accessed): Si es "0" el segmento no fue accedido, si es "1" sí. Este bit es puesto a uno por el microprocesador.
       ;   | | | | | | `----- Codigo: R (Readable): Si es "0" no se puede leer  sobre el segmento // Datos: W (Writable): Si es "0" no se puede escribir sobre el segmento
       ;   | | | | | `------ Codigo: C (Conforming): Si es "1" el segmento de código sólo puede ser ejecutado si CPL es mayor que DPL // Datos: ED (Direction): Si es "0" el segmento se expande hacia arriba.
-      ;   | | | | `------- E (Executable): Si es "1" es un selector de código, si es "o" es un selector de datos
+      ;   | | | | `------- E (Executable): Si es "1" es un selector de código, si es "0" es un selector de datos
       ;   | | | `-------- S (Descriptor type): "1" para descriptores de código y datos y "0" para descriptores de sistema
       ;   | `-`--------- DPL (Descriptor Privilege Level): 0=SO ... 3:User
       ;   `------------ P (Segment Present Flag)
@@ -140,15 +147,42 @@ GLOBAL img_idtr
       pop eax
       pop eax
 
-      ; Cargo el limite y base del descriptor de la TSS
       mov ebp, gdt
-      mov eax, TSS
       mov ebx, TSS_Lenght
-      mov [ebp + 0x08*5], bx          ; Byte 0 y 1: Límite TSS
-      mov [ebp + 0x08*5 + 0x02], ax   ; Byte 2 y 3: Base TSS (0-15)
+      mov ecx, ebx
+      rol ecx, 16
+      and cl, 0x0F  ; Bits 16-19 del Límite
+      or cl, 0x40   ; Flags: G=1B y 32 bits
+
+      ; Cargo el selector de la TSS de la tarea 0
+      mov eax, TSS_tarea_0
+      mov [ebp + tss_sel_0], bx                 ; Byte 0 y 1: Límite TSS (0-15)
+      mov [ebp + tss_sel_0 + 0x02], ax          ; Byte 2 y 3: Base TSS (0-15)
       rol eax, 16
-      mov [ebp + 0x08*5 + 0x04], al   ; Byte 4: Base TSS (16-23)
-      mov [ebp + 0x08*5 + 0x07], ah   ; Byte 4: Base TSS (24-31)
+      mov [ebp + tss_sel_0 + 0x04], al          ; Byte 4: Base TSS (16-23)
+      mov [ebp + tss_sel_0 + 0x05], DWORD 0x89  ; Byte 5, Acceso
+      mov [ebp + tss_sel_0 + 0x06], cl          ; Byte 6, flags + Límite (16-23)
+      mov [ebp + tss_sel_0 + 0x07], ah          ; Byte 7: Base TSS (24-31)
+
+      ; Cargo el selector de la TSS de la tarea 1
+      mov eax, TSS_tarea_1
+      mov [ebp + tss_sel_1], bx                 ; Byte 0 y 1: Límite TSS (0-15)
+      mov [ebp + tss_sel_1 + 0x02], ax          ; Byte 2 y 3: Base TSS (0-15)
+      rol eax, 16
+      mov [ebp + tss_sel_1 + 0x04], al          ; Byte 4: Base TSS (16-23)
+      mov [ebp + tss_sel_1 + 0x05], DWORD 0x89  ; Byte 5, Acceso
+      mov [ebp + tss_sel_1 + 0x06], cl          ; Byte 6, flags + Límite (16-23)
+      mov [ebp + tss_sel_1 + 0x07], ah          ; Byte 7: Base TSS (24-31)
+
+      ; Cargo el selector de la TSS de la tarea 2
+      mov eax, TSS_tarea_2
+      mov [ebp + tss_sel_2], bx                 ; Byte 0 y 1: Límite TSS (0-15)
+      mov [ebp + tss_sel_2 + 0x02], ax          ; Byte 2 y 3: Base TSS (0-15)
+      rol eax, 16
+      mov [ebp + tss_sel_2 + 0x04], al          ; Byte 4: Base TSS (16-23)
+      mov [ebp + tss_sel_2 + 0x05], DWORD 0x89  ; Byte 5, Acceso
+      mov [ebp + tss_sel_2 + 0x06], cl          ; Byte 6, flags + Límite (16-23)
+      mov [ebp + tss_sel_2 + 0x07], ah          ; Byte 7: Base TSS (24-31)
 
       ; Cargo la GDTR con la gdt nueva
       lgdt [cs:img_gdtr]
@@ -324,10 +358,11 @@ ALIGN 16
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
+GLOBAL TSS_tarea_0
+GLOBAL TSS_tarea_1
+GLOBAL TSS_tarea_2
 GLOBAL TSS_esp0
 GLOBAL TSS_ss0
-GLOBAL TSS_esp2
-GLOBAL TSS_ss2
 GLOBAL TSS_cr3
 GLOBAL TSS_eip
 GLOBAL TSS_eflags
@@ -341,95 +376,99 @@ GLOBAL TSS_esi
 GLOBAL TSS_edi
 GLOBAL TSS_cs
 GLOBAL TSS_ds
+GLOBAL TSS_es
 GLOBAL TSS_ss
 GLOBAL TSS_simd
 GLOBAL TSS_Lenght
+GLOBAL TSS_Offset_Bitmap
+GLOBAL TSS_Bitmap
 
-;-------------------------------- TAREA 0 ---------------------------------------
 
-  TSS:      ; Total 564 bytes (0x270)
+  TSS:
 
   TSS_tarea_0:
-    TSS_Backlink:
+    TSS_Backlink equ $ - TSS
       resw 1
-    TSS_reservado_1:
+    TSS_reservado_1 equ $ - TSS
       resw 1
-    TSS_esp0:
+    TSS_esp0 equ $ - TSS
       resd 1
-    TSS_ss0:
+    TSS_ss0 equ $ - TSS
       resw 1
-    TSS_reservado_2:
+    TSS_reservado_2 equ $ - TSS
       resw 1
-    TSS_esp1:
+    TSS_esp1 equ $ - TSS
       resd 1
-    TSS_ss1:
+    TSS_ss1 equ $ - TSS
       resw 1
-    TSS_reservado_3:
+    TSS_reservado_3 equ $ - TSS
       resw 1
-    TSS_esp2:
+    TSS_esp2 equ $ - TSS
       resd 1
-    TSS_ss2:
+    TSS_ss2 equ $ - TSS
       resw 1
-    TSS_reservado_4:
+    TSS_reservado_4 equ $ - TSS
       resw 1
-    TSS_cr3:
+    TSS_cr3 equ $ - TSS
       resd 1
-    TSS_eip:
+    TSS_eip equ $ - TSS
       resd 1
-    TSS_eflags:
+    TSS_eflags equ $ - TSS
       resd 1
-    TSS_eax:
+    TSS_eax equ $ - TSS
       resd 1
-    TSS_ecx:
+    TSS_ecx equ $ - TSS
       resd 1
-    TSS_edx:
+    TSS_edx equ $ - TSS
       resd 1
-    TSS_ebx:
+    TSS_ebx equ $ - TSS
       resd 1
-    TSS_esp:
+    TSS_esp equ $ - TSS
       resd 1
-    TSS_ebp:
+    TSS_ebp equ $ - TSS
       resd 1
-    TSS_esi:
+    TSS_esi equ $ - TSS
       resd 1
-    TSS_edi:
+    TSS_edi equ $ - TSS
       resd 1
-    TSS_es:
+    TSS_es equ $ - TSS
       resw 1
-    TSS_reservado_5:
+    TSS_reservado_5 equ $ - TSS
       resw 1
-    TSS_cs:
+    TSS_cs equ $ - TSS
       resw 1
-    TSS_reservado_6:
+    TSS_reservado_6 equ $ - TSS
       resw 1
-    TSS_ss:
+    TSS_ss equ $ - TSS
       resw 1
-    TSS_reservado_7:
+    TSS_reservado_7 equ $ - TSS
       resw 1
-    TSS_ds:
+    TSS_ds equ $ - TSS
       resw 1
-    TSS_reservado_8:
+    TSS_reservado_8 equ $ - TSS
       resw 1
-    TSS_fs:
+    TSS_fs equ $ - TSS
       resw 1
-    TSS_reservado_9:
+    TSS_reservado_9 equ $ - TSS
       resw 1
-    TSS_gs:
+    TSS_gs equ $ - TSS
       resw 1
-    TSS_reservado_A:
+    TSS_reservado_A equ $ - TSS
       resw 1
-    TSS_ldtr:
+    TSS_ldtr equ $ - TSS
       resw 1
-    TSS_reservado_B:
+    TSS_reservado_B equ $ - TSS
       resw 1
-    TSS_bit_t:
+    TSS_bit_t equ $ - TSS
       resw 1
-    TSS_Offset_Bipmap:
+    TSS_Offset_Bitmap equ $ - TSS
       resw 1
-    TSS_ajuste:
+    TSS_ajuste equ $ - TSS
       resb 8
-    TSS_simd:
+    TSS_simd equ $ - TSS
       resb 512
+    TSS_Bitmap equ $ - TSS
+      resb 32 ; 32 bits -> 256 puertos
 
   TSS_Lenght equ $ - TSS    ; Largo de la TSS
 

@@ -18,10 +18,11 @@ EXTERN mostrar_tarea
 EXTERN tarea_0
 EXTERN tarea_1
 EXTERN tarea_2
+EXTERN TSS_tarea_0
+EXTERN TSS_tarea_1
+EXTERN TSS_tarea_2
 EXTERN TSS_esp0
 EXTERN TSS_ss0
-EXTERN TSS_esp2
-EXTERN TSS_ss2
 EXTERN TSS_cr3
 EXTERN TSS_eip
 EXTERN TSS_eflags
@@ -35,17 +36,26 @@ EXTERN TSS_esi
 EXTERN TSS_edi
 EXTERN TSS_cs
 EXTERN TSS_ds
+EXTERN TSS_es
 EXTERN TSS_ss
 EXTERN TSS_simd
 EXTERN TSS_Lenght
+EXTERN TSS_Offset_Bitmap
+EXTERN TSS_Bitmap
 EXTERN __FIN_PILA_NUCLEO_TAREA_0_LIN
 EXTERN __FIN_PILA_USUARIO_TAREA_0_LIN
 EXTERN directorio_nucleo
 EXTERN directorio_0
 EXTERN directorio_1
 EXTERN directorio_2
+EXTERN ds_sel_nucleo
+EXTERN cs_sel_nucleo
+EXTERN ds_sel_usuario
 EXTERN cs_sel_usuario
-
+EXTERN gdt
+EXTERN tss_sel_0
+EXTERN tss_sel_1
+EXTERN tss_sel_2
 
 ;--------- Variables compartidas -----------
 GLOBAL cambiar_tarea
@@ -55,67 +65,82 @@ GLOBAL tarea_actual
 ;-------------------------------------------------------------
   cambiar_tarea:
     guardar_contexto:
-      push edi
-      push edx
       push eax
-      mov eax, [tarea_actual]
-      mov edi, TSS_Lenght
-      mul edi  ; (48 bytes)
-      mov edi, eax
-      pop eax
-      pop edx
+      push ebx
+      mov ebx, [tarea_actual]
+      mov eax, TSS_tarea_0   ; Default: Tarea 0
 
-      mov [TSS_eax + edi], eax
-      mov [TSS_ebx + edi], ebx
-      mov [TSS_ecx + edi], ecx
-      mov [TSS_edx + edi], edx
-      pop edx
-      mov [TSS_edi + edi], edx
-      mov [TSS_esi + edi], esi
-      mov [TSS_ebp + edi], ebp
+      cmp ebx, 0x01
+      jnz no_guardo_tarea_1
+        mov eax, TSS_tarea_1
+      no_guardo_tarea_1:
+
+      cmp ebx, 0x02
+      jnz no_guardo_tarea_2
+        mov eax, TSS_tarea_2
+      no_guardo_tarea_2:
+
+      pop ebx
+
+      mov [eax + TSS_ebx], ebx
+      mov [eax + TSS_ecx], ecx
+      mov [eax + TSS_edx], edx
+      pop ebx
+      mov [eax + TSS_eax], ebx
+      mov [eax + TSS_edi], edi
+      mov [eax + TSS_esi], esi
+      mov [eax + TSS_ebp], ebp
       ; PILA:
       ; 1- eip ret isr_irq_00_pit / tarea_terminada / start_scheduler
       ; 2- eip ret tarea
       ; 3- cs tarea
       ; 4- eflags tarea
-      pop eax
-      pop eax
-      mov [TSS_eip + edi], eax
-      pop eax
-      mov [TSS_cs + edi], ax
-      pop eax
-      mov [TSS_eflags + edi], eax
-      mov [TSS_esp + edi], esp
-      mov ax, ds
-      mov [TSS_ds + edi], ax
-      mov ax, ss
-      mov [TSS_ss + edi], ax
+      pop ebx
+      pop ebx
+      mov [eax + TSS_eip], ebx
+      pop ebx
+      mov [eax + TSS_cs], bx
+      pop ebx
+      mov [eax + TSS_eflags], ebx
+      mov [eax + TSS_esp], esp
+      mov bx, ds
+      mov [eax + TSS_ds], bx
+      mov bx, ss
+      mov [eax + TSS_ss], bx
+      mov bx, es
+      mov [eax + TSS_es], bx
 
       mov ebx, cr0    ; Traigo los registros de control 0
       and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
       cmp ebx, 0x08
       jnz cambio_indicadores
-        fxsave [TSS_simd + edi]  ; Save x87 FPU, MMX Technology, and SSE State
+        fxsave [eax + TSS_simd]  ; Save x87 FPU, MMX Technology, and SSE State
 
     cambio_indicadores:
-
-      mov esp, [pila_nucleo]
 
       mov esi, [tarea_actual]
       mov edi, [tarea_futura]
       mov [tarea_actual], edi
 
+      xor ebx, ebx
       mov [tarea_futura], dword 0x00   ; Default: siguiente tarea es la 0
+      mov bx, tss_sel_0
 
       cmp esi, 0x01   ; Si estaba en la 1, la tarea actual es la 0 y la siguiente la 2
       jnz no_tarea_1
         mov [tarea_futura], dword 0x02
+        mov bx, tss_sel_1
       no_tarea_1:
 
       cmp esi, 0x02   ; Si estaba en la 2, la tarea actual es la 0 y la siguiente la 1
       jnz no_tarea_2
         mov [tarea_futura], dword 0x01
+        mov bx, tss_sel_2
       no_tarea_2:
+
+      mov cl, [gdt + ebx + 0x05] ; Byte 5, Acceso
+      and cl, 0xFD
+      mov [gdt + ebx + 0x05], cl ; Borro el flag de bussy
 
     paginar_tarea_futura:
 
@@ -133,26 +158,45 @@ GLOBAL tarea_actual
 
       mov cr3, ebx
 
+    cargo_puntero_tss:
 
-      mov eax, [tarea_inicializada]   ; Flag para saber si la tarea existe en ram
-      mov ecx, edi
-      mov edx, 0x01
+      cmp edi, 0x00
+      jnz no_ini_0
+        mov eax, TSS_tarea_0
+      no_ini_0:
 
-      loop_shift_ini:
-      cmp ecx, 0x00
-      je end_loop_shift_ini
-        shl edx, 0x01
-        dec ecx
-        jmp loop_shift_ini
-      end_loop_shift_ini:
+      cmp edi, 0x01
+      jnz no_ini_1
+        mov eax, TSS_tarea_1
+      no_ini_1:
 
-      and eax, edx
-      cmp eax, 0x00         ; Si es 1, ya está inicalizada, voy a copiar el contexto. Si es 0 tengo copiarla primero
-      jnz copiar_contexto
-        mov eax, [tarea_inicializada]   ; Actualizo valor de flag
-        or eax, edx
-        mov [tarea_inicializada], eax
+      cmp edi, 0x02
+      jnz no_ini_2
+        mov eax, TSS_tarea_2
+      no_ini_2:
+
+    chequeo_si_inicializada:
+
+      mov ebx, [eax + TSS_cr3]
+      cmp ebx, 0x00
+      jnz cargo_tss
         call inicializar_tarea
+
+    cargo_tss:
+
+      mov bx, tss_sel_0  ; Defaul tarea 0
+
+      cmp edi, 0x01
+      jnz no_tss_1
+        mov bx, tss_sel_1
+      no_tss_1:
+
+      cmp edi, 0x02
+      jnz no_tss_2
+        mov bx, tss_sel_2
+      no_tss_2:
+
+      ltr bx
 
     copiar_contexto:
       mov ebx, cr0          ; Traigo los registros de control 0
@@ -160,37 +204,32 @@ GLOBAL tarea_actual
       mov cr0, ebx          ; Guardo los cambios
       push edi
       ;call mostrar_tarea
-      pop eax
-      mov eax, edi
-      mov ecx, TSS_Lenght
-      mul ecx
-      mov edi, eax
-      mov ax, [TSS_ss + edi]
-      mov ss, ax
-      mov ax, [TSS_ds + edi]
-      mov ds, ax
-
-      mov eax, [TSS_eax + edi]
-      mov ebx, [TSS_ebx + edi]
-      mov ecx, [TSS_ecx + edi]
-      mov esi, [TSS_esi + edi]
-      mov ebp, [TSS_ebp + edi]
-      mov esp, [TSS_esp + edi]
+      pop edi
+      mov bx, [eax + TSS_ss]
+      mov ss, bx
+      mov bx, [eax + TSS_ds]
+      mov ds, bx
+      mov ebx, [eax + TSS_ebx]
+      mov ecx, [eax + TSS_ecx]
+      mov esi, [eax + TSS_esi]
+      mov edi, [eax + TSS_edi]
+      mov ebp, [eax + TSS_ebp]
+      mov esp, [eax + TSS_esp]
       ; PILA:
       ; 3- eip ret tarea
       ; 2- cs tarea
       ; 1- eflags tarea
-      mov edx, [TSS_eflags + edi]
+      mov edx, [eax + TSS_eflags]
       push edx
       xor edx, edx
-      mov dx, [TSS_cs + edi]
+      mov dx, [eax + TSS_cs]
       push edx
-      mov edx, [TSS_eip + edi]
+      mov edx, [eax + TSS_eip]
       push edx
-      mov edx, [TSS_edi + edi]
+      mov edx, [eax + TSS_eax]
       push edx
-      mov edx, [TSS_edx + edi]
-      pop edi
+      mov edx, [eax + TSS_edx]
+      pop eax
 
     tarea_siguiente:
       iret
@@ -224,25 +263,24 @@ GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   inicializar_tarea:
-    mov ebp, esp  ; Guardo la pila
+    mov ebp, esp                ; Guardo la pila
     mov esp, __FIN_PILA_USUARIO_TAREA_0_LIN  ; Todas tienen la pila en la misma direccion de memoria
-    push dword tarea_terminada  ; Cuando la tarea termine con el ret, quiero que vaya ahí
-    mov ecx, esp    ; Guardo la pila con la posición actualizada
-    mov esp, ebp    ; Restauro la pila anterior
-
-    mov eax, edi
-    mov edx, TSS_Lenght
-    mul edx
-    mov [TSS_esp + eax], ecx
-    mov [TSS_eip + eax], dword tarea_0   ; Todas arrancan en la misma posicion de memoria
+    push DWORD tarea_terminada  ; Cuando la tarea termine con el ret, quiero que vaya ahí
+    mov [eax + TSS_esp], esp    ; Guardo la pila con la posición actualizada
+    mov esp, ebp                ; Restauro la pila anterior
+    mov [eax + TSS_eip], DWORD tarea_0   ; Todas arrancan en la misma posicion de memoria
     pushfd
     pop ecx
-    mov [TSS_eflags + eax], ecx
-    mov [TSS_ds + eax], ds
-    mov [TSS_ss + eax], ss
-    mov [TSS_cs + eax], cs
+    mov [eax + TSS_eflags], ecx
+    mov [eax + TSS_ds], WORD ds_sel_nucleo
+    mov [eax + TSS_ss], WORD ds_sel_nucleo
+    mov [eax + TSS_cs], WORD cs_sel_nucleo
+    mov [eax + TSS_es], es
     mov ecx, cr3
-    mov [TSS_cr3 + eax], ecx
+    mov [eax + TSS_cr3], ecx
+    mov [eax + TSS_esp0], DWORD __FIN_PILA_NUCLEO_TAREA_0_LIN   ; Todas tienen la pila en la misma direccion de memoria
+    mov [eax + TSS_ss0], WORD ds_sel_nucleo
+    mov [eax + TSS_Offset_Bitmap], WORD TSS_Bitmap
 
     ret
 

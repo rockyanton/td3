@@ -16,7 +16,9 @@ EXTERN mostrar_page_fault
 EXTERN paginacion_dinamica
 EXTERN tarea_actual
 EXTERN TSS_simd
-EXTERN TSS_Lenght
+EXTERN TSS_tarea_0
+EXTERN TSS_tarea_1
+EXTERN TSS_tarea_2
 
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de
@@ -44,12 +46,27 @@ GLOBAL exc_handler_014_pf
 ;-------------------------- 0x07 Device Not Available (No Math Coprocessor) ------
     exc_handler_007_nm:
       pushad                ; Guardo los registros
-      mov edx, 0x07          ; Guardo el número de excepción "7"
-      clts
-      mov eax, [tarea_actual]
-      mov ecx, TSS_Lenght
-      mul ecx
-      fxrstor [TSS_simd + eax]
+        mov edx, 0x07          ; Guardo el número de excepción "7"
+        clts
+        mov edi, [tarea_actual]
+
+        cmp edi, 0x00
+        jnz no_nm_0
+          mov eax, TSS_tarea_0
+        no_nm_0:
+
+        cmp edi, 0x01
+        jnz no_nm_1
+          mov eax, TSS_tarea_1
+        no_nm_1:
+
+        cmp edi, 0x02
+        jnz no_nm_2
+          mov eax, TSS_tarea_2
+        no_nm_2:
+
+        fxrstor [eax + TSS_simd]
+
       popad               ; Vuelvo a traer los registros
       iret
 
