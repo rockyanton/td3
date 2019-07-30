@@ -434,7 +434,7 @@ GLOBAL TSS_Lenght
   TSS_Lenght equ $ - TSS    ; Largo de la TSS
 
   TSS_tarea_1:
-    resb 624
+    resb TSS_Lenght
 
   TSS_tarea_2:
-    resb 624
+    resb TSS_Lenght

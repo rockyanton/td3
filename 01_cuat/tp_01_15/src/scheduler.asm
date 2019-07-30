@@ -44,6 +44,7 @@ EXTERN directorio_nucleo
 EXTERN directorio_0
 EXTERN directorio_1
 EXTERN directorio_2
+EXTERN cs_sel_usuario
 
 
 ;--------- Variables compartidas -----------
@@ -158,7 +159,7 @@ GLOBAL tarea_actual
       or ebx, 0x8						; Pongo en 1 el bit 3 (Task Switched): Allows saving x87 task context upon a task switch only after x87 instruction used
       mov cr0, ebx          ; Guardo los cambios
       push edi
-      call mostrar_tarea
+      ;call mostrar_tarea
       pop eax
       mov eax, edi
       mov ecx, TSS_Lenght
@@ -204,6 +205,7 @@ GLOBAL tarea_actual
     pushfd
     xor eax, eax
     mov ax, cs
+    push eax
     push dword tarea_0
 
     call cambiar_tarea
@@ -239,6 +241,8 @@ GLOBAL tarea_actual
     mov [TSS_ds + eax], ds
     mov [TSS_ss + eax], ss
     mov [TSS_cs + eax], cs
+    mov ecx, cr3
+    mov [TSS_cr3 + eax], ecx
 
     ret
 
