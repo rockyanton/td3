@@ -2,7 +2,6 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
-%define TSS_Lenght  0x270      ; 576 bytes
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
@@ -17,6 +16,7 @@ EXTERN mostrar_page_fault
 EXTERN paginacion_dinamica
 EXTERN tarea_actual
 EXTERN TSS_simd
+EXTERN TSS_Lenght
 
 ;--------- Variables compartidas -----------
 GLOBAL exc_handler_000_de

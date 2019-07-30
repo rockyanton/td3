@@ -2,7 +2,6 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
-%define TSS_Lenght  0x270      ; 576 bytes
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++ HANDLERS +++++++++++++++++++++++++++++++++++++
@@ -19,29 +18,28 @@ EXTERN mostrar_tarea
 EXTERN tarea_0
 EXTERN tarea_1
 EXTERN tarea_2
+EXTERN TSS_esp0
+EXTERN TSS_ss0
+EXTERN TSS_esp2
+EXTERN TSS_ss2
+EXTERN TSS_cr3
+EXTERN TSS_eip
+EXTERN TSS_eflags
 EXTERN TSS_eax
 EXTERN TSS_ebx
 EXTERN TSS_ecx
 EXTERN TSS_edx
-EXTERN TSS_edi
-EXTERN TSS_esi
-EXTERN TSS_ebp
 EXTERN TSS_esp
-EXTERN TSS_eip
-EXTERN TSS_eflags
+EXTERN TSS_ebp
+EXTERN TSS_esi
+EXTERN TSS_edi
 EXTERN TSS_cs
 EXTERN TSS_ds
-EXTERN TSS_es
 EXTERN TSS_ss
 EXTERN TSS_simd
+EXTERN TSS_Lenght
 EXTERN __FIN_PILA_NUCLEO_TAREA_0_LIN
-EXTERN __TAREA_0_TEXT_LIN
-EXTERN __TAREA_0_TEXT_ROM
-EXTERN __TAREA_1_TEXT_ROM
-EXTERN __TAREA_2_TEXT_ROM
-EXTERN __TAREA_0_TEXT_LENGHT
-EXTERN __TAREA_1_TEXT_LENGHT
-EXTERN __TAREA_2_TEXT_LENGHT
+EXTERN __FIN_PILA_USUARIO_TAREA_0_LIN
 
 ;--------- Variables compartidas -----------
 GLOBAL cambiar_tarea
@@ -86,8 +84,6 @@ GLOBAL tarea_actual
       mov [TSS_ds + edi], ax
       mov ax, ss
       mov [TSS_ss + edi], ax
-      mov ax, es
-      mov [TSS_es + edi], ax
 
       mov ebx, cr0    ; Traigo los registros de control 0
       and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
@@ -136,7 +132,7 @@ GLOBAL tarea_actual
         mov eax, [tarea_inicializada]   ; Actualizo valor de flag
         and eax, edx
         mov [tarea_inicializada], eax
-        call copiar_tarea
+        call inicializar_tarea
 
     copiar_contexto:
       mov ebx, cr0    ; Traigo los registros de control 0
@@ -151,8 +147,6 @@ GLOBAL tarea_actual
       mov ecx, TSS_Lenght
       mul ecx  ; (560 bytes)
       mov edi, eax
-      mov ax, [TSS_es + edi]
-      ;mov es, ax
       mov ax, [TSS_ss + edi]
       mov ss, ax
       mov ax, [TSS_ds + edi]
@@ -211,46 +205,9 @@ GLOBAL tarea_actual
     call cambiar_tarea
 
 ;-------------------------------------------------------------
-  copiar_tarea:
-    pushad
-
-    cmp edi, 0x00
-    jnz no_copio_tarea_0
-      push __TAREA_0_TEXT_ROM     ; Pusheo ORIGEN
-      push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
-      push __TAREA_0_TEXT_LENGHT  ; Pusheo LARGO
-      call copy                   ; LLamo a la rutina
-      pop eax               ; Saco los 3 push que hice antes
-      pop eax
-      pop eax
-    no_copio_tarea_0:
-
-    cmp edi, 0x01
-    jnz no_copio_tarea_1
-      push __TAREA_1_TEXT_ROM     ; Pusheo ORIGEN
-      push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
-      push __TAREA_1_TEXT_LENGHT  ; Pusheo LARGO
-      call copy                   ; LLamo a la rutina
-      pop eax               ; Saco los 3 push que hice antes
-      pop eax
-      pop eax
-    no_copio_tarea_1:
-
-    cmp edi, 0x02
-    jnz no_copio_tarea_2
-      push __TAREA_2_TEXT_ROM     ; Pusheo ORIGEN
-      push __TAREA_0_TEXT_LIN     ; Pusheo DESTINO
-      push __TAREA_2_TEXT_LENGHT  ; Pusheo LARGO
-      call copy                   ; LLamo a la rutina
-      pop eax               ; Saco los 3 push que hice antes
-      pop eax
-      pop eax
-    no_copio_tarea_2:
-
-    popad
+  inicializar_tarea:
     mov ebp, esp  ; Guardo la pila
-    mov ecx, __FIN_PILA_NUCLEO_TAREA_0_LIN  ; Todas tienen la pila en la misma direccion de memoria
-    mov esp, ecx
+    mov esp, __FIN_PILA_USUARIO_TAREA_0_LIN  ; Todas tienen la pila en la misma direccion de memoria
     push dword tarea_terminada  ; Cuando la tarea termine con el ret, quiero que vaya ahí
     mov ecx, esp    ; Guardo la pila con la posición actualizada
     mov esp, ebp    ; Restauro la pila anterior
@@ -264,7 +221,6 @@ GLOBAL tarea_actual
     pop ecx
     mov [TSS_eflags + eax], ecx
     mov [TSS_ds + eax], ds
-    mov [TSS_es + eax], es
     mov [TSS_ss + eax], ss
     mov [TSS_cs + eax], cs
 
