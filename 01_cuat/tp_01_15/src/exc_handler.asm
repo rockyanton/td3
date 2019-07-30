@@ -77,6 +77,8 @@ GLOBAL exc_handler_014_pf
       sar ecx, 3
       and ecx, 0x1FFF       ; Los bytes del 15-3 son el número de excepción/interrupción
 
+      mov esi, [tarea_actual]
+
       call ISR_Main
 
       popad               ; Vuelvo a traer los registros

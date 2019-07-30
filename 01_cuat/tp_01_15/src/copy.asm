@@ -20,7 +20,7 @@ GLOBAL copy
 ;-----------------------------------------------------------------------------
   ;--------- Levanto los valores de pila ------------
   copy:                 ; Como es una pila, los saco en el orden inverso a como los cargué
-    mov ebp, esp        ; Copio el pintero a la pila, para no usarlo directamente
+    mov ebp, esp        ; Copio el puntero a la pila, para no usarlo directamente
     mov ecx, [ebp + 4]  ; Copio el LARGO
     mov edi, [ebp + 8]  ; Copio el DESTINO
     mov esi, [ebp + 12] ; Copio el ORIGEN

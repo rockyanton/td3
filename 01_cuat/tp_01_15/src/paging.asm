@@ -181,6 +181,8 @@ EXTERN __ROM_LENGTH
 
 EXTERN tarea_actual
 
+EXTERN copy
+
 ;--------- Variables compartidas -----------
 GLOBAL init_paginar
 GLOBAL paginacion_dinamica
@@ -197,117 +199,732 @@ GLOBAL paginar_tareas
     ;    4 - Direccion Física
     ;    5 - Dirección Lineal
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_R_P
-    push __HANDLERS_LENGHT
-    push __HANDLERS_FIS
-    push __HANDLERS_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+    ;----------------------- NUCLEO --------------------------------------
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __SIZE_BUFFER_DE_VIDEO
-    push __BUFFER_DE_VIDEO_FIS
-    push __BUFFER_DE_VIDEO_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_R_P
+      push __HANDLERS_LENGHT
+      push __HANDLERS_FIS
+      push __HANDLERS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __TABLAS_DE_SISTEMA_LENGHT
-    push __TABLAS_DE_SISTEMA_FIS
-    push __TABLAS_DE_SISTEMA_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_BUFFER_DE_VIDEO
+      push __BUFFER_DE_VIDEO_FIS
+      push __BUFFER_DE_VIDEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __TABLAS_DE_PAGINACION_LENGHT
-    push __TABLAS_DE_PAGINACION_FIS
-    push __TABLAS_DE_PAGINACION_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_SISTEMA_LENGHT
+      push __TABLAS_DE_SISTEMA_FIS
+      push __TABLAS_DE_SISTEMA_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_U_RW_P
-    push Page_Attrib_S_R_P
-    push __NUCLEO_LENGHT
-    push __NUCLEO_FIS
-    push __NUCLEO_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_PAGINACION_LENGHT
+      push __TABLAS_DE_PAGINACION_FIS
+      push __TABLAS_DE_PAGINACION_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __SIZE_TABLA_DE_DIGITOS
-    push __TABLA_DE_DIGITOS_FIS
-    push __TABLA_DE_DIGITOS_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_R_P
+      push __NUCLEO_LENGHT
+      push __NUCLEO_FIS
+      push __NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __DATOS_LENGHT
-    push __DATOS_FIS
-    push __DATOS_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_TABLA_DE_DIGITOS
+      push __TABLA_DE_DIGITOS_FIS
+      push __TABLA_DE_DIGITOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_RW_P
-    push Page_Attrib_S_RW_P
-    push __SIZE_PILA_NUCLEO
-    push __INICIO_PILA_NUCLEO_FIS
-    push __INICIO_PILA_NUCLEO_LIN
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __DATOS_LENGHT
+      push __DATOS_FIS
+      push __DATOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
 
-    push Table_Attrib_S_R_P
-    push Page_Attrib_S_R_P
-    push __ROM_LENGTH
-    push __ROM_INICIO
-    push __ROM_INICIO
-    call paginar
-    pop eax
-    pop eax
-    pop eax
-    pop eax
-    pop eax
+      push directorio_nucleo
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO
+      push __INICIO_PILA_NUCLEO_FIS
+      push __INICIO_PILA_NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_nucleo
+      push Table_Attrib_S_R_P
+      push Page_Attrib_S_R_P
+      push __ROM_LENGTH
+      push __ROM_INICIO
+      push __ROM_INICIO
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+    ;----------------------- TAREA 0 --------------------------------------
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_R_P
+      push __HANDLERS_LENGHT
+      push __HANDLERS_FIS
+      push __HANDLERS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_BUFFER_DE_VIDEO
+      push __BUFFER_DE_VIDEO_FIS
+      push __BUFFER_DE_VIDEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_SISTEMA_LENGHT
+      push __TABLAS_DE_SISTEMA_FIS
+      push __TABLAS_DE_SISTEMA_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_PAGINACION_LENGHT
+      push __TABLAS_DE_PAGINACION_FIS
+      push __TABLAS_DE_PAGINACION_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_R_P
+      push __NUCLEO_LENGHT
+      push __NUCLEO_FIS
+      push __NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_TABLA_DE_DIGITOS
+      push __TABLA_DE_DIGITOS_FIS
+      push __TABLA_DE_DIGITOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __DATOS_LENGHT
+      push __DATOS_FIS
+      push __DATOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO
+      push __INICIO_PILA_NUCLEO_FIS
+      push __INICIO_PILA_NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_S_R_P
+      push Page_Attrib_S_R_P
+      push __ROM_LENGTH
+      push __ROM_INICIO
+      push __ROM_INICIO
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
+      push __TAREA_0_TEXT_LENGHT
+      push __TAREA_0_TEXT_FIS
+      push __TAREA_0_TEXT_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_0_BSS_LENGHT
+      push __TAREA_0_BSS_FIS
+      push __TAREA_0_BSS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_0_DATA_RW_LENGHT
+      push __TAREA_0_DATA_RW_FIS
+      push __TAREA_0_DATA_RW_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __SIZE_PILA_USUARIO_TAREA_0
+      push __INICIO_PILA_USUARIO_TAREA_0_FIS
+      push __INICIO_PILA_USUARIO_TAREA_0_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_0
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO_TAREA_0
+      push __INICIO_PILA_NUCLEO_TAREA_0_FIS
+      push __INICIO_PILA_NUCLEO_TAREA_0_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+    ;----------------------- TAREA 1 --------------------------------------
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_R_P
+      push __HANDLERS_LENGHT
+      push __HANDLERS_FIS
+      push __HANDLERS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_BUFFER_DE_VIDEO
+      push __BUFFER_DE_VIDEO_FIS
+      push __BUFFER_DE_VIDEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_SISTEMA_LENGHT
+      push __TABLAS_DE_SISTEMA_FIS
+      push __TABLAS_DE_SISTEMA_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_PAGINACION_LENGHT
+      push __TABLAS_DE_PAGINACION_FIS
+      push __TABLAS_DE_PAGINACION_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_R_P
+      push __NUCLEO_LENGHT
+      push __NUCLEO_FIS
+      push __NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_TABLA_DE_DIGITOS
+      push __TABLA_DE_DIGITOS_FIS
+      push __TABLA_DE_DIGITOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __DATOS_LENGHT
+      push __DATOS_FIS
+      push __DATOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO
+      push __INICIO_PILA_NUCLEO_FIS
+      push __INICIO_PILA_NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_S_R_P
+      push Page_Attrib_S_R_P
+      push __ROM_LENGTH
+      push __ROM_INICIO
+      push __ROM_INICIO
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
+      push __TAREA_1_TEXT_LENGHT
+      push __TAREA_1_TEXT_FIS
+      push __TAREA_1_TEXT_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_1_BSS_LENGHT
+      push __TAREA_1_BSS_FIS
+      push __TAREA_1_BSS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_1_DATA_RW_LENGHT
+      push __TAREA_1_DATA_RW_FIS
+      push __TAREA_1_DATA_RW_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __SIZE_PILA_USUARIO_TAREA_1
+      push __INICIO_PILA_USUARIO_TAREA_1_FIS
+      push __INICIO_PILA_USUARIO_TAREA_1_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_1
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO_TAREA_1
+      push __INICIO_PILA_NUCLEO_TAREA_1_FIS
+      push __INICIO_PILA_NUCLEO_TAREA_1_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+    ;----------------------- TAREA 2 --------------------------------------
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_R_P
+      push __HANDLERS_LENGHT
+      push __HANDLERS_FIS
+      push __HANDLERS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_BUFFER_DE_VIDEO
+      push __BUFFER_DE_VIDEO_FIS
+      push __BUFFER_DE_VIDEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_SISTEMA_LENGHT
+      push __TABLAS_DE_SISTEMA_FIS
+      push __TABLAS_DE_SISTEMA_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __TABLAS_DE_PAGINACION_LENGHT
+      push __TABLAS_DE_PAGINACION_FIS
+      push __TABLAS_DE_PAGINACION_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_R_P
+      push __NUCLEO_LENGHT
+      push __NUCLEO_FIS
+      push __NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_TABLA_DE_DIGITOS
+      push __TABLA_DE_DIGITOS_FIS
+      push __TABLA_DE_DIGITOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __DATOS_LENGHT
+      push __DATOS_FIS
+      push __DATOS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO
+      push __INICIO_PILA_NUCLEO_FIS
+      push __INICIO_PILA_NUCLEO_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_S_R_P
+      push Page_Attrib_S_R_P
+      push __ROM_LENGTH
+      push __ROM_INICIO
+      push __ROM_INICIO
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_R_P
+      push __TAREA_2_TEXT_LENGHT
+      push __TAREA_2_TEXT_FIS
+      push __TAREA_2_TEXT_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_2_BSS_LENGHT
+      push __TAREA_2_BSS_FIS
+      push __TAREA_2_BSS_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __TAREA_2_DATA_RW_LENGHT
+      push __TAREA_2_DATA_RW_FIS
+      push __TAREA_2_DATA_RW_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_U_RW_P
+      push __SIZE_PILA_USUARIO_TAREA_2
+      push __INICIO_PILA_USUARIO_TAREA_2_FIS
+      push __INICIO_PILA_USUARIO_TAREA_2_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
+      push directorio_2
+      push Table_Attrib_U_RW_P
+      push Page_Attrib_S_RW_P
+      push __SIZE_PILA_NUCLEO_TAREA_2
+      push __INICIO_PILA_NUCLEO_TAREA_2_FIS
+      push __INICIO_PILA_NUCLEO_TAREA_2_LIN
+      call paginar
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+      pop eax
+
 
     ret
 
-;-------------------------------------------------------------
+;-----------------------------------------------------------------------------------------
 
   paginar:
     mov ebp, esp          ; Puntero a pila
@@ -320,33 +937,64 @@ GLOBAL paginar_tareas
     shr edi, 0x0C     ; Segundos 10 bits son el indice de tabla
     and edi, 0x3FF
 
-    mov eax, [directorio + esi*4]   ; Compruebo si no existe la tabla en el directorio (entrada vacía)
+    mov edx, [ebp + 0x18]   ; Traigo indice de directorio
+
+    mov eax, [edx + esi*4]   ; Compruebo si no existe la tabla en el directorio (entrada vacía)
     cmp eax, 0x00
     jnz tabla_creada    ; Si existe, salto al cargado de entradas de la tabla de paginas
     jmp crear_tabla     ; Si no, primero creo la página
 
     crear_tabla:
-      mov eax, [tablas_creadas]      ; Traigo el contador de tablas paginadas
+      cmp edx, directorio_nucleo
+      jnz no_tabla_nucleo
+        mov eax, [tablas_creadas_nucleo]  ; Traigo el contador de tablas paginadas
+        mov ebx, inicio_tablas_nucleo     ; Traigo el inicio de la seccion de memoria de tablas
+        mov ecx, eax                      ; Copio el valor
+        inc ecx                           ; Incremento valor de tablas creadas
+        mov [tablas_creadas_nucleo], ecx  ; Guardo valor incrementado de tablas creadas
+      no_tabla_nucleo:
 
-      mov ebx, eax                  ; Copio el valor
-      inc ebx                       ; Incremento valor de tablas creadas
-      mov [tablas_creadas], ebx     ; Guardo valor incrementado de tablas creadas
+      cmp edx, directorio_0
+      jnz no_tabla_0
+        mov eax, [tablas_creadas_0]  ; Traigo el contador de tablas paginadas
+        mov ebx, inicio_tablas_0     ; Traigo el inicio de la seccion de memoria de tablas
+        mov ecx, eax                      ; Copio el valor
+        inc ecx                           ; Incremento valor de tablas creadas
+        mov [tablas_creadas_0], ecx  ; Guardo valor incrementado de tablas creadas
+      no_tabla_0:
+
+      cmp edx, directorio_1
+      jnz no_tabla_1
+        mov eax, [tablas_creadas_1]  ; Traigo el contador de tablas paginadas
+        mov ebx, inicio_tablas_1     ; Traigo el inicio de la seccion de memoria de tablas
+        mov ecx, eax                      ; Copio el valor
+        inc ecx                           ; Incremento valor de tablas creadas
+        mov [tablas_creadas_1], ecx  ; Guardo valor incrementado de tablas creadas
+      no_tabla_1:
+
+      cmp edx, directorio_2
+      jnz no_tabla_2
+        mov eax, [tablas_creadas_2]  ; Traigo el contador de tablas paginadas
+        mov ebx, inicio_tablas_2     ; Traigo el inicio de la seccion de memoria de tablas
+        mov ecx, eax                      ; Copio el valor
+        inc ecx                           ; Incremento valor de tablas creadas
+        mov [tablas_creadas_2], ecx  ; Guardo valor incrementado de tablas creadas
+      no_tabla_2:
 
       shl eax, 0x0C                 ; Multiplico por 4*1024=4096 (Desplazo 12 bits)
 
-      mov ebx, inicio_tablas        ; Traigo el inicio de la seccion de memoria de tablas
       add ebx, eax                  ; Le sumo el indice de tablas ya paginadas
       and ebx, 0xFFFFF000           ; Me quedo con los primeros 20 bytes
       mov ecx, ebx                  ; Copio el valor
       mov eax, [ebp + 0x14]         ; Traigo los atributos de tabla
       add ecx, eax                  ; Le sumo los atributos de tabla
 
-      mov [directorio + esi*4], ecx ; Guardo la entrada del directorio
+      mov [edx + esi*4], ecx ; Guardo la entrada del directorio
 
       jmp crear_paginas
 
     tabla_creada:
-      mov ebx, [directorio + esi*4]
+      mov ebx, [edx + esi*4]
       and ebx, 0xFFFFF000
 
       jmp crear_paginas
@@ -378,7 +1026,7 @@ GLOBAL paginar_tareas
 
     ret   ; Vuelvo
 
-;-------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------
 
   paginacion_dinamica:
     pushad
@@ -421,148 +1069,6 @@ GLOBAL paginar_tareas
 
 ;-------------------------------------------------------------
 
-  paginar_tareas:
-    pushad
-    mov ebp, esp
-    mov edx, [ebp + 0x04*9]         ; Traigo la tarea a paginar
-
-    cmp edx, 0x00
-    jz paginar_tarea_0
-    cmp edx, 0x01
-    jz paginar_tarea_1
-    cmp edx, 0x02
-    jz paginar_tarea_2
-    jmp end_paginar_tareas
-
-    ; ORDEN DE PUSHEO
-    ;    1 - Atributos del directorio (tabla)
-    ;    2 - Atributos de pagina
-    ;    3 - Largo de la sección
-    ;    4 - Direccion Física
-    ;    5 - Dirección Lineal
-
-    paginar_tarea_0:
-
-      push Table_Attrib_U_RW_P
-      push Page_Attrib_U_R_P
-      push __TAREA_0_TEXT_LENGHT
-      push __TAREA_0_TEXT_FIS
-      push __TAREA_0_TEXT_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
-      mov [ebp + 0x04*3], DWORD __TAREA_0_BSS_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_0_BSS_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_0_BSS_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __TAREA_0_DATA_RW_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_0_DATA_RW_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_0_DATA_RW_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_0
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_0_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_0_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_0
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_0_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_0_LIN
-      call paginar
-
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-
-      jmp end_paginar_tareas
-
-    paginar_tarea_1:
-
-      push Table_Attrib_U_RW_P
-      push Page_Attrib_U_R_P
-      push __TAREA_1_TEXT_LENGHT
-      push __TAREA_1_TEXT_FIS
-      push __TAREA_1_TEXT_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
-      mov [ebp + 0x04*3], DWORD __TAREA_1_BSS_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_1_BSS_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_1_BSS_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __TAREA_1_DATA_RW_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_1_DATA_RW_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_1_DATA_RW_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_1
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_1_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_1_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_1
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_1_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_1_LIN
-      call paginar
-
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-
-      jmp end_paginar_tareas
-
-    paginar_tarea_2:
-
-      push Table_Attrib_U_RW_P
-      push Page_Attrib_U_R_P
-      push __TAREA_2_TEXT_LENGHT
-      push __TAREA_2_TEXT_FIS
-      push __TAREA_2_TEXT_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_U_RW_P
-      mov [ebp + 0x04*3], DWORD __TAREA_2_BSS_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_2_BSS_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_2_BSS_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __TAREA_2_DATA_RW_LENGHT
-      mov [ebp + 0x04*2], DWORD __TAREA_2_DATA_RW_FIS
-      mov [ebp + 0x04*1], DWORD __TAREA_2_DATA_RW_LIN
-      call paginar
-
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_USUARIO_TAREA_2
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_USUARIO_TAREA_2_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_USUARIO_TAREA_2_LIN
-      call paginar
-
-      mov [ebp + 0x04*4], DWORD Page_Attrib_S_RW_P
-      mov [ebp + 0x04*3], DWORD __SIZE_PILA_NUCLEO_TAREA_2
-      mov [ebp + 0x04*2], DWORD __INICIO_PILA_NUCLEO_TAREA_2_FIS
-      mov [ebp + 0x04*1], DWORD __INICIO_PILA_NUCLEO_TAREA_2_LIN
-      call paginar
-
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-      pop eax
-
-      jmp end_paginar_tareas
-
-    end_paginar_tareas:
-      popad
-      ret
-
-
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++ TABLA DE PAGINACIÓN +++++++++++++++++++++++++++++++
@@ -574,13 +1080,35 @@ section .tablas_de_paginacion nobits     ; nobits le dice al linker que esa secc
 ;--------- Variables externas ------------
 
 ;--------- Variables compartidas -----------
+GLOBAL directorio_nucleo
+GLOBAL directorio_0
+GLOBAL directorio_1
+GLOBAL directorio_2
 
 
-  directorio:
+  directorio_nucleo:
     resd 1024       ; Reservo los 1024 bytes del directorio
-  inicio_tablas:
-    resd 1024*100   ; Reservo espacio para 100 tablas
-  tablas_creadas:
+  inicio_tablas_nucleo:
+    resd 1024*20    ; Reservo espacio para 20 tablas
+  directorio_0:
+    resd 1024       ; Reservo los 1024 bytes del directorio
+  inicio_tablas_0:
+    resd 1024*20    ; Reservo espacio para 20 tablas
+  directorio_1:
+    resd 1024       ; Reservo los 1024 bytes del directorio
+  inicio_tablas_1:
+    resd 1024*20    ; Reservo espacio para 20 tablas
+  directorio_2:
+    resd 1024       ; Reservo los 1024 bytes del directorio
+  inicio_tablas_2:
+    resd 1024*20    ; Reservo espacio para 20 tablas
+  tablas_creadas_nucleo:
     resd 1          ; Reservo un indicador de tabla creada
   tablas_dinamicas:
     resd 1
+  tablas_creadas_0:
+    resd 1          ; Reservo un indicador de tabla creada
+  tablas_creadas_1:
+    resd 1          ; Reservo un indicador de tabla creada
+  tablas_creadas_2:
+    resd 1          ; Reservo un indicador de tabla creada

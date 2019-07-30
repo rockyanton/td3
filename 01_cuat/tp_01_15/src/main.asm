@@ -89,7 +89,7 @@ EXTERN init_gdt
 EXTERN init_idt
 EXTERN img_idtr
 EXTERN init_paginar
-EXTERN __INICIO_DIRECTORIO
+EXTERN directorio_nucleo
 EXTERN _pic_configure
 EXTERN _pit_configure
 
@@ -152,7 +152,7 @@ EXTERN _pit_configure
 
     call init_paginar
 
-    mov eax, __INICIO_DIRECTORIO
+    mov eax, directorio_nucleo
     mov cr3, eax          ; Cargo el directorio de páginas en cr3
 
     mov eax,cr0           ; Pongo en 1 el bit 31 de cr0: Paginacion activada

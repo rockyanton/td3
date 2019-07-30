@@ -40,6 +40,11 @@ EXTERN TSS_simd
 EXTERN TSS_Lenght
 EXTERN __FIN_PILA_NUCLEO_TAREA_0_LIN
 EXTERN __FIN_PILA_USUARIO_TAREA_0_LIN
+EXTERN directorio_nucleo
+EXTERN directorio_0
+EXTERN directorio_1
+EXTERN directorio_2
+
 
 ;--------- Variables compartidas -----------
 GLOBAL cambiar_tarea
@@ -92,6 +97,9 @@ GLOBAL tarea_actual
         fxsave [TSS_simd + edi]  ; Save x87 FPU, MMX Technology, and SSE State
 
     cambio_indicadores:
+
+      mov esp, [pila_nucleo]
+
       mov esi, [tarea_actual]
       mov edi, [tarea_futura]
       mov [tarea_actual], edi
@@ -109,10 +117,21 @@ GLOBAL tarea_actual
       no_tarea_2:
 
     paginar_tarea_futura:
-      mov esp, [pila_nucleo]
-      push edi
-      call paginar_tareas
-      pop edi
+
+      mov ebx, directorio_0   ; Defaul tarea 0
+
+      cmp edi, 0x01
+      jnz no_paginar_1
+        mov ebx, directorio_1
+      no_paginar_1:
+
+      cmp edi, 0x02
+      jnz no_paginar_2
+        mov ebx, directorio_2
+      no_paginar_2:
+
+      mov cr3, ebx
+
 
       mov eax, [tarea_inicializada]   ; Flag para saber si la tarea existe en ram
       mov ecx, edi
@@ -130,7 +149,7 @@ GLOBAL tarea_actual
       cmp eax, 0x00         ; Si es 1, ya está inicalizada, voy a copiar el contexto. Si es 0 tengo copiarla primero
       jnz copiar_contexto
         mov eax, [tarea_inicializada]   ; Actualizo valor de flag
-        and eax, edx
+        or eax, edx
         mov [tarea_inicializada], eax
         call inicializar_tarea
 
@@ -139,10 +158,11 @@ GLOBAL tarea_actual
       or ebx, 0x8						; Pongo en 1 el bit 3 (Task Switched): Allows saving x87 task context upon a task switch only after x87 instruction used
       mov cr0, ebx          ; Guardo los cambios
       push edi
-      ;call mostrar_tarea
+      call mostrar_tarea
       pop eax
+      mov eax, edi
       mov ecx, TSS_Lenght
-      mul ecx  ; (560 bytes)
+      mul ecx
       mov edi, eax
       mov ax, [TSS_ss + edi]
       mov ss, ax
@@ -190,7 +210,6 @@ GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   arrancar_scheduler:
-    mov eax, esp
     mov [pila_nucleo], esp
     mov [tarea_actual], DWORD 0x00
     mov [tarea_futura], DWORD 0x01
