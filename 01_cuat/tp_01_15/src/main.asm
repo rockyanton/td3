@@ -99,6 +99,7 @@ EXTERN _pit_configure
     mov ax, ds_sel_nucleo_rom
     mov ds, ax
     mov ss, ax
+    mov es, ax
 
     ;--------- Cargo la dirección del stack (pila) ------------
     mov esp, __FIN_PILA_NUCLEO_FIS    ; La pila se carga al revés (es decreciente)

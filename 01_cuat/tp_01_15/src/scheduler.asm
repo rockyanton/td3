@@ -95,11 +95,13 @@ GLOBAL tarea_actual
       ; 2- eip ret tarea
       ; 3- cs tarea
       ; 4- eflags tarea
+      ; 5- ESP PL3
+      ; 6- SS PL3
       pop ebx
       pop ebx
       mov [eax + TSS_eip], ebx
-      pop ebx
-      mov [eax + TSS_cs], bx
+      pop ecx
+      mov [eax + TSS_cs], cx
       pop ebx
       mov [eax + TSS_eflags], ebx
       mov [eax + TSS_esp], esp
@@ -113,8 +115,17 @@ GLOBAL tarea_actual
       mov ebx, cr0    ; Traigo los registros de control 0
       and ebx, 0x08   ; Chequeo si el bit 3 (Task Switched) está en 1 (Allows saving x87 task context upon a task switch only after x87 instruction used)
       cmp ebx, 0x08
-      jnz cambio_indicadores
+      jnz no_guardo_simd
         fxsave [eax + TSS_simd]  ; Save x87 FPU, MMX Technology, and SSE State
+      no_guardo_simd:
+
+      cmp cx, cs_sel_usuario
+      jnz no_guardo_pl3
+        pop ebx
+        mov [eax + TSS_esp], ebx
+        pop ebx
+        mov [eax + TSS_ss], bx
+      no_guardo_pl3:
 
     cambio_indicadores:
 
@@ -198,27 +209,49 @@ GLOBAL tarea_actual
 
       ltr bx
 
-    copiar_contexto:
+    cargo_contexto:
+      mov cx, [eax + TSS_cs]
+      mov bx, cs_sel_nucleo
+      cmp cx,bx
+      jnz cargo_usuario
+      jmp cargo_nucleo
+
+      cargo_nucleo:
+        mov esp, [eax + TSS_esp]
+        mov bx, [eax + TSS_ss]
+        mov ss, bx
+        jmp cargo_registros
+
+      cargo_usuario:
+        xor ebx, ebx
+        mov bx, [eax + TSS_ss]
+        push ebx
+        mov ebx,  [eax + TSS_esp]
+        push ebx
+        jmp cargo_registros
+
+    cargo_registros:
       mov ebx, cr0          ; Traigo los registros de control 0
       or ebx, 0x8						; Pongo en 1 el bit 3 (Task Switched): Allows saving x87 task context upon a task switch only after x87 instruction used
       mov cr0, ebx          ; Guardo los cambios
-      push edi
+      ;push edi
       ;call mostrar_tarea
-      pop edi
-      mov bx, [eax + TSS_ss]
-      mov ss, bx
+      ;pop edi
       mov bx, [eax + TSS_ds]
       mov ds, bx
+      mov bx, [eax + TSS_es]
+      mov es, bx
       mov ebx, [eax + TSS_ebx]
       mov ecx, [eax + TSS_ecx]
       mov esi, [eax + TSS_esi]
       mov edi, [eax + TSS_edi]
       mov ebp, [eax + TSS_ebp]
-      mov esp, [eax + TSS_esp]
       ; PILA:
-      ; 3- eip ret tarea
+      ; 1- eip ret tarea
       ; 2- cs tarea
-      ; 1- eflags tarea
+      ; 3- eflags tarea
+      ; 4- ESP PL3
+      ; 5- SS PL3
       mov edx, [eax + TSS_eflags]
       push edx
       xor edx, edx
@@ -232,6 +265,7 @@ GLOBAL tarea_actual
       pop eax
 
     tarea_siguiente:
+      breakpoint
       iret
 
 ;-------------------------------------------------------------
@@ -251,7 +285,7 @@ GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   arrancar_scheduler:
-    mov [pila_nucleo], esp
+    ;mov [pila_nucleo], esp
     mov [tarea_actual], DWORD 0x00
     mov [tarea_futura], DWORD 0x01
     xor eax, eax    ; Pusheo eip, cs y eflags vacíos
@@ -269,13 +303,13 @@ GLOBAL tarea_actual
     mov [eax + TSS_esp], esp    ; Guardo la pila con la posición actualizada
     mov esp, ebp                ; Restauro la pila anterior
     mov [eax + TSS_eip], DWORD tarea_0   ; Todas arrancan en la misma posicion de memoria
-    pushfd
-    pop ecx
-    mov [eax + TSS_eflags], ecx
-    mov [eax + TSS_ds], WORD ds_sel_nucleo
-    mov [eax + TSS_ss], WORD ds_sel_nucleo
-    mov [eax + TSS_cs], WORD cs_sel_nucleo
-    mov [eax + TSS_es], es
+    ;pushfd
+    ;pop ecx
+    mov [eax + TSS_eflags], DWORD 0x202
+    mov [eax + TSS_ds], WORD ds_sel_usuario
+    mov [eax + TSS_ss], WORD ds_sel_usuario
+    mov [eax + TSS_es], WORD ds_sel_usuario
+    mov [eax + TSS_cs], WORD cs_sel_usuario
     mov ecx, cr3
     mov [eax + TSS_cr3], ecx
     mov [eax + TSS_esp0], DWORD __FIN_PILA_NUCLEO_TAREA_0_LIN   ; Todas tienen la pila en la misma direccion de memoria
@@ -303,8 +337,4 @@ section .datos nobits
   tarea_actual:
     resd 1
   tarea_futura:
-    resd 1
-  tarea_inicializada:
-    resd 1
-  pila_nucleo:
     resd 1

@@ -3,8 +3,8 @@
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
 
-%define Table_Attrib_S_RW_P   0x03
-%define Table_Attrib_S_R_P    0x01
+%define Table_Attrib_S_RW_P   0x07 ;0x03
+%define Table_Attrib_S_R_P    0x05 ;0x01
 %define Table_Attrib_U_RW_P   0x07
 %define Table_Attrib_U_R_P    0x05
 %define Page_Attrib_S_RW_P    0x03
