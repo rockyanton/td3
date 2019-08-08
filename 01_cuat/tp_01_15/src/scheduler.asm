@@ -173,12 +173,12 @@ GLOBAL tarea_terminada
 
     chequeo_si_inicializada:
       mov cl, [gdt + ebx + 0x05] ; Byte 5, Acceso
-      mov al, cl
-      and al, 0x02    ; Flag de busy
+      mov dl, cl
+      and dl, 0x02    ; Flag de busy
       and cl, 0xFD
       mov [gdt + ebx + 0x05], cl ; Borro el flag de bussy
 
-      cmp al, 0x00    ; Si el flag de busy estaba en 0, la tarea arranca de nuevo, sino continúa
+      cmp dl, 0x00    ; Si el flag de busy estaba en 0, la tarea arranca de nuevo, sino continúa
       jnz cargo_tss
         call inicializar_tarea
 
