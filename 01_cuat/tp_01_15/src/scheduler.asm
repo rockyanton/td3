@@ -61,26 +61,18 @@ EXTERN tss_sel_2
 GLOBAL cambiar_tarea
 GLOBAL arrancar_scheduler
 GLOBAL tarea_actual
+GLOBAL tarea_terminada
 
 ;-------------------------------------------------------------
   cambiar_tarea:
     guardar_contexto:
       push eax
-      push ebx
-      mov ebx, [tarea_actual]
-      mov eax, TSS_tarea_0   ; Default: Tarea 0
+      push edi
+      mov edi, [tarea_actual]
 
-      cmp ebx, 0x01
-      jnz no_guardo_tarea_1
-        mov eax, TSS_tarea_1
-      no_guardo_tarea_1:
+      call get_TSS
 
-      cmp ebx, 0x02
-      jnz no_guardo_tarea_2
-        mov eax, TSS_tarea_2
-      no_guardo_tarea_2:
-
-      pop ebx
+      pop edi
 
       mov [eax + TSS_ebx], ebx
       mov [eax + TSS_ecx], ecx
@@ -135,66 +127,38 @@ GLOBAL tarea_actual
 
       xor ebx, ebx
       mov [tarea_futura], dword 0x00   ; Default: siguiente tarea es la 0
-      mov bx, tss_sel_0
 
       cmp esi, 0x01   ; Si estaba en la 1, la tarea actual es la 0 y la siguiente la 2
       jnz no_tarea_1
         mov [tarea_futura], dword 0x02
-        mov bx, tss_sel_1
       no_tarea_1:
 
       cmp esi, 0x02   ; Si estaba en la 2, la tarea actual es la 0 y la siguiente la 1
       jnz no_tarea_2
         mov [tarea_futura], dword 0x01
-        mov bx, tss_sel_2
       no_tarea_2:
-
-      mov cl, [gdt + ebx + 0x05] ; Byte 5, Acceso
-      and cl, 0xFD
-      mov [gdt + ebx + 0x05], cl ; Borro el flag de bussy
 
     paginar_tarea_futura:
 
-      mov ebx, directorio_0   ; Defaul tarea 0
+      mov ecx, directorio_0   ; Defaul tarea 0
 
       cmp edi, 0x01
       jnz no_paginar_1
-        mov ebx, directorio_1
+        mov ecx, directorio_1
       no_paginar_1:
 
       cmp edi, 0x02
       jnz no_paginar_2
-        mov ebx, directorio_2
+        mov ecx, directorio_2
       no_paginar_2:
 
-      mov cr3, ebx
+      mov cr3, ecx
 
     cargo_puntero_tss:
+      call get_TSS
 
-      cmp edi, 0x00
-      jnz no_ini_0
-        mov eax, TSS_tarea_0
-      no_ini_0:
-
-      cmp edi, 0x01
-      jnz no_ini_1
-        mov eax, TSS_tarea_1
-      no_ini_1:
-
-      cmp edi, 0x02
-      jnz no_ini_2
-        mov eax, TSS_tarea_2
-      no_ini_2:
-
-    chequeo_si_inicializada:
-
-      mov ebx, [eax + TSS_cr3]
-      cmp ebx, 0x00
-      jnz cargo_tss
-        call inicializar_tarea
-
-    cargo_tss:
-
+    cargo_selector_tss:
+      xor ebx, ebx
       mov bx, tss_sel_0  ; Defaul tarea 0
 
       cmp edi, 0x01
@@ -207,6 +171,18 @@ GLOBAL tarea_actual
         mov bx, tss_sel_2
       no_tss_2:
 
+    chequeo_si_inicializada:
+      mov cl, [gdt + ebx + 0x05] ; Byte 5, Acceso
+      mov al, cl
+      and al, 0x02    ; Flag de busy
+      and cl, 0xFD
+      mov [gdt + ebx + 0x05], cl ; Borro el flag de bussy
+
+      cmp al, 0x00    ; Si el flag de busy estaba en 0, la tarea arranca de nuevo, sino continúa
+      jnz cargo_tss
+        call inicializar_tarea
+
+    cargo_tss:
       ltr bx
 
     cargo_contexto:
@@ -270,18 +246,47 @@ GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   tarea_terminada:
-    push dword tarea_terminada  ; Cuando la tarea termine con el ret, quiero que vuelva ahí
-    ; PILA:
-    ; 3- eip ret tarea
-    ; 2- cs tarea
-    ; 1- eflags tarea
-    pushfd
-    xor eax, eax
-    mov ax, cs
-    push eax
-    push dword tarea_0
+    add esp, 0x04  ; Para borrar el EIP del call
+    mov edi, [tarea_actual]
+
+    xor ebx, ebx
+    mov bx, tss_sel_0  ; Defaul tarea 0
+
+    cmp edi, 0x01
+    jnz no_fin_1
+      mov bx, tss_sel_1
+    no_fin_1:
+
+    cmp edi, 0x02
+    jnz no_fin_2
+      mov bx, tss_sel_2
+    no_fin_2:
+
+    mov cl, [gdt + ebx + 0x05] ; Byte 5, Acceso
+    and cl, 0xFD
+    mov [gdt + ebx + 0x05], cl ; Borro el flag de bussy
 
     call cambiar_tarea
+
+;-------------------------------------------------------------
+  get_TSS:
+
+    cmp edi, 0x01
+    jnz no_get_1
+      mov eax, TSS_tarea_1
+      jmp end_get_TSS
+    no_get_1:
+
+    cmp edi, 0x02
+    jnz no_get_2
+      mov eax, TSS_tarea_2
+      jmp end_get_TSS
+    no_get_2:
+
+    mov eax, TSS_tarea_0    ; Default Tarea 0
+
+    end_get_TSS:
+      ret
 
 ;-------------------------------------------------------------
   arrancar_scheduler:
@@ -297,14 +302,8 @@ GLOBAL tarea_actual
 
 ;-------------------------------------------------------------
   inicializar_tarea:
-    mov ebp, esp                ; Guardo la pila
-    mov esp, __FIN_PILA_USUARIO_TAREA_0_LIN  ; Todas tienen la pila en la misma direccion de memoria
-    push DWORD tarea_terminada  ; Cuando la tarea termine con el ret, quiero que vaya ahí
-    mov [eax + TSS_esp], esp    ; Guardo la pila con la posición actualizada
-    mov esp, ebp                ; Restauro la pila anterior
+    mov [eax + TSS_esp], DWORD __FIN_PILA_USUARIO_TAREA_0_LIN    ; Guardo la pila con la posición actualizada (Todas tienen la pila en la misma direccion de memoria)
     mov [eax + TSS_eip], DWORD tarea_0   ; Todas arrancan en la misma posicion de memoria
-    ;pushfd
-    ;pop ecx
     mov [eax + TSS_eflags], DWORD 0x202
     mov [eax + TSS_ds], WORD ds_sel_usuario
     mov [eax + TSS_ss], WORD ds_sel_usuario

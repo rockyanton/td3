@@ -21,7 +21,9 @@ section .tarea_0_text progbits
 GLOBAL tarea_0
 
   tarea_0:
-    hlt
+    push DWORD td3_halt
+    system_call
+    pop eax
     jmp tarea_0
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

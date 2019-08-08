@@ -25,6 +25,7 @@ EXTERN cambiar_tarea
 EXTERN tabla_digitos
 EXTERN puntero_tabla_digitos
 EXTERN mostrar_digitos
+EXTERN tarea_terminada
 
 ;------------------------------- IRQ 0 ----------------------------------------
   isr_irq_00_pit:
@@ -68,21 +69,22 @@ EXTERN mostrar_digitos
     isr_system_call:
       pushad                ; Guardo los registros
       mov edx, 0x80          ; Guardo el número de excepción "128"
-      ; Pila
-      ; 0-7:  Registros
-      ; 8-10: Interrupcion
-      ; 11:   Tipo de system call
-      ; 12:   Dirección del buffer de salida
-      ; 13:   Cantidad de bytes / Indice
-      ; 14:   Return
-      mov ebp, esp
-      mov esi, [ebp + 0x04*11]
+      ; Pila PL3
+      ; 0:   Tipo de system call
+      ; 1:   Dirección del buffer de salida
+      ; 2:   Cantidad de bytes / Indice
+      ; 3:   Return
+      mov esi, esp
+      mov ebp, [esi + 0x04*11]    ; Pila PL3
+      mov esi, [ebp + 0x04*0]
       cmp esi, 0x01
       je td3_halt
       cmp esi, 0x02
       je td3_read
       cmp esi, 0x03
       je td3_print
+      cmp esi, 0x04
+      je task_end
       jmp end_system_call
 
       td3_halt:
@@ -91,9 +93,9 @@ EXTERN mostrar_digitos
         jmp end_system_call
 
       td3_read:
-        mov edi, [ebp + 0x04*12]  ; Buffer
-        mov eax, [ebp + 0x04*13]  ; Indice de la tabla
-        mov [ebp + 0x04*14], DWORD 0x00   ; Devuelvo 0 si no copié nada
+        mov edi, [ebp + 0x04*1]  ; Buffer
+        mov eax, [ebp + 0x04*2]  ; Indice de la tabla
+        mov [ebp + 0x04*3], DWORD 0x00   ; Devuelvo 0 si no copié nada
         xor ebx, ebx
         mov bl, [puntero_tabla_digitos]   ; Traigo el indice del último número guardado
         cmp eax, ebx        ; Si el byte que pide es mayor, me voy
@@ -102,12 +104,12 @@ EXTERN mostrar_digitos
           mov [edi], ebx    ; Guardo
           mov ebx, [tabla_digitos + eax*8 + 0x04] ; Traigo parte alta
           mov [edi + 0x04], ebx   ; Guardo
-          mov [ebp + 0x04*14], DWORD 0x01   ; Devuelvo 1 si copie algo
+          mov [ebp + 0x04*3], DWORD 0x01   ; Devuelvo 1 si copie algo
           jmp end_system_call
 
       td3_print:
-        mov edi, [ebp + 0x04*12]  ; Buffer
-        mov eax, [ebp + 0x04*13]  ; Cant. de bytes
+        mov edi, [ebp + 0x04*1]  ; Buffer
+        mov eax, [ebp + 0x04*2]  ; Cant. de bytes
         cmp eax, 0x02     ; Para la rutina necesito 2 bytes, si son mas o menos me voy
         jnz end_system_call
           mov ebx, [edi + 0x04] ; Pusheo parte alta
@@ -118,6 +120,10 @@ EXTERN mostrar_digitos
           pop ecx
           pop ecx
           jmp end_system_call
+
+      task_end:
+        popad
+        call tarea_terminada
 
       end_system_call:
         popad               ; Vuelvo a traer los registros

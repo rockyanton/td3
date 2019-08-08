@@ -6,6 +6,7 @@
 %define td3_halt      0x01
 %define td3_read      0x02
 %define td3_print     0x03
+%define task_end      0x04
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++++++++ TAREA 2 (TEXT) +++++++++++++++++++++++++++++
@@ -21,7 +22,6 @@ section .tarea_2_text progbits
 GLOBAL tarea_2
 
   tarea_2:        ; Suma aritmética en word
-    pushad
 
     sumar_tabla_loop:
       xor eax, eax
@@ -71,8 +71,9 @@ GLOBAL tarea_2
         jmp sumar_tabla_loop
 
       end_tarea_2:
-        popad
-        ret
+        push DWORD task_end
+        system_call
+        pop eax
 
       leer_memoria:
         cmp ebx, 0x00           ; Si la direccion de memoria es mayor a 32 bits, no leoo

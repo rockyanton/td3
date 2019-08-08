@@ -2,6 +2,8 @@
 ;+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 %define breakpoint  xchg bx,bx
+%define Descriptor_IDT_PS 0x8E   ;0x8E = 1 00 0 1 110 ==> Segmento Presente, Permisos elevados, tamaño del gate de 32bits
+%define Descriptor_IDT_PU 0xEE   ;0x8E = 1 00 0 1 110 ==> Segmento Presente, Permisos elevados, tamaño del gate de 32bits
 
 ;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;++++++++++++++++++++++++++ TABLAS DE SISTEMA ++++++++++++++++++++++++++++++++
@@ -30,9 +32,9 @@ GLOBAL tss_sel_2
     resb 8              ; Selector de datos nucleo nulo
     cs_sel_nucleo equ $ - gdt
     resb 8              ; Selector de codigo nucleo nulo
-    ds_sel_usuario equ $ - gdt
+    ds_sel_usuario equ $ - gdt + 0x03
     resb 8              ; Selector de datos usuario nulo
-    cs_sel_usuario equ $ - gdt
+    cs_sel_usuario equ $ - gdt + 0x03
     resb 8              ; Selector de codigo usuario nulo
     tss_sel_0 equ $ - gdt
     resb 8              ; Descriptor de la TSS de la tarea 0
@@ -202,63 +204,81 @@ GLOBAL img_idtr
       ; Excepcion de división por cero (DE), codigo 0 (0x00)
       push exc_handler_000_de     ; Pusheo el handler
       push 0x00               ; Pusheo el numero de interrupción
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt   ; LLamo a la función para cargar la IDT
       pop eax                 ; Saco lo que puse en pila
+      pop eax
       pop eax
 
       ; Excepcion de Opcode inválido (UD), codigo 6 (0x06)
       push exc_handler_006_ud
       push 0x06
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Excepcion de Device Not Available (No Math Coprocessor) (nm), codigo 7 (0x07)
       push exc_handler_007_nm
       push 0x07
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Excepcion de Doble Falta (DF), codigo 8 (0x08)
       push exc_handler_008_df
       push 0x08
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Excepcion de General Protection (GP), codigo 13 (0x0D)
       push exc_handler_013_gp
       push 0x0D
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Excepcion de Page Fault (PF), codigo 14 (0x0E)
       push exc_handler_014_pf
       push 0x0E
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Interrupción por Timer (IRQ 0), codigo 32 (0x20)
       push isr_irq_00_pit
       push 0x20
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Interrupción por Teclado (IRQ 1), codigo 33 (0x21)
       push isr_irq_01_keyboard
       push 0x21
+      push DWORD Descriptor_IDT_PS
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
       ; Excepcion de System Call (SC), codigo 128 (0x0E)
       push isr_system_call
       push 0x80
+      push DWORD Descriptor_IDT_PU
       call load_isr_idt
+      pop eax
       pop eax
       pop eax
 
@@ -270,8 +290,9 @@ GLOBAL img_idtr
     load_isr_idt:
       mov esi, idt
       mov ebp, esp        ; Copio el puntero a la pila, para no usarlo directamente
-      mov ecx, [ebp + 4]  ; Numero de excepción / interrupción
-      mov edi, [ebp + 8]  ; Dirección del handler
+      mov ebx, [ebp + 0x04*1]  ; Flags Descriptor
+      mov ecx, [ebp + 0x04*2]  ; Numero de excepción / interrupción
+      mov edi, [ebp + 0x04*3]  ; Dirección del handler
 
       ;  |7|6|5|4|3|2|1|0|  Byte 0 del descriptor IDT
       ;   `-`-`-`-`-`-`-`---- Bits 0-7 del Offset
@@ -300,8 +321,7 @@ GLOBAL img_idtr
       ;   | | | `---------- "0"
       ;   | `-`----------- DPL (Descriptor Privilege Level): 0=SO ... 3:User
       ;   `-------------- P (Segment Present Flag)
-      mov al, 0x8E  ;0x8E = 1 00 0 1 110 ==> Segmento Presente, Permisos elevados, tamaño del gate de 32bits
-      mov [esi + ecx*8 +5], al
+      mov [esi + ecx*8 +5], bl
 
       ;  |7|6|5|4|3|2|1|0|  Byte 6 del descriptor IDT
       ;   `-`-`-`-`-`-`-`---- Bits 16-23 del Offset
