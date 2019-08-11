@@ -121,6 +121,7 @@ GLOBAL tarea_terminada
 
     cambio_indicadores:
 
+      mov esp, [pila_nucleo]    ; Cargo la pila núcleo, para no tocar la de la tarea
       mov esi, [tarea_actual]
       mov edi, [tarea_futura]
       mov [tarea_actual], edi
@@ -188,7 +189,7 @@ GLOBAL tarea_terminada
     cargo_contexto:
       mov cx, [eax + TSS_cs]
       mov bx, cs_sel_nucleo
-      cmp cx,bx
+      cmp cx, bx
       jnz cargo_usuario
       jmp cargo_nucleo
 
@@ -241,7 +242,6 @@ GLOBAL tarea_terminada
       pop eax
 
     tarea_siguiente:
-      breakpoint
       iret
 
 ;-------------------------------------------------------------
@@ -293,6 +293,7 @@ GLOBAL tarea_terminada
     ;mov [pila_nucleo], esp
     mov [tarea_actual], DWORD 0x00
     mov [tarea_futura], DWORD 0x01
+    mov [pila_nucleo], esp
     xor eax, eax    ; Pusheo eip, cs y eflags vacíos
     push eax
     push eax
@@ -336,4 +337,6 @@ section .datos nobits
   tarea_actual:
     resd 1
   tarea_futura:
+    resd 1
+  pila_nucleo:
     resd 1
