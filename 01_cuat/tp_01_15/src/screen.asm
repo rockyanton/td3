@@ -28,9 +28,10 @@
 %define Screen_Row_24 0x0E60
 %define Screen_Row_25 0x0F00
 
-%define Offset_Character_Digitos  0x38    ; Caracter 28
+%define Offset_Character_Digitos  0x36    ; Caracter 27
 %define Offset_Character_Name     0x30    ; Caracter 24
-%define Offset_Character_PF       0x38    ; Caracter 28
+%define Offset_Character_TP       0x42    ; Caracter 33
+%define Offset_Character_PF       0x40    ; Caracter 29
 
 %define Font_Color_Black        0x00
 %define Font_Color_Blue         0x01
@@ -112,13 +113,11 @@ section .screen
 
 ;--------- Variables externas ------------
 EXTERN __BUFFER_DE_VIDEO_LIN
-EXTERN tarea_actual
 
 ;--------- Variables compartidas -----------
 GLOBAL mostrar_nombre
 GLOBAL mostrar_digitos
 GLOBAL mostrar_page_fault
-GLOBAL mostrar_tarea
 
     mostrar_digitos:
       pushad
@@ -153,9 +152,18 @@ GLOBAL mostrar_tarea
         cmp ebx, 0x10       ; Si llego a los 16 bytes paso a mostar el digito en pantalla
         jnz guardar_parte_baja
 
+      mov edx, [ebp + 0x04*11]         ; Traigo la tarea actual
       mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
-      add ebp, Screen_Row_12
       add ebp, Offset_Character_Digitos   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+
+      cmp edx, 0x02       ; La tarea 1 va en la fila 12 y la tarea 2 en la fila 13
+      jz row_tarea_2
+        row_tarea_1:
+        add ebp, Screen_Row_12
+        jmp end_row_tarea
+      row_tarea_2:
+        add ebp, Screen_Row_14
+      end_row_tarea:
 
       mov cl, Font_Color_Red   ; Color del Caracter
       or cl, Font_Background_Green  ; Color del fondo
@@ -169,6 +177,19 @@ GLOBAL mostrar_tarea
       call imprimir_caracter
       mov al, ASCII_A
       call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+
+      cmp edx, 0x02
+      jz print_tarea_2
+      print_tarea_1:
+        mov al, ASCII_Q
+        jmp end_print_tarea
+      print_tarea_2:
+        mov al, ASCII_W
+      end_print_tarea:
+      call imprimir_caracter
+
       mov al, ASCII_Colon
       call imprimir_caracter
 
@@ -321,58 +342,6 @@ GLOBAL mostrar_tarea
 
 ;----------------------------------------------------------
 
-  mostrar_tarea:
-    pushad
-
-    mov ebp, esp  ; Puntero a pila
-    mov eax, [ebp + 0x04*9] ; Traigo tarea actual
-    call convertir_ascii
-    mov bl, al
-
-    mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
-    add ebp, Screen_Row_07
-    add ebp, Offset_Character_PF   ; Le agrego un offset para que me aparezca en el medio de la pantalla
-
-    mov cl, Font_Color_White   ; Color del Caracter
-    or cl, Font_Background_Green  ; Color del fondo
-
-    ; Pongo en pantalla "CURRENT TASK: "
-    mov al, ASCII_C
-    call imprimir_caracter
-    mov al, ASCII_U
-    call imprimir_caracter
-    mov al, ASCII_R
-    call imprimir_caracter
-    mov al, ASCII_R
-    call imprimir_caracter
-    mov al, ASCII_E
-    call imprimir_caracter
-    mov al, ASCII_N
-    call imprimir_caracter
-    mov al, ASCII_T
-    call imprimir_caracter
-    mov al, ASCII_Space
-    call imprimir_caracter
-    mov al, ASCII_T
-    call imprimir_caracter
-    mov al, ASCII_A
-    call imprimir_caracter
-    mov al, ASCII_S
-    call imprimir_caracter
-    mov al, ASCII_K
-    call imprimir_caracter
-    mov al, ASCII_Colon
-    call imprimir_caracter
-    mov al, ASCII_Space
-    call imprimir_caracter
-
-    mov al, bl
-    call imprimir_caracter
-
-    popad
-    ret
-
-
     limpiar_pantalla:
       pushad
       xor esi, esi
@@ -520,6 +489,41 @@ GLOBAL mostrar_tarea
       mov al, ASCII_Dash
       call imprimir_caracter
       mov al, ASCII_2
+      call imprimir_caracter
+
+      mov ebp, __BUFFER_DE_VIDEO_LIN          ; Dirección del buffer de video
+      add ebp, Screen_Row_02
+      add ebp, Offset_Character_TP    ; Le agrego un offset para que me aparezca en el medio de la pantalla
+
+      mov al, ASCII_T
+      call imprimir_caracter
+      mov al, ASCII_D
+      call imprimir_caracter
+      mov al, ASCII_3
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_2
+      call imprimir_caracter
+      mov al, ASCII_0
+      call imprimir_caracter
+      mov al, ASCII_1
+      call imprimir_caracter
+      mov al, ASCII_9
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_Dash
+      call imprimir_caracter
+      mov al, ASCII_Space
+      call imprimir_caracter
+      mov al, ASCII_T
+      call imprimir_caracter
+      mov al, ASCII_P
+      call imprimir_caracter
+      mov al, ASCII_1
+      call imprimir_caracter
+      mov al, ASCII_5
       call imprimir_caracter
 
       popad

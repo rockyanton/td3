@@ -26,6 +26,7 @@ EXTERN tabla_digitos
 EXTERN puntero_tabla_digitos
 EXTERN mostrar_digitos
 EXTERN tarea_terminada
+EXTERN tarea_actual
 
 ;------------------------------- IRQ 0 ----------------------------------------
   isr_irq_00_pit:
@@ -112,11 +113,13 @@ EXTERN tarea_terminada
         mov eax, [ebp + 0x04*2]  ; Cant. de bytes
         cmp eax, 0x02     ; Para la rutina necesito 2 bytes, si son mas o menos me voy
         jnz end_system_call
+          push DWORD [tarea_actual]
           mov ebx, [edi + 0x04] ; Pusheo parte alta
           push ebx
           mov eax, [edi]        ; Pusheo parte baja
           push eax
           call mostrar_digitos    ; Muestro resultado en pantalla
+          pop ecx
           pop ecx
           pop ecx
           jmp end_system_call
