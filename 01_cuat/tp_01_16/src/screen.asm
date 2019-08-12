@@ -29,9 +29,10 @@
 %define Screen_Row_25 0x0F00
 
 %define Offset_Character_Digitos  0x36    ; Caracter 27
+%define Offset_Character_Producto 0x32    ; Caracter 25
 %define Offset_Character_Name     0x30    ; Caracter 24
 %define Offset_Character_TP       0x42    ; Caracter 33
-%define Offset_Character_PF       0x40    ; Caracter 29
+%define Offset_Character_PF       0x38    ; Caracter 28
 
 %define Font_Color_Black        0x00
 %define Font_Color_Blue         0x01
@@ -154,44 +155,63 @@ GLOBAL mostrar_page_fault
 
       mov edx, [ebp + 0x04*11]         ; Traigo la tarea actual
       mov ebp, __BUFFER_DE_VIDEO_LIN     ; Dirección del buffer de video
-      add ebp, Offset_Character_Digitos   ; Le agrego un offset para que me aparezca en el medio de la pantalla
-
-      cmp edx, 0x02       ; La tarea 1 va en la fila 12 y la tarea 2 en la fila 13
-      jz row_tarea_2
-        row_tarea_1:
-        add ebp, Screen_Row_12
-        jmp end_row_tarea
-      row_tarea_2:
-        add ebp, Screen_Row_14
-      end_row_tarea:
 
       mov cl, Font_Color_Red   ; Color del Caracter
       or cl, Font_Background_Green  ; Color del fondo
 
-      ; Pongo en pantalla "Suma:"
-      mov al, ASCII_S
-      call imprimir_caracter
-      mov al, ASCII_U
-      call imprimir_caracter
-      mov al, ASCII_M
-      call imprimir_caracter
-      mov al, ASCII_A
-      call imprimir_caracter
-      mov al, ASCII_Space
-      call imprimir_caracter
+      cmp edx, 0x01       ; Me fijo si es la tarea 1 o 2
+      jz row_tarea_1
+      jmp row_tarea_2
 
-      cmp edx, 0x02
-      jz print_tarea_2
-      print_tarea_1:
-        mov al, ASCII_Q
-        jmp end_print_tarea
-      print_tarea_2:
-        mov al, ASCII_W
-      end_print_tarea:
-      call imprimir_caracter
+        row_tarea_1:
+          add ebp, Screen_Row_12
+          add ebp, Offset_Character_Producto   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+          ; Pongo en pantalla "PROD. ESC.:"
+          mov al, ASCII_P
+          call imprimir_caracter
+          mov al, ASCII_R
+          call imprimir_caracter
+          mov al, ASCII_O
+          call imprimir_caracter
+          mov al, ASCII_D
+          call imprimir_caracter
+          mov al, ASCII_Dot
+          call imprimir_caracter
+          mov al, ASCII_Space
+          call imprimir_caracter
+          mov al, ASCII_E
+          call imprimir_caracter
+          mov al, ASCII_S
+          call imprimir_caracter
+          mov al, ASCII_C
+          call imprimir_caracter
+          mov al, ASCII_Dot
+          call imprimir_caracter
+          mov al, ASCII_Colon
+          call imprimir_caracter
+        jmp end_row_tarea
 
-      mov al, ASCII_Colon
-      call imprimir_caracter
+        row_tarea_2:
+          add ebp, Screen_Row_14
+          add ebp, Offset_Character_Digitos   ; Le agrego un offset para que me aparezca en el medio de la pantalla
+          ; Pongo en pantalla "SUMA W:"
+          mov al, ASCII_S
+          call imprimir_caracter
+          mov al, ASCII_U
+          call imprimir_caracter
+          mov al, ASCII_M
+          call imprimir_caracter
+          mov al, ASCII_A
+          call imprimir_caracter
+          mov al, ASCII_Space
+          call imprimir_caracter
+          mov al, ASCII_W
+          call imprimir_caracter
+          mov al, ASCII_Colon
+          call imprimir_caracter
+        jmp end_row_tarea
+
+      end_row_tarea:
 
       mov cl, Font_Color_Black   ; Color del Caracter
       or cl, Font_Background_Black  ; Color del fondo
@@ -523,7 +543,7 @@ GLOBAL mostrar_page_fault
       call imprimir_caracter
       mov al, ASCII_1
       call imprimir_caracter
-      mov al, ASCII_5
+      mov al, ASCII_6
       call imprimir_caracter
 
       popad

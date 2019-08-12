@@ -113,6 +113,7 @@ EXTERN tarea_actual
         mov eax, [ebp + 0x04*2]  ; Cant. de bytes
         cmp eax, 0x02     ; Para la rutina necesito 2 bytes, si son mas o menos me voy
         jnz end_system_call
+
           push DWORD [tarea_actual]
           mov ebx, [edi + 0x04] ; Pusheo parte alta
           push ebx
