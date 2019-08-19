@@ -66,11 +66,11 @@ GLOBAL tarea_terminada
 ;-------------------------------------------------------------
   cambiar_tarea:
     guardar_contexto:
-      push eax
+      push eax      ; Guardo eax para poder el registro
       push edi
-      mov edi, [tarea_actual]
+      mov edi, [tarea_actual]   ; Traigo la tarea actual
 
-      call get_TSS
+      call get_TSS  ; obtengo TSS en la que me encuentro
 
       pop edi
 
