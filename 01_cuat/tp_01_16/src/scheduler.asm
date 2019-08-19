@@ -183,6 +183,7 @@ GLOBAL tarea_terminada
       jnz cargo_tss
         call inicializar_tarea
 
+    ; Es redundante guardar contexto y recargarlo cuando se cambia la TSS. Se hizo con fines académicos
     cargo_tss:
       ltr bx
 
