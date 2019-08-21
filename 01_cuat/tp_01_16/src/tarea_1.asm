@@ -66,24 +66,43 @@ GLOBAL tarea_1
         pop ebx
         pop ebx
 
-        mov eax, [vector_1]  ; Parte alta -> Parte real
-        mov ebx, [vector_2]
-        mul ebx       ; Multiplico ambas partes
+        ; ------- Forma de hacerlo en tamaño double word ----
+        ;mov eax, [vector_1]  ; Parte alta -> Parte real
+        ;mov ebx, [vector_2]
+        ;mul ebx       ; Multiplico ambas partes
 
-        mov [multiplicacion_escalar_real], eax         ; Parte alta
-        mov [multiplicacion_escalar_real + 0x04], edx  ; Parte baja
+        ;mov [escalar_real], eax         ; Parte alta
+        ;mov [escalar_real + 0x04], edx  ; Parte baja
 
-        mov eax, [vector_1 + 0x04]  ; Parte alta -> Parte real
-        mov ebx, [vector_2 + 0x04]
-        mul ebx       ; Multiplico ambas partes
+        ;mov eax, [vector_1 + 0x04]  ; Parte baka -> Parte imaginaria
+        ;mov ebx, [vector_2 + 0x04]
+        ;mul ebx       ; Multiplico ambas partes
 
-        mov [multiplicacion_escalar_imag], eax         ; Parte alta
-        mov [multiplicacion_escalar_imag + 0x04], edx  ; Parte baja
+        ;mov [escalar_imag], eax         ; Parte alta
+        ;mov [escalar_imag + 0x04], edx  ; Parte baja
 
-        movdqu xmm0, [multiplicacion_escalar_real]        ; Traigo ambas multiplicaciones
-        movdqu xmm1, [multiplicacion_escalar_imag]
-        paddq  xmm0, xmm1                   ; Las sumo
+        ;movdqu xmm0, [escalar_real]        ; Traigo ambas multiplicaciones
+        ;movdqu xmm1, [escalar_imag]
+        ;paddq  xmm0, xmm1                   ; Las sumo
+        ; ------- Forma de hacerlo en tamaño word ----
+        xor ebx, ebx                ; Pongo ebx en 0
+
+        mov al, [vector_1 + 0x04]   ; Traigo los datos de la parte imaginaria
+        mov [vector_1 + 0x02], al   ; Lo coloco en el segundo word
+        mov [vector_1 + 0x04], ebx  ; Limpio segundo double word
+
+        mov al, [vector_2 + 0x04]   ; Traigo los datos de la parte imaginaria
+        mov [vector_2 + 0x02], al   ; Lo coloco en el segundo word
+        mov [vector_2 + 0x04], ebx  ; Limpio segundo double word
+
+        movdqu xmm0, [vector_1]     ; Parte alta -> Parte real
+        movdqu xmm1, [vector_2]     ; Parte baja -> Parte imaginaria
+
+        pmaddwd xmm0, xmm1          ; Esta instrucción me hace el producto escalar (suma y multiplica)
+        ;----------------------------------------------
+
    	    movdqu  [producto_escalar], xmm0  ; Guardo la suma
+
         inc eax
         mov [indice_tabla], al         ; Guardo el indice actualizado
 
@@ -136,9 +155,9 @@ vector_1:
   resd 2        ; Reservo 8 bytes para guardar la suma (64 bits)
 vector_2:
   resd 2        ; Reservo 8 bytes para guardar la suma (64 bits)
-multiplicacion_escalar_real:
+escalar_real:
   resd 2
-multiplicacion_escalar_imag:
+escalar_imag:
   resd 2
 producto_escalar:
   resd 2
