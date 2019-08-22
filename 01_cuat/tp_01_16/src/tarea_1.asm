@@ -87,16 +87,18 @@ GLOBAL tarea_1
         ; ------- Forma de hacerlo en tamaño word ----
         xor ebx, ebx                ; Pongo ebx en 0
 
-        mov al, [vector_1 + 0x04]   ; Traigo los datos de la parte imaginaria
-        mov [vector_1 + 0x02], al   ; Lo coloco en el segundo word
+        mov ax, [vector_1 + 0x04]   ; Traigo los datos de la parte imaginaria
+        mov [vector_1 + 0x02], ax   ; Lo coloco en el segundo word
         mov [vector_1 + 0x04], ebx  ; Limpio segundo double word
 
-        mov al, [vector_2 + 0x04]   ; Traigo los datos de la parte imaginaria
-        mov [vector_2 + 0x02], al   ; Lo coloco en el segundo word
+        mov ax, [vector_2 + 0x04]   ; Traigo los datos de la parte imaginaria
+        mov [vector_2 + 0x02], ax   ; Lo coloco en el segundo word
         mov [vector_2 + 0x04], ebx  ; Limpio segundo double word
 
         movdqu xmm0, [vector_1]     ; Parte alta -> Parte real
         movdqu xmm1, [vector_2]     ; Parte baja -> Parte imaginaria
+
+
 
         pmaddwd xmm0, xmm1          ; Esta instrucción me hace el producto escalar (suma y multiplica)
         ;----------------------------------------------
