@@ -4015,7 +4015,7 @@
 		};
 
 		spi@48030000 {
-			compatible = "ti,omap4-mcspi,td3-spi";
+			compatible = "td3-spi";
 			#address-cells = <0x1>;
 			#size-cells = <0x0>;
 			reg = <0x48030000 0x400>;
