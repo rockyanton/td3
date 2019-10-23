@@ -8,5 +8,5 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#define PORT 8083   // Puerto para la conexión
+#define PORT 8080  // Puerto para la conexión
 #define MAX_CONN 10 //Nro maximo de conexiones en espera

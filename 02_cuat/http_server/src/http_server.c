@@ -38,9 +38,7 @@ int http_server (int connection){
         if (uri[strlen(uri)-1] == '/')      //Si me pide la raiz, busco el index.html
           getIndex(filename);
 
-            printf("FILENAME:%s\n",filename);
         requested_file = open (filename, O_RDONLY);  // Abro el archivo solicitado como lectura
-
 
         if (requested_file != -1) {    // Me fijo si el archivo existe y puedo acceder
 
@@ -79,8 +77,6 @@ int http_server (int connection){
   free (client_message);
   return 0;
 }
-
-// <link rel="shortcut icon" href="data:image/gif;base64,R0lGODlhIAAgAOf/ADEzMDo0LjY2O9oNHS09P101P1c4NTBCR2A3KHQwO8QaK4otL88aJWw3LL4gJL4gKcAhH5osMT1HO8khKdIeLURGQ9wcJssiJCpOYNUhKVxEQ94gLklLSFNJTENOTnFIGk5ORsAvLWFLPmVLNcwwMzpYZrY3QURWYIBJPT1bUideeoJITU5VZ1pWVVtVXyJjhFxbU0xhSWVaStQ7PVtcZT1oTRlskkNjfAB1psJHOzJxR5tVTWplZLdSQGNndAB+tRqEPXBpUXJnaACBvllxXR6FRppgU1B5V1V5TMdYRGtwZwCGzMxXSySLQ8pYXF51hdZXUrNjWHd2XFmCYGOAZTmGpziQSS+TSn14ceFdWT6PT85kU4J7URePxzaSURqOzESOWrdtXjeWRzqZSb1vbaF/KJZ7elOSZclxXDSfTlGMtk6WXCyVzaKBONxsYchxbTiTxXiJdyaY1mmQZ0GfT0WUwkagSkCiWNl2ZD6nVV2eZEumUWecbWWeZcWAdDqg0kmqTF6iYVuZz0Ohx0esU3WaflWoWU6h3O9+d1CxUnCkdlOwWJudU0y1TpCbis+JhtuHeu2CeFil2pybd32kel6k4NeKgIGjiPODgFi1Y1q5WauhY2ur3G61c2K8Y2a7bbKgn5WskZKujG6y2/KUg7WnfG/AaMykmdyhirCrqXjDcs2vPpa2nc2yJdikkZ63kIjBg4bDe4G65cy1Spm+jtS4Nqa8nuWrnZC+5dS2b43Jhda6RZjEntS7Vcy8Z9u/NN6/NdG8gMLDh+HEMLLFsd/EQcXEldvFZ5vM5uLIUKHUmejKN7POstTIkq3RrOrML9rOeqfZpfDQKKjZq/TDuuvGvO7UK57Z8dzQlvHWIObPi+zUXMfXveHSpu3XU9jXlPbbJvTbR7fiuOLYpOrZg/vfHt/dk+ban/bhLeTZuPzgLvnjIMrixvXmIvziQPnlPObgsfTlV/nmR/XoR/rnUePkufvnYvnoafnocfbqfPHouvPsw//vqP/yt//2mJCRlCH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAP8ALAAAAAAgACAAAAj+AP8JHEiwoMGDCBMqXMiwoUOC1W6hQnWr2kOE1Pyg2cIkSZItW9A8snhR4KkeeB48cLByZYgQOd6ULCQCCgkGOC9cYEBhggIFEEw8hDUF1IwMGSZAiRTJTQgKGSxcmPCgIaxolFLNGJAFkpEVKHZYQnTBAgWpThby8jQtWpxHWfwUoPHEhwsDYUhZiLphgCuFnRZ9ikULFJkOL+ocEqRmCIsomDZItsAkITNDhDSp0uXIjIo/h0bJ4iSnSwcECRZEeDCjG0JFezKb0sUMho0uknBdkyVp0A1jpbjI0NCgDUI9dPYk8qSLV4XbuZHJkgPnxCZ86ML5GvEBYaAxdBL+aXYmQcUSOZxGVZJT5cAme+vKZStWxvsVOoCWs4vhwcaSL2x88UMJAYwzzzrgSPNMLcd5MYYdhDSizCUVpPACDj/ggIEAQfTTTjnoPDNMLfAcBMYVVqRBSCKLiBOHBAIQcAABAIAAzz3xWbNgKwiBocUVYtgR2yfiXKJECxVwIMU++cSX4DK1rPLaGk1YIQYdeRCSyStYYFGPPvzg42Q20oyYC0LcrFFEE1dckcYdc/AwiT/53CMPOuWUA441I86STkJ8rAEEm2JQIYQw+NhDz51OKvjLLr4oZMsZWgBRBBFYmHNPPPS8o8468WVjzaO9NLMQK31YUUQF38Qjjzxa74CKIJnAFFNqQ6HooYUOk8zjDjrqlDOriMn0EsxDtvDBRw2MxLqOOjouk0wyx2BTEjGiUHIEI/G4E44322xzDDQlliQQN6xcgoQw5JCjzTnmxivvvPTWW1JAADs=" />
 
 char * getMeFileMetaType(char * filename){
   char * file_extension = strrchr(filename, '.');    // Me quedo con la extensión
@@ -154,20 +150,22 @@ char * getMeFileMetaType(char * filename){
 }
 
 size_t getFileSize(char *fn){
-  size_t sz = 0;
+
   FILE *fp = fopen(fn, "r");
-  if (fp != NULL){
   fseek(fp, 0L, SEEK_END);
-  sz = ftell(fp);
+  int sz = ftell(fp);
+  printf("FILENAME:---%s---  FILEPTR:---%d---  SIZE:---%d---\n",fn,(int)fp,(int)sz);
   fclose (fp);
-  }
+  printf("FCLOSE SUCCED\n");
   return sz;
 }
 
 int getIndex(char *index_dir){
   char *index_cmd;
 
-  index_cmd = malloc(strlen(index_dir) + 50);
+  size_t index_size = 2*strlen(index_dir) + 100;
+
+  index_cmd = malloc(index_size);
   sprintf(index_cmd, "tree -H '.' -L 1 --noreport --charset utf-8 %s > %sindex.html", index_dir, index_dir);
 
   sprintf(index_dir, "%sindex.html",index_dir);
