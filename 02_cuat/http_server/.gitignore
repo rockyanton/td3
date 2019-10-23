@@ -14,6 +14,7 @@ src/*.elf
 sup/*.o
 sup/*.bin
 sup/*.elf
+sup/index.html
 doc/*.o
 doc/*.bin
 doc/*.elf
