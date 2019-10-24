@@ -12,9 +12,9 @@
 //#include <linux/of_address.h>       // of_iomap
 #include <linux/platform_device.h>  // platform_device
 #include <linux/of.h>               // of_match_ptr
-//#include <linux/io.h>               // ioremap
+#include <linux/io.h>               // ioremap
 //#include <linux/interrupt.h>        // request_irq
-//#include <linux/delay.h>            // msleep
+#include <linux/delay.h>            // msleep
 //#include <linux/types.h>            // atomic_t
 #include <linux/init.h>             // Macros used to mark up functions e.g. __init __exit
 //#include <linux/kdev_t.h>
@@ -25,7 +25,7 @@
 //#include <linux/wait.h>             // Para la queue
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++ DEFINES +++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++ DEFINES DRIVER +++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 #define FIRST_MINOR 0
