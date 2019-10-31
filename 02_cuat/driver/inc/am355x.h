@@ -6,13 +6,14 @@
 #define MCSPI0_LENGTH   0x1000
 #define MCSPI_REVISION  0x0
 #define MCSPI_SYSCONFIG 0x110
-  #define MCSPI_SYSCONFIG 0x110
+  #define MCSPI_SYSCONFIG_SET   0x110, 0x00000F1B , 0x308 // CLOCKACTIVITY: OCP and Functional clocks are maintained, SLIDEMODE: If an idle request is detected, the request is ignored and keeps on behaving normally, SOFTRESET: Normal mode, AUTOIDLE: OCP clock is free-running
 #define MCSPI_SYSSTATUS 0x114
-  #define MCSPI_SYSSTATUS_RESETDONE 0x114,  0,  1
+  #define MCSPI_SYSSTATUS_RESETDONE 0x114,  0x00000001
 #define MCSPI_IRQSTATUS 0x118
 #define MCSPI_IRQENABLE 0x11C
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
+  #define MCSPI_MODULCTRL_SET    0x128, 0x000001FF, 0x2
 #define MCSPI_C0CONF    0x12C
 #define MCSPI_C0STAT    0x130
 #define MCSPI_C0CTRL    0x134
@@ -37,6 +38,8 @@
 #define MCSPI_DAFTX     0x180
 #define MCSPI_DAFRX     0x1A0
 
+0011 0000 1000
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++ CM_PER Registers +++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,15 +48,15 @@
 #define CM_PER_LENGTH                                 0x400
 
 #define CM_PER_SPI0_CLKCTRL                           0x4C
-  #define CM_PER_SPI0_CLKCTRL_MODULEMODE              0x4C, 0,  2
-    #define CM_PER_SPI0_CLKCTRL_MODULEMODE_DISABLED   0x4C, 0,  2,  0x0
-    #define CM_PER_SPI0_CLKCTRL_MODULEMODE_ENABLED    0x4C, 0,  2,  0x2
-  #define CM_PER_SPI0_CLKCTRL_IDLEST                  0x4C, 16, 2
+  #define CM_PER_SPI0_CLKCTRL_MODULEMODE              0x4C, 0x00000003
+    #define CM_PER_SPI0_CLKCTRL_MODULEMODE_DISABLED   0x4C, 0x00000003,  0x0
+    #define CM_PER_SPI0_CLKCTRL_MODULEMODE_ENABLED    0x4C, 0x00000003,  0x2
+  #define CM_PER_SPI0_CLKCTRL_IDLEST                  0x4C, 0x00030000
 #define CM_PER_SPI1_CLKCTRL                           0x50
-  #define CM_PER_SPI1_CLKCTRL_MODULEMODE              0x50, 0,  2
-    #define CM_PER_SPI1_CLKCTRL_MODULEMODE_DISABLED   0x50, 0,  2,  0x0
-    #define CM_PER_SPI1_CLKCTRL_MODULEMODE_ENABLED    0x50, 0,  2,  0x2
-  #define CM_PER_SPI1_CLKCTRL_IDLEST                  0x50, 16, 2
+  #define CM_PER_SPI1_CLKCTRL_MODULEMODE              0x50, 0x00000003
+    #define CM_PER_SPI1_CLKCTRL_MODULEMODE_DISABLED   0x50, 0x00000003,  0x0
+    #define CM_PER_SPI1_CLKCTRL_MODULEMODE_ENABLED    0x50, 0x00000003,  0x2
+  #define CM_PER_SPI1_CLKCTRL_IDLEST                  0x50, 0x00030000
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++ Control Module Registers ++++++++++++++++++++++++++++
@@ -63,11 +66,11 @@
 #define CONTROL_MODULE_LENGTH               0x2000
 
 #define CONTROL_MODULE_SPI0_SCLK            0x950
-  #define CONTROL_MODULE_SPI0_SCLK_ENABLE   0x950,  0,  6,  0x30
+  #define CONTROL_MODULE_SPI0_SCLK_ENABLE   0x950,  0x0000003F,  0x30   // Slowe slew rate, Receiver enabled, Pulldown selected, Pullup/pulldown enabled, mux select 0
 #define CONTROL_MODULE_SPI0_D0              0x954
-  #define CONTROL_MODULE_SPI0_D0_ENABLE     0x954,  0,  6,  0x20
+  #define CONTROL_MODULE_SPI0_D0_ENABLE     0x954,  0x0000003F,  0x20   // Slowe slew rate, Receiver disabled, Pulldown selected, Pullup/pulldown enabled, mux select 0
 #define CONTROL_MODULE_SPI0_D1              0x958
-  #define CONTROL_MODULE_SPI0_D1_ENABLE     0x958,  0,  6,  0x30
+  #define CONTROL_MODULE_SPI0_D1_ENABLE     0x958,  0x0000003F,  0x30   // Slowe slew rate, Receiver enabled, Pulldown selected, Pullup/pulldown enabled, mux select 0
 #define CONTROL_MODULE_SPI0_CS0             0x95C
 #define CONTROL_MODULE_SPI0_CS1             0x960
 
@@ -75,14 +78,7 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Functions ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void      set_registers (uint32_t *, uint32_t, uint32_t, uint32_t, uint32_t);
-uint32_t  get_registers (uint32_t *, uint32_t, uint32_t, uint32_t);
-
-
-     // spi0 clock
-      /*
-         CM_PER_SPI0_CLKCTRL_MODULEMODE: Control the way mandatory clocks are managed.
-         0x0 = DISABLED : Module is disable by SW. Any OCP access to module results in an error, except if resulting from a module wakeup (asynchronous wakeup).
-         0x2 = ENABLE : Module is explicitly enabled. Interface clock (if not used for functions) may be gated according to the clock domain state.
-                       Functional clocks are guarantied to stay present. As long as in this configuration, power domain sleep transition cannot happen.
-       */
+// void set_registers(uint32_t *base, uint32_t offset, uint32_t mask, uint32_t value) {
+void      set_registers (volatile void *, uint32_t, uint32_t, uint32_t);
+// uint32_t get_registers(uint32_t *base, uint32_t offset, uint32_t mask) {
+uint32_t  get_registers (volatile void *, uint32_t, uint32_t);
