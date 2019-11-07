@@ -24,11 +24,13 @@ static int spi_close(struct inode * my_inode, struct file * my_file) {
 }
 
 static ssize_t spi_write (struct file * my_file, const char __user * my_user, size_t my_sizet, loff_t * my_loff_t) {
-	return NULL;
+	static ssize_t exit;
+	return exit;
 }
 
 static ssize_t spi_read (struct file * my_file, char __user * my_user, size_t my_sizet, loff_t * my_loff_t) {
-	return NULL;
+	static ssize_t exit;
+	return exit;
 }
 
 static long spi_ioctl(struct file * my_file, unsigned int my_uint, unsigned long my_ulong){

@@ -1,7 +1,7 @@
 /dts-v1/;
 
 / {
-	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx", "td3-spi";
 	interrupt-parent = <0x1>;
 	#address-cells = <0x1>;
 	#size-cells = <0x1>;
@@ -3581,7 +3581,7 @@
 			clock-frequency = <0x2dc6c00>;
 			reg = <0x48022000 0x2000>;
 			interrupts = <0x49>;
-			status = "okay";
+			status = "disabled";
 			dmas = <0x2d 0x1c 0x0 0x2d 0x1d 0x0>;
 			dma-names = "tx", "rx";
 			pinctrl-names = "default";

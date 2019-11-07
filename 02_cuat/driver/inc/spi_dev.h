@@ -9,7 +9,7 @@
 #include <linux/fs.h>               // Header for the Linux file system support (alloc_chrdev_region y unregister_chrdev_region)
 #include <linux/module.h>           // Core header for loading LKMs into the kernel
 //#include <linux/uaccess.h>          // copy_to_user - copy_from_user
-//#include <linux/of_address.h>       // of_iomap
+#include <linux/of_address.h>       // of_iomap
 #include <linux/platform_device.h>  // platform_device
 #include <linux/of.h>               // of_match_ptr
 #include <linux/io.h>               // ioremap
@@ -35,6 +35,9 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++ FUNCTIONS ++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+static int spi_init(void);
+static void spi_exit(void);
 
 //Primitivas de las funciones de file_operations
 static int spi_open (struct inode *, struct file *);

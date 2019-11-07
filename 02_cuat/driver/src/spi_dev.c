@@ -38,7 +38,8 @@ static struct platform_driver spi_platform_driver = {
 	.remove = spi_remove,
 	.driver = {
 		.name = COMPATIBLE,
-		.of_match_table = spi_of_device_ids,
+		.of_match_table = of_match_ptr(spi_of_device_ids)
+		//.of_match_table = spi_of_device_ids,
 	},
 };
 
@@ -53,23 +54,23 @@ static int spi_init(void) {
 	printk(KERN_INFO "[LOG] SPI DRIVER : Inializating module\n");
 
   //Primer paso es conseguir el número mayor y en este caso 1 número menor (un solo inodo)
-  result = alloc_chrdev_region(&spi_dev_t, FIRST_MINOR, COUNT_MINOR, COMPATIBLE); //"toUpper" es el nombre del driver. Returns zero or a negative rror code
+  result = alloc_chrdev_region(&spi_dev_t, FIRST_MINOR, COUNT_MINOR, COMPATIBLE); //Returns zero or a negative rror code
 
   if (result < 0) {
-		printk(KERN_ERR "[ERROR] SPI DRIVER: Error code %d (%s %d)\n", result, __FUNCTION__, __LINE__);
+		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't allocate region\n");
     return result;
   }
 
 	spi_class = class_create(THIS_MODULE, "TD3");
 	if (spi_class == NULL){
-		printk(KERN_ERR "[ERROR] SPI DRIVER: %s,Line %d\n", __FUNCTION__, __LINE__);
+		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't create class\n");
 		unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
 		return -1;
 	}
 
-	spi_device = device_create(spi_class, NULL, spi_dev_t, NULL, "TD3_SPI_Acelerometer");
+	spi_device = device_create(spi_class, NULL, spi_dev_t, NULL, "td3_spi_acelerometer");
 	if (spi_device == NULL){
-		printk(KERN_ERR "[ERROR] SPI DRIVER: %s,Line %d\n", __FUNCTION__, __LINE__);
+		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't create device\n");
 		class_destroy(spi_class);
 		unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
 		return -1;
@@ -83,7 +84,7 @@ static int spi_init(void) {
 
 	result = cdev_add(spi_cdev, spi_dev_t, COUNT_MINOR);
 	if (result < 0) {
-		 printk(KERN_ERR "[ERROR] SPI DRIVER: Error code %d (%s %d)\n", result, __FUNCTION__, __LINE__);
+		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't add class\n");
 		 device_destroy(spi_class, spi_dev_t);
 		 class_destroy(spi_class);
 		 unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
@@ -92,7 +93,7 @@ static int spi_init(void) {
 
 	result = platform_driver_register(&spi_platform_driver);
 	if (result < 0) {
-		 printk(KERN_ERR "[ERROR] SPI DRIVER: Error code %d (%s %d)\n", result, __FUNCTION__, __LINE__);
+		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't register platform driver\n");
 		 cdev_del(spi_cdev);
 		 device_destroy(spi_class, spi_dev_t);
 		 class_destroy(spi_class);

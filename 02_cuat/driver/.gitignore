@@ -28,3 +28,4 @@ doc/*.html
 *.symvers
 *.ko
 .tmp_versions/*
+*.sh

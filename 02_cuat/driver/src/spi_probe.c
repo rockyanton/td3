@@ -4,9 +4,14 @@
 //+++++++++++++++++++++++++++++++++ PROBE +++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-static volatile void *mcspi0_base, *cm_per_base, *control_module_base;
+static volatile void *td3_spi_base, *mcspi0_base, *cm_per_base, *control_module_base;
 
 static int spi_probe(struct platform_device * spi_platform_device) {
+	static int i;
+	static uint32_t register_value;
+	//static uint32_t cont=0;
+
+	td3_spi_base = of_iomap(spi_platform_device->dev.of_node, 0);
 
 	printk(KERN_INFO "[LOG] SPI DRIVER: Running Probe\n");
 
@@ -14,6 +19,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	printk(KERN_INFO "[LOG] SPI DRIVER: Mapping CM_PER_BASE\n");
 	if((cm_per_base = ioremap(CM_PER_BASE, CM_PER_LENGTH)) == NULL)	{
 		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't map CM_PER\n");
+		 iounmap(td3_spi_base);
 		 return 1;
 	}
 
@@ -28,22 +34,24 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	printk(KERN_INFO "[LOG] SPI DRIVER: Mapping CONTROL_MODULE_BASE\n");
 	if((control_module_base = ioremap(CONTROL_MODULE_BASE, CONTROL_MODULE_LENGTH)) == NULL) {
 		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't map CONTROL MODULE\n");
+		 iounmap(td3_spi_base);
 		 iounmap(cm_per_base);
 		 return 1;
 	}
 
 	// Seteo los pines
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CONTROL_MODULE_SPI0_SCLK_ENABLE\n");
-	set_registers(cm_per_base, CONTROL_MODULE_SPI0_SCLK_ENABLE);
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_SCLK_ENABLE);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CONTROL_MODULE_SPI0_D0_ENABLE\n");
-	set_registers(cm_per_base, CONTROL_MODULE_SPI0_D0_ENABLE);
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_D0_ENABLE);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CONTROL_MODULE_SPI0_D1_ENABLE\n");
-	set_registers(cm_per_base, CONTROL_MODULE_SPI0_D1_ENABLE);
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_D1_ENABLE);
 
 	// Mapeo el registro McSPI0
 	printk(KERN_INFO "[LOG] SPI DRIVER: Mapping MCSPI0_BASE\n");
 	if((mcspi0_base = ioremap(MCSPI0_BASE, MCSPI0_LENGTH)) == NULL) {
 		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't map CONTROL MODULE\n");
+		 iounmap(td3_spi_base);
 		 iounmap(cm_per_base);
 		 iounmap(control_module_base);
 		 return 1;
@@ -56,6 +64,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	printk(KERN_INFO "[LOG] SPI DRIVER: Reading MCSPI_SYSSTATUS_RESETDONE\n");
 	if (!get_registers(mcspi0_base, MCSPI_SYSSTATUS_RESETDONE)) {
 		printk(KERN_ERR "[ERROR] SPI DRIVER: Internal module reset is on-going\n");
+		iounmap(td3_spi_base);
 		iounmap(cm_per_base);
 		iounmap(control_module_base);
 		iounmap(mcspi0_base);
@@ -64,34 +73,44 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 
 	printk(KERN_INFO "[LOG] SPI DRIVER: Reset al SPI0 OK\n");
 
-	//Configuro el módulo sin Chip Select, Multiple channel
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_SYSCONFIG\n");
 	set_registers(mcspi0_base, MCSPI_SYSCONFIG_SET);
-	//iowrite32 (0x308, mcspi0_base + MCSPI_SYSCONFIG);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_MODULCTRL\n");
 	set_registers(mcspi0_base, MCSPI_MODULCTRL_SET);
-	//iowrite32 (2, mcspi0_base + MCSPI_MODULCTRL);
-	//Configuro el canal 0, modo TX-RX (4-wire), D0->RX (MISO), D1->TX (MOSI) 16 bits
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CONF\n");
-	iowrite32 (0x1079F, mcspi0_base + MCSPI_C0CONF);
-	//Dejo desactivado el canal 0 y seteo el divisor (sin valor)
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL\n");
-	iowrite32 (0, mcspi0_base + MCSPI_C0CTRL);
-
-	//Activo el canal 0
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL\n");
-	iowrite32 (1, mcspi0_base + MCSPI_C0CTRL);
-	//aux = ioread32 ( mcspi0_base + MCSPI_RX0);
-	//iowrite32 (spi_data.registro_lectura , mcspi0_base + MCSPI_TX0);
+	set_registers(mcspi0_base, MCSPI_C0CONF_SET);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL_SET_CLOCK\n");
+	set_registers(mcspi0_base, MCSPI_C0CTRL_SET_CLOCK);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL_ENABLE\n");
+	set_registers(mcspi0_base, MCSPI_C0CTRL_ENABLE);
 
 
-  printk(KERN_INFO "|PROBE| [LOG] td3_i2c : Probe OK\n");
+  printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
+
+	// Pruebo el clock
+	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+
+
+/*
+	for(i=0;i<100;i++){
+		iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
+		register_value = ioread32(mcspi0_base + MCSPI_RX0);
+	 }
+	 */
 
 	return 0;
 }
 
 static int spi_remove(struct platform_device * my_platform_device)
 {
+	iounmap(td3_spi_base);
+	iounmap(cm_per_base);
+	iounmap(control_module_base);
+	iounmap(mcspi0_base);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Probe remove OK\n");
 	return 0;
 }
