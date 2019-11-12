@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   // Conecta el socket a la direccion local
   if (bind(socket_http, (struct sockaddr *)&address, sizeof(address))<0) {
-    perror("ERROR al nombrar el socket\n");
+    perror("Error en bind");
     return(-1);
   }
   printf("\n\aServidor ACTIVO escuchando en el puerto: %d\n",PORT);
