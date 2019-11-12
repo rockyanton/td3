@@ -5,11 +5,11 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 static volatile void *td3_spi_base, *mcspi0_base, *cm_per_base, *control_module_base;
+int virq;
 
 static int spi_probe(struct platform_device * spi_platform_device) {
-	static int i;
-	static uint32_t register_value;
-	//static uint32_t cont=0;
+	//static int i;
+	//static uint32_t register_value;
 
 	td3_spi_base = of_iomap(spi_platform_device->dev.of_node, 0);
 
@@ -23,7 +23,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 		 return 1;
 	}
 
-	// Habilito el clock
+	// Habilito el clock del SPI
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CM_PER_SPI0_CLKCTRL_MODULEMODE_ENABLED\n");
 	set_registers(cm_per_base, CM_PER_SPI0_CLKCTRL_MODULEMODE_ENABLED);
 
@@ -39,7 +39,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 		 return 1;
 	}
 
-	// Seteo los pines
+	// Seteo la configuracion de los pines del BB
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CONTROL_MODULE_SPI0_SCLK_ENABLE\n");
 	set_registers(control_module_base, CONTROL_MODULE_SPI0_SCLK_ENABLE);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting CONTROL_MODULE_SPI0_D0_ENABLE\n");
@@ -70,37 +70,51 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 		iounmap(mcspi0_base);
 		return 1;
 	}
-
 	printk(KERN_INFO "[LOG] SPI DRIVER: Reset al SPI0 OK\n");
 
+	// Seteo la configuración de SPI (modo)
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_SYSCONFIG\n");
 	set_registers(mcspi0_base, MCSPI_SYSCONFIG_SET);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_MODULCTRL\n");
 	set_registers(mcspi0_base, MCSPI_MODULCTRL_SET);
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CONF\n");
-	set_registers(mcspi0_base, MCSPI_C0CONF_SET);
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL_SET_CLOCK\n");
-	set_registers(mcspi0_base, MCSPI_C0CTRL_SET_CLOCK);
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_C0CTRL_ENABLE\n");
-	set_registers(mcspi0_base, MCSPI_C0CTRL_ENABLE);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_CH0CONF\n");
+	set_registers(mcspi0_base, MCSPI_CH0CONF_SET);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_CH0CTRL_SET_CLOCK\n");
+	set_registers(mcspi0_base, MCSPI_CH0CTRL_SET_CLOCK);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_CH0CTRL_ENABLE\n");
+	set_registers(mcspi0_base, MCSPI_CH0CTRL_ENABLE);
+
+	// IRQ
+	virq = platform_get_irq(spi_platform_device, 0);
+	if(virq < 0) {
+		printk(KERN_ERR "[ERROR] SPI DRIVER: Can't get irq number\n");
+		iounmap(td3_spi_base);
+ 		iounmap(cm_per_base);
+ 		iounmap(control_module_base);
+ 		iounmap(mcspi0_base);
+		return 1;
+	}
+
+	if(request_irq(virq, (irq_handler_t) spi_irq_handler, IRQF_TRIGGER_RISING, COMPATIBLE, NULL)) {
+		printk(KERN_ERR "[ERROR] SPI DRIVER: Can't bind irq to handler\n");
+		iounmap(td3_spi_base);
+  	iounmap(cm_per_base);
+  	iounmap(control_module_base);
+  	iounmap(mcspi0_base);
+		return 1;
+	}
+	printk(KERN_INFO "[LOG] SPI DRIVER: IRQ number: %d\n", virq);
 
 
   printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
-
+	/*
 	// Pruebo el clock
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-
-
-/*
-	for(i=0;i<100;i++){
-		iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-		register_value = ioread32(mcspi0_base + MCSPI_RX0);
-	 }
-	 */
+	*/
 
 	return 0;
 }

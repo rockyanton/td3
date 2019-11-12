@@ -6,6 +6,7 @@
 
 #include "spi_fops.c"
 #include "spi_probe.c"
+#include "spi_irq.c"
 #include "reg.c"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

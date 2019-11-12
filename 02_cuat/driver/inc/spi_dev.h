@@ -13,7 +13,7 @@
 #include <linux/platform_device.h>  // platform_device
 #include <linux/of.h>               // of_match_ptr
 #include <linux/io.h>               // ioremap
-//#include <linux/interrupt.h>        // request_irq
+#include <linux/interrupt.h>        // request_irq
 #include <linux/delay.h>            // msleep
 //#include <linux/types.h>            // atomic_t
 #include <linux/init.h>             // Macros used to mark up functions e.g. __init __exit
@@ -48,3 +48,5 @@ static long spi_ioctl(struct file *, unsigned int, unsigned long);
 
 static int spi_probe (struct platform_device *);
 static int spi_remove (struct platform_device *);
+
+static irqreturn_t spi_irq_handler(int, void *, struct pt_regs *);
