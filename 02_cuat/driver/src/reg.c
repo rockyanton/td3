@@ -2,10 +2,10 @@
 #include <linux/io.h>
 
 void set_registers(volatile void *base, uint32_t offset, uint32_t mask, uint32_t value) {
-  //uint32_t old_value = get_registers(base, offset, mask); // Traigo los datos del registro
-  //old_value &= ~mask;   // Borro los datos a escribir
-  //value &= mask;        // Me quedo con los bytes que van
-  //value |= old_value;   // Agrego los datos nuevos
+  uint32_t old_value = ioread32 (base + offset); // Traigo los datos del registro
+  old_value &= ~(mask); // Borro los datos a escribir
+  value &= mask;        // Me quedo con los bytes que van
+  value |= old_value;   // Agrego los datos nuevos
 
   iowrite32 (value, base + offset);
   return;

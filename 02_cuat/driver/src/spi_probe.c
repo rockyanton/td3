@@ -105,8 +105,6 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	}
 	printk(KERN_INFO "[LOG] SPI DRIVER: IRQ number: %d\n", virq);
 
-
-  printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
 	/*
 	// Pruebo el clock
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
@@ -115,6 +113,14 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
 	*/
+
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_IRQSTATUS_CH0_CLEAR\n");
+	set_registers(mcspi0_base, MCSPI_IRQSTATUS_CH0_CLEAR);
+
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting IRQ flags\n");
+	set_registers(mcspi0_base, MCSPI_IRQENABLE_CH0);
+
+	printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
 
 	return 0;
 }
