@@ -117,7 +117,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_IRQSTATUS_CH0_CLEAR\n");
 	set_registers(mcspi0_base, MCSPI_IRQSTATUS_CH0_CLEAR);
 
-	printk(KERN_INFO "[LOG] SPI DRIVER: Setting IRQ flags\n");
+	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_IRQENABLE_CH0\n");
 	set_registers(mcspi0_base, MCSPI_IRQENABLE_CH0);
 
 	printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
@@ -131,6 +131,7 @@ static int spi_remove(struct platform_device * my_platform_device)
 	iounmap(cm_per_base);
 	iounmap(control_module_base);
 	iounmap(mcspi0_base);
+	free_irq(virq, NULL);
 	printk(KERN_INFO "[LOG] SPI DRIVER: Probe remove OK\n");
 	return 0;
 }

@@ -53,25 +53,25 @@
     //  0 //    TX0_EMPTY  // Transmitter register empty or almost empty (Channel 0).                             // 0h (W) = Event status bit is unchanged. //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQENABLE 0x11C
-  #define MCSPI_IRQENABLE_CH0   0x11C, 0xF, 0xF
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Bit//         Field         //                                      Description                                    //           Set              //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // 17 //         EOWKE         // End of word count interrupt enable                                                  // Default                    //
-    // 14 //    RX3_FULL__ENABLE   // MCSPI_RX3 receiver register full or almost full interrupt enable (channel 3).       // Default                    //
-    // 13 // TX3_UNDERFLOW__ENABLE // MCSPI_TX3 transmitter register underflow interrupt enable (channel 3).              // Default                    //
-    // 12 //    TX3_EMPTY__ENABLE  // MCSPI_TX3 transmitter register empty or almost empty interrupt enable (channel 3).  // Default                    //
-    // 10 //    RX2_FULL__ENABLE   // MCSPI_RX2 receiver register full or almost full interrupt enable (channel 2).       // Default                    //
-    //  9 // TX2_UNDERFLOW__ENABLE // MCSPI_TX2 transmitter register underflow interrupt enable (channel 2).              // Default                    //
-    //  8 //    TX2_EMPTY__ENABLE  // MCSPI_TX2 transmitter register empty or almost empty interrupt enable (channel 2).  // Default                    //
-    //  6 //    RX1_FULL__ENABLE   // MCSPI_RX1 receiver register full or almost full interrupt enable (channel 1).       // Default                    //
-    //  5 // TX1_UNDERFLOW__ENABLE // MCSPI_TX1 transmitter register underflow interrupt enable (channel 1).              // Default                    //
-    //  4 //   TX1_EMPTY__ENABLE   // MCSPI_TX1 transmitter register empty or almost empty interrupt enable (channel 1).  // Default                    //
-    //  3 // RX0_OVERFLOW__ENABLE  // MCSPI_RX0 receivier register overflow interrupt enable (channel 0).                 // 1h = Interrupt is enabled. //
-    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 1h = Interrupt is enabled. //
-    //  1 // TX0_UNDERFLOW__ENABLE // MCSPI_TX0 transmitter register underflow interrupt enable (channel 0).              // 1h = Interrupt is enabled. //
-    //  0 //    TX0_EMPTY__ENABLE  // MCSPI_TX0 transmitter register empty or almost empty interrupt enable (channel 0).  // 1h = Interrupt is enabled. //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  #define MCSPI_IRQENABLE_CH0   0x11C, 0xF, 0x5
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Bit//         Field         //                                      Description                                    //           Set               //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 17 //         EOWKE         // End of word count interrupt enable                                                  // Default                     //
+    // 14 //    RX3_FULL__ENABLE   // MCSPI_RX3 receiver register full or almost full interrupt enable (channel 3).       // Default                     //
+    // 13 // TX3_UNDERFLOW__ENABLE // MCSPI_TX3 transmitter register underflow interrupt enable (channel 3).              // Default                     //
+    // 12 //    TX3_EMPTY__ENABLE  // MCSPI_TX3 transmitter register empty or almost empty interrupt enable (channel 3).  // Default                     //
+    // 10 //    RX2_FULL__ENABLE   // MCSPI_RX2 receiver register full or almost full interrupt enable (channel 2).       // Default                     //
+    //  9 // TX2_UNDERFLOW__ENABLE // MCSPI_TX2 transmitter register underflow interrupt enable (channel 2).              // Default                     //
+    //  8 //    TX2_EMPTY__ENABLE  // MCSPI_TX2 transmitter register empty or almost empty interrupt enable (channel 2).  // Default                     //
+    //  6 //    RX1_FULL__ENABLE   // MCSPI_RX1 receiver register full or almost full interrupt enable (channel 1).       // Default                     //
+    //  5 // TX1_UNDERFLOW__ENABLE // MCSPI_TX1 transmitter register underflow interrupt enable (channel 1).              // Default                     //
+    //  4 //   TX1_EMPTY__ENABLE   // MCSPI_TX1 transmitter register empty or almost empty interrupt enable (channel 1).  // Default                     //
+    //  3 // RX0_OVERFLOW__ENABLE  // MCSPI_RX0 receivier register overflow interrupt enable (channel 0).                 // 0h = Interrupt is disabled. //
+    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 1h = Interrupt is enabled.  //
+    //  1 // TX0_UNDERFLOW__ENABLE // MCSPI_TX0 transmitter register underflow interrupt enable (channel 0).              // 0h = Interrupt is disabled. //
+    //  0 //    TX0_EMPTY__ENABLE  // MCSPI_TX0 transmitter register empty or almost empty interrupt enable (channel 0).  // 1h = Interrupt is enabled.  //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
   #define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // xxx 0 0 000 0 0 1 0
@@ -180,7 +180,7 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Functions ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// void set_registers(uint32_t *base, uint32_t offset, uint32_t mask, uint32_t value) {
+// void set_registers(uint32_t *base, uint32_t offset, uint32_t mask, uint32_t value)
 void      set_registers (volatile void *, uint32_t, uint32_t, uint32_t);
-// uint32_t get_registers(uint32_t *base, uint32_t offset, uint32_t mask) {
+// uint32_t get_registers(uint32_t *base, uint32_t offset, uint32_t mask)
 uint32_t  get_registers (volatile void *, uint32_t, uint32_t);
