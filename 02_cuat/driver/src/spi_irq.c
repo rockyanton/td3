@@ -7,7 +7,8 @@ irqreturn_t spi_irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
       printk(KERN_INFO "[LOG] SPI DRIVER: New interrupt TX0_EMPTY\n");
       set_registers(mcspi0_base, MCSPI_IRQSTATUS_TX0_EMPTY_CLEAR);
       set_registers(mcspi0_base, MCSPI_IRQSTATUS_RX0_FULL_CLEAR); // También me levanta la interrupción de RX (lee lo que escribe)
-      up(&writing_command); // Libero el semaforo cuando termina de mandar
+      //up(&writing_command); // Libero el semaforo cuando termina de mandar
+
     }
 
     if (flag_irq & MCSPI_IRQSTATUS_RX0_FULL_SET){

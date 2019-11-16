@@ -10,6 +10,7 @@ int virq;
 static int spi_probe(struct platform_device * spi_platform_device) {
 	//static int i;
 	//static uint32_t register_value;
+	uint32_t ret;
 
 	td3_spi_base = of_iomap(spi_platform_device->dev.of_node, 0);
 
@@ -84,6 +85,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_CH0CTRL_ENABLE\n");
 	set_registers(mcspi0_base, MCSPI_CH0CTRL_ENABLE);
 
+/*
 	// IRQ
 	virq = platform_get_irq(spi_platform_device, 0);
 	if(virq < 0) {
@@ -105,22 +107,36 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	}
 	printk(KERN_INFO "[LOG] SPI DRIVER: IRQ number: %d\n", virq);
 
-	/*
-	// Pruebo el clock
-	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-	iowrite32(0xA2, mcspi0_base + MCSPI_TX0);
-	*/
-
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_IRQSTATUS_CH0_CLEAR\n");
 	set_registers(mcspi0_base, MCSPI_IRQSTATUS_CH0_CLEAR);
 
 	printk(KERN_INFO "[LOG] SPI DRIVER: Setting MCSPI_IRQENABLE_CH0\n");
 	set_registers(mcspi0_base, MCSPI_IRQENABLE_CH0);
+	*/
 
-	printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
+ 	//adxl345_init();
+	/*
+	iowrite32(0x00, mcspi0_base + MCSPI_TX0);
+	msleep(10);
+	ret = ioread32 (mcspi0_base + MCSPI_RX0);
+	printk(KERN_INFO "[LOG] SPI DRIVER: Device ID: %h\n", ret);
+
+/*
+		// Pruebo el clock
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+
+		*/
+		iowrite32(0xF1, mcspi0_base + MCSPI_TX0);
+		//while(!get_registers(mcspi0_base, MCSPI_CH0STAT_TXS)){}
+		msleep(20);
+		ret = ioread32 (mcspi0_base + MCSPI_RX0);
+		printk(KERN_INFO "[LOG] SPI DRIVER: Device ID: %d\n", ret);
+
+		printk(KERN_INFO "[LOG] SPI DRIVER: Probe OK\n");
 
 	return 0;
 }

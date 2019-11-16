@@ -23,7 +23,7 @@
 //#include <linux/kernel.h>
 //#include <linux/of_platform.h>
 //#include <linux/wait.h>             // Para la queue
-#include <linux/semaphore.h>
+//#include <linux/semaphore.h>
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++ DEFINES DRIVER +++++++++++++++++++++++++++++++++

@@ -23,16 +23,12 @@
     //  0  // RESETDONE // Internal OCP Clock gating strategy. // 1h = Reset completed //
     /////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQSTATUS 0x118
-  #define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0xF, 0x0
-  #define MCSPI_IRQSTATUS_CH0_GET             0x118, 0xF
-  #define MCSPI_IRQSTATUS_RX0_OVERFLOW_SET    0x8
-  #define MCSPI_IRQSTATUS_RX0_OVERFLOW_CLEAR  0x118, 0x8, 0x0
-  #define MCSPI_IRQSTATUS_RX0_FULL_SET        0x4
+  #define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0x0
+  #define MCSPI_IRQSTATUS_CH0_GET             0x118, 0x0002777F
   #define MCSPI_IRQSTATUS_RX0_FULL_CLEAR      0x118, 0x4, 0x0
-  #define MCSPI_IRQSTATUS_TX0_UNDERFLOW_SET   0x2
-  #define MCSPI_IRQSTATUS_TX0_UNDERFLOW_CLEAR 0x118, 0x2, 0x0
-  #define MCSPI_IRQSTATUS_TX0_EMPTY_SET       0x1
+  #define MCSPI_IRQSTATUS_RX0_FULL_SET        0x4
   #define MCSPI_IRQSTATUS_TX0_EMPTY_CLEAR     0x118, 0x1, 0x0
+  #define MCSPI_IRQSTATUS_TX0_EMPTY_SET       0x1
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit//     Field     //                                      Description                                    //                  Set                    //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,22 +49,22 @@
     //  0 //    TX0_EMPTY  // Transmitter register empty or almost empty (Channel 0).                             // 0h (W) = Event status bit is unchanged. //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQENABLE 0x11C
-  #define MCSPI_IRQENABLE_CH0   0x11C, 0xF, 0x5
+  #define MCSPI_IRQENABLE_CH0   0x11C, 0x0002777F, 0x5
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit//         Field         //                                      Description                                    //           Set               //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // 17 //         EOWKE         // End of word count interrupt enable                                                  // Default                     //
-    // 14 //    RX3_FULL__ENABLE   // MCSPI_RX3 receiver register full or almost full interrupt enable (channel 3).       // Default                     //
-    // 13 // TX3_UNDERFLOW__ENABLE // MCSPI_TX3 transmitter register underflow interrupt enable (channel 3).              // Default                     //
-    // 12 //    TX3_EMPTY__ENABLE  // MCSPI_TX3 transmitter register empty or almost empty interrupt enable (channel 3).  // Default                     //
-    // 10 //    RX2_FULL__ENABLE   // MCSPI_RX2 receiver register full or almost full interrupt enable (channel 2).       // Default                     //
-    //  9 // TX2_UNDERFLOW__ENABLE // MCSPI_TX2 transmitter register underflow interrupt enable (channel 2).              // Default                     //
-    //  8 //    TX2_EMPTY__ENABLE  // MCSPI_TX2 transmitter register empty or almost empty interrupt enable (channel 2).  // Default                     //
-    //  6 //    RX1_FULL__ENABLE   // MCSPI_RX1 receiver register full or almost full interrupt enable (channel 1).       // Default                     //
-    //  5 // TX1_UNDERFLOW__ENABLE // MCSPI_TX1 transmitter register underflow interrupt enable (channel 1).              // Default                     //
-    //  4 //   TX1_EMPTY__ENABLE   // MCSPI_TX1 transmitter register empty or almost empty interrupt enable (channel 1).  // Default                     //
+    // 17 //         EOWKE         // End of word count interrupt enable                                                  // 0h = Interrupt is disabled. //
+    // 14 //    RX3_FULL__ENABLE   // MCSPI_RX3 receiver register full or almost full interrupt enable (channel 3).       // 0h = Interrupt is disabled. //
+    // 13 // TX3_UNDERFLOW__ENABLE // MCSPI_TX3 transmitter register underflow interrupt enable (channel 3).              // 0h = Interrupt is disabled. //
+    // 12 //    TX3_EMPTY__ENABLE  // MCSPI_TX3 transmitter register empty or almost empty interrupt enable (channel 3).  // 0h = Interrupt is disabled. //
+    // 10 //    RX2_FULL__ENABLE   // MCSPI_RX2 receiver register full or almost full interrupt enable (channel 2).       // 0h = Interrupt is disabled. //
+    //  9 // TX2_UNDERFLOW__ENABLE // MCSPI_TX2 transmitter register underflow interrupt enable (channel 2).              // 0h = Interrupt is disabled. //
+    //  8 //    TX2_EMPTY__ENABLE  // MCSPI_TX2 transmitter register empty or almost empty interrupt enable (channel 2).  // 0h = Interrupt is disabled. //
+    //  6 //    RX1_FULL__ENABLE   // MCSPI_RX1 receiver register full or almost full interrupt enable (channel 1).       // 0h = Interrupt is disabled. //
+    //  5 // TX1_UNDERFLOW__ENABLE // MCSPI_TX1 transmitter register underflow interrupt enable (channel 1).              // 0h = Interrupt is disabled. //
+    //  4 //   TX1_EMPTY__ENABLE   // MCSPI_TX1 transmitter register empty or almost empty interrupt enable (channel 1).  // 0h = Interrupt is disabled. //
     //  3 // RX0_OVERFLOW__ENABLE  // MCSPI_RX0 receivier register overflow interrupt enable (channel 0).                 // 0h = Interrupt is disabled. //
-    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 1h = Interrupt is enabled.  //
+    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 1h = Interrupt is enabled. ,//
     //  1 // TX0_UNDERFLOW__ENABLE // MCSPI_TX0 transmitter register underflow interrupt enable (channel 0).              // 0h = Interrupt is disabled. //
     //  0 //    TX0_EMPTY__ENABLE  // MCSPI_TX0 transmitter register empty or almost empty interrupt enable (channel 0).  // 1h = Interrupt is enabled.  //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +113,9 @@
     //   0   //     PHA   // SPICLK phase
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_CH0STAT    0x130
+  #define MCSPI_CH0STAT_RXS    0x130, 0x1
+  #define MCSPI_CH0STAT_TXS    0x130, 0x2
+
 #define MCSPI_CH0CTRL    0x134
   #define MCSPI_CH0CTRL_SET_CLOCK      0x134, 0x0000FF01, 0x0  // 00000000 xxxxxxx 0
   #define MCSPI_CH0CTRL_ENABLE         0x134, 0x00000001, 0x1  // 00000000 xxxxxxx 1
