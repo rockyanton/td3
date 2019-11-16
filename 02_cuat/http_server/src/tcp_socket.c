@@ -1,6 +1,6 @@
 #include "../inc/tcp_socket.h"
 #include "http_server.c"
-#include "device.c"
+#include "query_accelerometer.c"
 
 int main(int argc, char *argv[]) {
 
@@ -41,7 +41,11 @@ int main(int argc, char *argv[]) {
   get_val_child = fork();
 
   if (!get_val_child){  // El proceso hijo va a actualizar los valores cada tanto
-    printf("Buscando valores\n");
+    printf("[LOG] TCP SOCKET: Update position demon started\n");
+    while (1) {
+      update_http_file();
+      sleep(1); // Duermo el proceso durante 1 segundo
+    }
     return 0;
   }
 
@@ -51,28 +55,6 @@ int main(int argc, char *argv[]) {
   while (1) {
 
     printf("[LOG] TCP SOCKET: Waiting for new connection\n");
-    /*
-    // Vacío el puntero, indicando que no nos interesa ningún descriptor de fichero.
-    FD_ZERO(&readfds);
-
-    // Especificamos el socket.
-    FD_SET(socket_http, &readfds);
-
-    // Espera al establecimiento de alguna conexion.
-
-    nbr_fds = select(socket_http+1, &readfds, NULL, NULL, NULL);
-
-    if (nbr_fds<0) {
-      perror("[ERROR] TCP SOCKET: Error in select");
-    }
-    if (!FD_ISSET(socket_http,&readfds)) {
-      printf("[ERROR] TCP SOCKET: Se hizo un pedido\n");
-    }
-
-    // Child
-    // Elimino el descriptor dentro del fd_set.
-    //FD_CLEAR (int, fd_set *) elimina el descriptor dentro del fd_set.
-    */
 
     // La funcion accept rellena la estructura address con informacion del cliente y pone en addrlen la longitud de la estructura.
     if ((connection = accept (socket_http, (struct sockaddr *) &address, (socklen_t *)&addrlen)) < 0) {  // LE PASO COMO PARAMETRO EL SOCKET DE ESPERA Y ME DEVUELVE EL SOCKET DE LA CONEXION

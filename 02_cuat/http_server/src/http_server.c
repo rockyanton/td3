@@ -19,7 +19,7 @@ int http_server (int connection){
     if (rcvd < 0) {
       perror("[ERROR] HTTP SERVER: Error en recv");
     } else if (rcvd==0){    // receive socket closed
-      perror("[LOG] HTTP SERVER: Client disconnected");
+      printf("[LOG] HTTP SERVER: Client disconnected\n");
       return -1;
     } else {
 
@@ -150,11 +150,25 @@ char * getMeFileMetaType(char * filename){
 }
 
 size_t getFileSize(char *fn){
+  int retry=0, sz=0;
+  FILE *fp;
 
-  FILE *fp = fopen(fn, "r");
-  fseek(fp, 0L, SEEK_END);
-  int sz = ftell(fp);
-  fclose (fp);
+  while (retry<50){ // Pruebo abrirlo 50 veces segidas
+    fp = fopen(fn,"r");
+    retry++;
+    if ((fp != NULL)){
+      retry = 100; // Salgo del loop
+    }
+  }
+
+  if (fp == NULL){
+    perror("[ERROR] HTTP SERVER: Can't read html file");
+  } else {
+    fseek(fp, 0L, SEEK_END);
+    sz = ftell(fp);
+    fclose (fp);
+  }
+
   return sz;
 }
 
