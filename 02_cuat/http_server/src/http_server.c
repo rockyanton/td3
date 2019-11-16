@@ -17,9 +17,9 @@ int http_server (int connection){
 
     rcvd = recv(connection, client_message, CLIENT_MESSAGE_SIZE, 0);
     if (rcvd < 0) {
-      perror("Error en recv");
+      perror("[ERROR] HTTP SERVER: Error en recv");
     } else if (rcvd==0){    // receive socket closed
-      perror("Client disconnected upexpectedly.\n");
+      perror("[LOG] HTTP SERVER: Client disconnected");
       return -1;
     } else {
 
@@ -49,28 +49,28 @@ int http_server (int connection){
           sprintf(server_message, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n", content_type, (int) message_length);
 
           if (send(connection, server_message, strlen(server_message), 0) == -1) // Envío el header
-            perror("Error enviando el header");
+            perror("[ERROR] HTTP SERVER: Can't send header");
           if (sendfile(connection,requested_file,NULL,message_length) == -1)   // Envío el archivo
-            perror("Error al enviar archivo");
+            perror("[ERROR] HTTP SERVER: Can't send requested file");
           close (requested_file);
 
-          printf ("Sent file:%s --- Content-Type: %s --- Content-Length: %d\n", filename, content_type, (int)message_length);
+          printf ("[LOG] HTTP SERVER: Sent file: %s --- Content-Type: %s --- Content-Length: %d\n", filename, content_type, (int)message_length);
 
         } else{   // Si el archivo no existe -> 404 (Not Found)
           sprintf(error_message,"<!DOCTYPE html>\r\n<head><title>Error 404</title></head><body><h1>Error 404: Not Found</h1><br>No se encontr&oacute; el archivo &lt;<i>%s</i>&gt;</body></html>",uri);
           sprintf(server_message, "HTTP/1.1 404 Not Found\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
 
           if (send(connection, server_message, strlen(server_message), 0) == -1) // Envío el header
-            perror("Error enviando error 404 (Not Found)");
+            perror("[ERROR] HTTP SERVER: Error sending error 404 (Not Found)");
         }
 
         free (filename);
       } else {    // Si no es GET -> 405 (Method Not Allowed)
         sprintf(error_message,"<!DOCTYPE html>\r\n<head><title>Error 405</title></head><body><h1>Error 405: Method Not Allowed</h1><br>M&eacute;todo &lt;<i>%s</i>&gt; no soportado</body></html>",uri);
-        sprintf(server_message, "HTTP/1.1 404 Not Found\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
+        sprintf(server_message, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
 
         if (send(connection, server_message, strlen(server_message), 0) == -1) // Envío el header
-          perror("Error enviando error 405 (Method Not Allowed)");
+          perror("[ERROR] HTTP SERVER: Error sending error 405 (Method Not Allowed)");
       }
     }
   }
@@ -154,9 +154,7 @@ size_t getFileSize(char *fn){
   FILE *fp = fopen(fn, "r");
   fseek(fp, 0L, SEEK_END);
   int sz = ftell(fp);
-  printf("FILENAME:---%s---  FILEPTR:---%d---  SIZE:---%d---\n",fn,(int)fp,(int)sz);
   fclose (fp);
-  printf("FCLOSE SUCCED\n");
   return sz;
 }
 
