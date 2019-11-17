@@ -52,26 +52,26 @@ static int spi_init(void) {
 
   int result;
 
-	printk(KERN_INFO "[LOG] SPI DRIVER : Inializating module\n");
+	printk(KERN_INFO "SPI_DRIVER: dev_init: Inializating module\n");
 
   //Primer paso es conseguir el número mayor y en este caso 1 número menor (un solo inodo)
   result = alloc_chrdev_region(&spi_dev_t, FIRST_MINOR, COUNT_MINOR, COMPATIBLE); //Returns zero or a negative rror code
 
   if (result < 0) {
-		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't allocate region\n");
+		printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't allocate region\n");
     return result;
   }
 
 	spi_class = class_create(THIS_MODULE, "TD3");
 	if (spi_class == NULL){
-		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't create class\n");
+		printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't create class\n");
 		unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
 		return -1;
 	}
 
 	spi_device = device_create(spi_class, NULL, spi_dev_t, NULL, "td3_spi_acelerometer");
 	if (spi_device == NULL){
-		printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't create device\n");
+		printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't create device\n");
 		class_destroy(spi_class);
 		unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
 		return -1;
@@ -85,7 +85,7 @@ static int spi_init(void) {
 
 	result = cdev_add(spi_cdev, spi_dev_t, COUNT_MINOR);
 	if (result < 0) {
-		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't add class\n");
+		 printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't add class\n");
 		 device_destroy(spi_class, spi_dev_t);
 		 class_destroy(spi_class);
 		 unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
@@ -94,7 +94,7 @@ static int spi_init(void) {
 
 	result = platform_driver_register(&spi_platform_driver);
 	if (result < 0) {
-		 printk(KERN_ERR "[ERROR] SPI DRIVER: Couldn't register platform driver\n");
+		 printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't register platform driver\n");
 		 cdev_del(spi_cdev);
 		 device_destroy(spi_class, spi_dev_t);
 		 class_destroy(spi_class);
@@ -102,7 +102,7 @@ static int spi_init(void) {
 		 return result;
 	}
 
-	printk(KERN_INFO "[LOG] SPI DRIVER: SPI device created with major number: %d\n", MAJOR(spi_dev_t));
+	printk(KERN_INFO "SPI_DRIVER: dev_init: Device created with major number: %d\n", MAJOR(spi_dev_t));
 
   return 0;
 }
@@ -112,13 +112,13 @@ static int spi_init(void) {
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 static void spi_exit(void) {
-	printk(KERN_INFO "[LOG] SPI DRIVER: Exiting module\n");
+	printk(KERN_INFO "SPI_DRIVER: dev_init: Exiting module\n");
 	cdev_del(spi_cdev);
   device_destroy(spi_class, spi_dev_t);
 	class_destroy(spi_class);
   unregister_chrdev_region(spi_dev_t, COUNT_MINOR); //Misma cantidad de menores que el alloc
 	platform_driver_unregister(&spi_platform_driver);
-  printk(KERN_INFO "[LOG] SPI DRIVER: Goodbye, cruel world\n");
+  //printk(KERN_DEBUG "SPI_DRIVER: dev_init: Goodbye, cruel world\n");
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

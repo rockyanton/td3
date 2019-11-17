@@ -19,9 +19,9 @@ volatile int command_sent=0;
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 static int spi_open (struct inode * my_inode, struct file * my_file) {
+	printk(KERN_DEBUG "SPI_DRIVER: Open requested\n");
 	adxl345_init(); //Inicializo el módulo
-
-	return 0;
+	return 1;
 }
 
 static int spi_close(struct inode * my_inode, struct file * my_file) {
@@ -29,10 +29,8 @@ static int spi_close(struct inode * my_inode, struct file * my_file) {
 }
 
 static ssize_t spi_write (struct file * my_file, const char __user * my_user, size_t my_sizet, loff_t * my_loff_t) {
-	static ssize_t write_size;
-	if(!command_sent) {
-		command_sent = 0;
-	}
+	static ssize_t write_size = 0;
+
 	return write_size;
 }
 

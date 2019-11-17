@@ -49,7 +49,8 @@
     //  0 //    TX0_EMPTY  // Transmitter register empty or almost empty (Channel 0).                             // 0h (W) = Event status bit is unchanged. //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQENABLE 0x11C
-  #define MCSPI_IRQENABLE_CH0   0x11C, 0x0002777F, 0x5
+  #define MCSPI_IRQENABLE_CH0         0x11C, 0x0002777F, 0x5
+  #define MCSPI_IRQENABLE_DISABLE_ALL 0x11C, 0x0002777F, 0x0
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit//         Field         //                                      Description                                    //           Set               //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,9 +65,9 @@
     //  5 // TX1_UNDERFLOW__ENABLE // MCSPI_TX1 transmitter register underflow interrupt enable (channel 1).              // 0h = Interrupt is disabled. //
     //  4 //   TX1_EMPTY__ENABLE   // MCSPI_TX1 transmitter register empty or almost empty interrupt enable (channel 1).  // 0h = Interrupt is disabled. //
     //  3 // RX0_OVERFLOW__ENABLE  // MCSPI_RX0 receivier register overflow interrupt enable (channel 0).                 // 0h = Interrupt is disabled. //
-    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 1h = Interrupt is enabled. ,//
+    //  2 //    RX0_FULL__ENABLE   // MCSPI_RX0 receiver register full or almost full interrupt enable (channel 0).       // 0h = Interrupt is disabled. //
     //  1 // TX0_UNDERFLOW__ENABLE // MCSPI_TX0 transmitter register underflow interrupt enable (channel 0).              // 0h = Interrupt is disabled. //
-    //  0 //    TX0_EMPTY__ENABLE  // MCSPI_TX0 transmitter register empty or almost empty interrupt enable (channel 0).  // 1h = Interrupt is enabled.  //
+    //  0 //    TX0_EMPTY__ENABLE  // MCSPI_TX0 transmitter register empty or almost empty interrupt enable (channel 0).  // 0h = Interrupt is disabled. //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
@@ -91,31 +92,42 @@
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit //    Field    //                                                    Description                                                              //                                      Set                                                //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //   29  //    CLKG   // Clock divider granularity.
-    //   28  //   FFER    // FIFO enabled for receive.
-    //   27  //   FFEW    // FIFO enabled for transmit.
-    // 26-25 //    TCS    // Chip select time control.
-    //   24  //   SBPOL   // Start bit polarity.
-    //   23  //    SBE    // Start bit enable for SPI transfer.
-    // 22-21 // SPIENSLV  // Channel 0 only and slave mode only: SPI slave select signal detection.
-    //   20  //   FORCE   // Manual SPIEN assertion to keep SPIEN active between SPI words (single channel master mode only).
-    //   19  //   TURBO   // Turbo mode.
-    //   18  //     IS    // Input select
-    //   17  //    DPE1   // Transmission enable for data line 1 (SPIDATAGZEN[1])
-    //   16  //    DPE0   // Transmission enable for data line 0 (SPIDATAGZEN[0])
-    //   15  //    DMAR   // DMA read request.
-    //   14  //    DMAW   // DMA write request.
-    // 13-12 //     TRM   // Transmit/receive modes.
-    // 11-7  //     WL    // SPI word length.
-    //   6   //    EPOL   // SPIEN polarity
-    //  5-2  //    CLKD   // Frequency divider for SPICLK (only when the module is a Master SPI device).
-    //   1   //     POL   // SPICLK polarity
-    //   0   //     PHA   // SPICLK phase
+    //   29  //   CLKG   // Clock divider granularity.
+    //   28  //   FFER   // FIFO enabled for receive.
+    //   27  //   FFEW   // FIFO enabled for transmit.
+    // 26-25 //    TCS   // Chip select time control.
+    //   24  //   SBPOL  // Start bit polarity.
+    //   23  //    SBE   // Start bit enable for SPI transfer.
+    // 22-21 // SPIENSLV // Channel 0 only and slave mode only: SPI slave select signal detection.
+    //   20  //   FORCE  // Manual SPIEN assertion to keep SPIEN active between SPI words (single channel master mode only).
+    //   19  //   TURBO  // Turbo mode.
+    //   18  //    IS    // Input select
+    //   17  //   DPE1   // Transmission enable for data line 1 (SPIDATAGZEN[1])
+    //   16  //   DPE0   // Transmission enable for data line 0 (SPIDATAGZEN[0])
+    //   15  //   DMAR   // DMA read request.
+    //   14  //   DMAW   // DMA write request.
+    // 13-12 //   TRM    // Transmit/receive modes.
+    // 11-7  //    WL    // SPI word length.
+    //   6   //   EPOL   // SPIEN polarity
+    //  5-2  //   CLKD   // Frequency divider for SPICLK (only when the module is a Master SPI device).
+    //   1   //    POL   // SPICLK polarity
+    //   0   //    PHA   // SPICLK phase
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_CH0STAT    0x130
   #define MCSPI_CH0STAT_RXS    0x130, 0x1
   #define MCSPI_CH0STAT_TXS    0x130, 0x2
-
+  #define MCSPI_CH0STAT_EOT    0x130, 0x4
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Bit// Field //             Description           //                                    Set                                    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 6 // RXFFF // FIFO receive buffer full status.   // 0h = FIFO receive buffer is not full.                                     //
+    // 5 // RXFFE // FIFO receive buffer empty status.  // 0h = FIFO receive buffer is not empty.                                    //
+    // 4 // TXFFF // FIFO transmit buffer full status.  // 0h = FIFO transmit buffer is not full.                                    //
+    // 3 // TXFFE // FIFO transmit buffer empty status. // 0h = FIFO transmit buffer is not empty.                                   //
+    // 2 //  EOT  // end-of-transfer status.            // 1h = This flag is automatically set to one at the end of an SPI transfer. //
+    // 1 //  TXS  // transmitter register status.       // 0h = Register is full.                                                    //
+    // 0 //  RXS  // receiver register status.          // 0h = Register is empty.                                                   //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_CH0CTRL    0x134
   #define MCSPI_CH0CTRL_SET_CLOCK      0x134, 0x0000FF01, 0x0  // 00000000 xxxxxxx 0
   #define MCSPI_CH0CTRL_ENABLE         0x134, 0x00000001, 0x1  // 00000000 xxxxxxx 1
@@ -179,7 +191,13 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Functions ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// void set_registers(uint32_t *base, uint32_t offset, uint32_t mask, uint32_t value)
-void      set_registers (volatile void *, uint32_t, uint32_t, uint32_t);
-// uint32_t get_registers(uint32_t *base, uint32_t offset, uint32_t mask)
-uint32_t  get_registers (volatile void *, uint32_t, uint32_t);
+
+// Generales para editar registros
+void      set_registers (volatile void *base, uint32_t offset, uint32_t mask, uint32_t value);
+uint32_t  get_registers (volatile void *base, uint32_t offset, uint32_t mask);
+
+// Registros de estado SPI
+void get_spi_transfer_status (void);
+uint32_t spi_data_is_sent (void);
+uint32_t spi_data_to_read (void);
+uint32_t spi_data_eot (void);
