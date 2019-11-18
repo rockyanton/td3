@@ -19,9 +19,12 @@ volatile int command_sent=0;
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 static int spi_open (struct inode * my_inode, struct file * my_file) {
+	uint32_t init_result;
 	printk(KERN_DEBUG "SPI_DRIVER: Open requested\n");
-	adxl345_init(); //Inicializo el módulo
-	return 1;
+	init_result = adxl345_init(); //Inicializo el módulo
+	printk(KERN_DEBUG "SPI_DRIVER: Exiting Open\n");
+
+	return (int) init_result;
 }
 
 static int spi_close(struct inode * my_inode, struct file * my_file) {

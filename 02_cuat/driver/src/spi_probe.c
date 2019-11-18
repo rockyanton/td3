@@ -40,12 +40,14 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	}
 
 	// Seteo la configuracion de los pines del BB
-	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_SCLK_ENABLE\n");
-	set_registers(control_module_base, CONTROL_MODULE_SPI0_SCLK_ENABLE);
-	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_D0_ENABLE\n");
-	set_registers(control_module_base, CONTROL_MODULE_SPI0_D0_ENABLE);
-	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_D1_ENABLE\n");
-	set_registers(control_module_base, CONTROL_MODULE_SPI0_D1_ENABLE);
+	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_SCLK_RX_PULLUP\n");
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_SCLK_RX_PULLUP);
+	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_D0_RX_PULLDOWN\n");
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_D0_RX_PULLDOWN);
+	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_D1_RX_PULLUP\n");
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_D1_RX_PULLUP);
+	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting CONTROL_MODULE_SPI0_CS0_RX_PULLUP\n");
+	set_registers(control_module_base, CONTROL_MODULE_SPI0_CS0_RX_PULLUP);
 
 	// Mapeo el registro McSPI0
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Mapping MCSPI0_BASE\n");
@@ -78,7 +80,7 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting MCSPI_MODULCTRL\n");
 	set_registers(mcspi0_base, MCSPI_MODULCTRL_SET);
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting MCSPI_CH0CONF\n");
-	set_registers(mcspi0_base, MCSPI_CH0CONF_SET);
+	set_registers(mcspi0_base, MCSPI_CH0CONF_STANDBY);
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting MCSPI_CH0CTRL_SET_CLOCK\n");
 	set_registers(mcspi0_base, MCSPI_CH0CTRL_SET_CLOCK);
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Setting MCSPI_CH0CTRL_ENABLE\n");

@@ -71,8 +71,8 @@
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
-  #define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // xxx 0 0 000 0 0 1 0
-  //#define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x1
+  //#define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // xxx 0 0 000 0 0 1 0
+  #define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x01
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit //    Field    //                                                    Description                                                              //                                      Set                                                //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,9 +86,11 @@
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MCSPI_CH0CONF    0x12C
-  #define MCSPI_CH0CONF_SET            0x12C, 0x3FFFFFFF, 0x0001079F // Opcion Guido xx
-  //#define MCSPI_CH0CONF_SET            0x12C, 0x3FFFFFFF, 0x031007EB // Opcion A
-  //#define MCSPI_CH0CONF_SET            0x12C, 0x3FFFFFFF, 0x011603F3 // Opcion B
+  #define MCSPI_CH0CONF_STANDBY   0x12C, 0x3FFFFFFF, 0x000107DF // FORCE 0 EPOL1
+  #define MCSPI_CH0CONF_SENDING   0x12C, 0x3FFFFFFF, 0x001107DF // FORCE 1 EPOL1
+  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x0001079F // Opcion Guido
+  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x031007EB // Opcion A
+  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x011603F3 // Opcion B
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit //    Field    //                                                    Description                                                              //                                      Set                                                //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,13 +181,26 @@
 #define CONTROL_MODULE_LENGTH               0x2000
 
 #define CONTROL_MODULE_SPI0_SCLK            0x950
-  #define CONTROL_MODULE_SPI0_SCLK_ENABLE   0x950,  0x0000003F,  0x30   // Slowe slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, mux select 0
+  #define CONTROL_MODULE_SPI0_SCLK_RX_PULLUP  0x950,  0x0000003F,  0x30   // Slow slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, Primary Mode
 #define CONTROL_MODULE_SPI0_D0              0x954
-  #define CONTROL_MODULE_SPI0_D0_ENABLE     0x954,  0x0000003F,  0x20   // Slowe slew rate, Receiver disabled, Pulldown selected, Pullup/pulldown enabled, mux select 0
+  #define CONTROL_MODULE_SPI0_D0_RX_PULLDOWN  0x954,  0x0000003F,  0x20   // Slow slew rate, Receiver enabled, Pulldown selected, Pullup/pulldown enabled, Primary Mode
 #define CONTROL_MODULE_SPI0_D1              0x958
-  #define CONTROL_MODULE_SPI0_D1_ENABLE     0x958,  0x0000003F,  0x30   // Slowe slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, mux select 0
+  #define CONTROL_MODULE_SPI0_D1_RX_PULLUP    0x958,  0x0000003F,  0x30   // Slow slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, Primary Mode
 #define CONTROL_MODULE_SPI0_CS0             0x95C
+  #define CONTROL_MODULE_SPI0_CS0_RX_PULLUP   0x95C,  0x0000003F,  0x30   // Slow slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, Primary Mode
 #define CONTROL_MODULE_SPI0_CS1             0x960
+  #define CONTROL_MODULE_SPI0_CS1_RX_PULLUP   0x960,  0x0000003F,  0x30   // Slow slew rate, Receiver enabled, Pullup selected, Pullup/pulldown enabled, Primary Mode
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Bit //    Field    //                Description                 //                    Set                      //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  6  //   SLEWCTRL  // Select between faster or slower slew rate. // 0: Fast              // 1: Slow             //
+    //  5  //   RXACTIVE  // Input enable value for the PAD.            // 0: Receiver disabled // 1: Receiver enabled //
+    //  4  // PULLTYPESEL // Pad pullup/pulldown type selection.        // 0: Pulldown          // 1: Pullup           //
+    //  3  //  PULLUDEN   // Pad pullup/pulldown enable.                // 0: enabled           // 1: Disabled         //
+    // 2-0 //   MUXMODE   // Pad functional signal mux select.          // 0: Primary Mode = Mode 0                    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
