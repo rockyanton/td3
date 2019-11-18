@@ -66,12 +66,12 @@ int http_server (int connection){
         }
 
         free (filename);
-      } else {    // Si no es GET -> 405 (Method Not Allowed)
-        sprintf(error_message,"<!DOCTYPE html>\r\n<head><title>Error 405</title></head><body><h1>Error 405: Method Not Allowed</h1><br>M&eacute;todo &lt;<i>%s</i>&gt; no soportado</body></html>",uri);
-        sprintf(server_message, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
+      } else {    // Si no es GET -> 400 (Bad Request)
+        sprintf(error_message,"<!DOCTYPE html>\r\n<head><title>Error 400</title></head><body><h1>Error 400: Bad Request</h1><br>M&eacute;todo &lt;<i>%s</i>&gt; no soportado</body></html>",uri);
+        sprintf(server_message, "HTTP/1.1 400 Bad Request\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
 
         if (send(connection, server_message, strlen(server_message), 0) == -1) // Envío el header
-          perror("[ERROR] HTTP SERVER: Error sending error 405 (Method Not Allowed)");
+          perror("[ERROR] HTTP SERVER: Error sending error 400 (Bad Request)");
       }
     }
   }
