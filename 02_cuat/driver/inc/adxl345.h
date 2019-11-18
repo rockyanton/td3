@@ -19,12 +19,12 @@
 #define ACT_TAP_STATUS  0x2B
 #define BW_RATE         0x2C
 #define POWER_CTL       0x2D
-  #define POWER_CTL_MEASURE     0x2D08
+  #define MEASURE       0x08
 #define INT_ENABLE      0x2E
 #define INT_MAP         0x2F
 #define INT_SOURCE      0x30
 #define DATA_FORMAT     0x31
-  #define DATA_FORMAT_4W_FULL   0x3104
+  #define FULL_4W       0x08
 #define DATAX0          0x32
 #define DATAX1          0x33
 #define DATAY0          0x34
@@ -40,18 +40,18 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Inicialixación
-uint32_t adxl345_init(void);
+uint8_t adxl345_init(void);
 
 // Manejo de registros
-void adxl345_set_register (uint32_t command_to_send);
-void adxl345_get_register (uint32_t query_to_send);
-uint32_t adxl345_read_register (void);
+void adxl345_set_register (uint16_t command_to_send);
+void adxl345_get_register (uint16_t query_to_send);
+uint8_t adxl345_read_register (void);
 
 // Manejo de timers
 void is_timeout(unsigned long data);
 void start_timeout(void);
 void stop_timeout(void);
 
-// Interaccion con el acelerometro 
-uint32_t adxl345_write (uint32_t command_to_send);
-uint32_t adxl345_read (uint32_t register_to_read);
+// Interaccion con el acelerometro
+uint8_t adxl345_write (uint8_t register_write, uint8_t register_content);
+uint8_t adxl345_read (uint8_t register_to_read);

@@ -13,6 +13,7 @@ static struct file_operations spi_file_operations = {
 };
 
 volatile int command_sent=0;
+static uint32_t show = 0;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++ FILE OPERATIONS +++++++++++++++++++++++++++++++++
@@ -42,7 +43,7 @@ static ssize_t spi_write (struct file * device_descriptor, const char __user * u
 
 static ssize_t spi_read (struct file * device_descriptor, char __user * user_buffer, size_t read_count, loff_t * my_loff_t) {
 	char * measurement;
-	uint32_t query;
+	uint8_t query;
 	unsigned long result;
 
 	measurement = kmalloc (7, GFP_KERNEL);	// Pido 6 bytes
@@ -51,21 +52,26 @@ static ssize_t spi_read (struct file * device_descriptor, char __user * user_buf
 		read_count = 7;
 
 	query = adxl345_read(0x32); // DATAX0
-	measurement[0] = (char)(query & 0xFF);
+	measurement[0] = (query & 0xFF);
 	query = adxl345_read(0x33); // DATAX1
-	measurement[1] = (char)(query & 0xFF);
+	measurement[1] = (query & 0xFF);
 	query = adxl345_read(0x34); // DATAY0
-	measurement[2] = (char)(query & 0xFF);
+	measurement[2] = (query & 0xFF);
 	query = adxl345_read(0x35); // DATAX1
-	measurement[3] = (char)(query & 0xFF);
+	measurement[3] = (query & 0xFF);
 	query = adxl345_read(0x36); // DATAZ0
-	measurement[4] = (char)(query & 0xFF);
+	measurement[4] = (query & 0xFF);
 	query = adxl345_read(0x37); // DATAZ1
-	measurement[5] = (char)(query & 0xFF);
+	measurement[5] = (query & 0xFF);
 	query = adxl345_read(0x00); // DEVID
-	measurement[6] = (char)(query & 0xFF);
+	measurement[6] = (query & 0xFF);
 
 	result = copy_to_user(user_buffer, measurement, read_count);
+
+	show %= 100; // Cada 100 pedidos muestro
+	/*if (!show)
+		printk(KERN_DEBUG "device ID= 0x%x // X= 0x%x%x // Y= 0x%x%x // Z= 0x%x%x\n", measurement[6], measurement[1], measurement[0], measurement[3], measurement[2], measurement[5], measurement[4]);
+*/
 
 	kfree(measurement);
 

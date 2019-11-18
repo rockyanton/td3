@@ -10,17 +10,21 @@ SD0 -> 21
 CS  -> 1/2 (GND)
 */
 static struct timer_list timeout_timer;
-static uint32_t is_initializated = 0, timeout;
+static uint8_t is_initializated = 0, timeout;
 
-uint32_t adxl345_init(void){
-  uint32_t init_success1=0, init_success2=0;
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++ ADXL345 Inicalization +++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+uint8_t adxl345_init(void){
+  uint8_t init_success1=0, init_success2=0;
 
   if (!is_initializated){ // Si ninca se inializó, lo inicializo
 
     //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting DATA_FORMAT\n");
-    init_success1 = adxl345_write (DATA_FORMAT_4W_FULL);
+    init_success1 = adxl345_write (DATA_FORMAT, FULL_4W);
     //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting POWER_CTL\n");
-    init_success2 = adxl345_write (POWER_CTL_MEASURE);
+    init_success2 = adxl345_write (POWER_CTL, MEASURE);
 
     if (init_success1 && init_success2) { // Si salio todo bien
       printk(KERN_INFO "SPI_DRIVER: adxl345_init: ADXL345 inicializated\n");
@@ -35,28 +39,41 @@ uint32_t adxl345_init(void){
   return 2; // Si ya estaba inicializado: 2
 }
 
-void adxl345_set_register (uint32_t command_to_send){
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++ ADXL345 Registers +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+void adxl345_set_register (uint16_t command_to_send){
   command_to_send &= 0x3FFF;  // Como es escritura, primer byte en 0. MB=0
-  iowrite32(command_to_send, mcspi0_base + MCSPI_TX0);
+  iowrite32((uint32_t)command_to_send, mcspi0_base + MCSPI_TX0);
 }
 
-void adxl345_get_register (uint32_t query_to_send){
+void adxl345_get_register (uint16_t query_to_send){
   query_to_send &= 0x3F00;  // MB=0
   query_to_send |= 0x8000;  // Como es lectura, primer byte en 1.
 
-  iowrite32(query_to_send, mcspi0_base + MCSPI_TX0);
+  iowrite32((uint32_t)query_to_send, mcspi0_base + MCSPI_TX0);
 }
 
-uint32_t adxl345_read_register (void){
+uint8_t adxl345_read_register (void){
   uint32_t received;
   received = ioread32 (mcspi0_base + MCSPI_RX0);
   received &= 0xFF;
-  return received; // Manda de a 1 bytes
+  return ((uint8_t) received); // Manda de a 1 bytes
 }
 
-uint32_t adxl345_write (uint32_t command_to_send){
-  uint32_t response;
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++ ADXL345 FOPS +++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+uint8_t adxl345_write (uint8_t register_write, uint8_t register_content){
+  uint8_t response;
+  uint16_t command_to_send;
   timeout = 0;
+
+  command_to_send = (register_write << 8) | (register_content & 0xFF);
+
+  printk(KERN_DEBUG "SPI_DRIVER: adxl345_write: Command sent: %x\n", command_to_send);
 
   set_registers(mcspi0_base, MCSPI_CH0CONF_SENDING); // Bajo CS
   ndelay(10);
@@ -77,13 +94,12 @@ uint32_t adxl345_write (uint32_t command_to_send){
   return (!timeout); // Si no hubo timeout esta bien (timeout=0 => 1)
 }
 
-uint32_t adxl345_read (uint32_t register_to_read){
-  uint32_t response;
+uint8_t adxl345_read (uint8_t register_read){
+  uint8_t response;
   timeout = 0;
-  register_to_read = register_to_read << 8;
   set_registers(mcspi0_base, MCSPI_CH0CONF_SENDING); // Bajo CS
   ndelay(10);
-  adxl345_get_register (register_to_read);
+  adxl345_get_register (register_read << 8);
   start_timeout();
   while (!spi_data_is_sent() && !timeout){} // Espero a que se cargue el registro
   stop_timeout();
@@ -95,14 +111,19 @@ uint32_t adxl345_read (uint32_t register_to_read){
   stop_timeout();
   ndelay(10);
   set_registers(mcspi0_base, MCSPI_CH0CONF_STANDBY); // Lo vuelvo a subir
+  ndelay(10);
   response = adxl345_read_register();
 
   if (!timeout){
     return response;
   } else {
-    return 0xFFFFFFFF;
+    return 0xFF;
   }
 }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++ Timer related functions +++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void is_timeout( unsigned long data ) {
   timeout = 1;
