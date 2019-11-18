@@ -4,11 +4,11 @@
 
 int main(int argc, char *argv[]) {
 
-  int socket_http, connection, nbr_fds, http_child, get_val_child;
-  struct sockaddr_in address;
+  int socket_http, connection, nbr_fds, http_child, get_val_child, listening;
+  struct sockaddr_in server_address, client_socket_address;
   char client_addr[20];
   int client_port;
-  socklen_t addrlen;
+  socklen_t client_address_lenght;
   fd_set readfds;
   struct timeval timeout;
 
@@ -20,20 +20,20 @@ int main(int argc, char *argv[]) {
   }
 
   // Asigna el puerto indicado y una IP de la maquina
-  address.sin_family = AF_INET;
-  address.sin_port = htons(PORT);      // htons/htonl (Host TO Network Short/Long) es para pasar de little endian a big endian
-  address.sin_addr.s_addr = htonl(INADDR_ANY);
-  memset(address.sin_zero, '\0', sizeof address.sin_zero);  // Relleno el buffer sin_zero con null
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(PORT);      // htons/htonl (Host TO Network Short/Long) es para pasar de little endian a big endian
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+  memset(server_address.sin_zero, '\0', sizeof server_address.sin_zero);  // Relleno el buffer sin_zero con null
 
   // Conecta el socket a la direccion local
-  if (bind(socket_http, (struct sockaddr *)&address, sizeof(address))<0) {
+  if (bind(socket_http, (struct sockaddr *)&server_address, sizeof(server_address))<0) {
     perror("[ERROR] TCP SOCKET: Can't bind socket");
     return(-1);
   }
 
-  // Indicar que el socket encole hasta MAX_CONN pedidos
-  // de conexion simultaneas.
-  if (listen(socket_http, MAX_CONN) < 0) {    // MAX_CONN ES DE LAS QUE ESTAN EN COLA A SER ATENDIDAS, NO CUENTA LAS QUE TENGO ACTIVAS
+  // Indicar que el socket encole hasta MAX_CONN pedidos de conexion simultaneas.
+  listening = listen(socket_http, MAX_CONN);
+  if (listening < 0) {    // MAX_CONN ES DE LAS QUE ESTAN EN COLA A SER ATENDIDAS, NO CUENTA LAS QUE TENGO ACTIVAS
     perror("[ERROR] TCP SOCKET: Catn't listen");
     return(-1);
   }
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     printf("[LOG] TCP SOCKET: Update position demon started\n");
     while (1) {
       update_http_file();
-      sleep(1); // Duermo el proceso durante 1 segundo
+      usleep(20000); // Duermo el proceso durante 20000ms
     }
     return 0;
   }
@@ -55,9 +55,9 @@ int main(int argc, char *argv[]) {
   while (1) {
 
     printf("[LOG] TCP SOCKET: Waiting for new connection\n");
-
-    // La funcion accept rellena la estructura address con informacion del cliente y pone en addrlen la longitud de la estructura.
-    if ((connection = accept (socket_http, (struct sockaddr *) &address, (socklen_t *)&addrlen)) < 0) {  // LE PASO COMO PARAMETRO EL SOCKET DE ESPERA Y ME DEVUELVE EL SOCKET DE LA CONEXION
+    client_address_lenght = sizeof(client_socket_address);
+    // La funcion accept rellena la estructura client_socket_address con informacion del cliente y pone en client_address_lenght la longitud de la estructura.
+    if ((connection = accept (socket_http, (struct sockaddr *) &client_socket_address, (socklen_t *)&client_address_lenght)) < 0) {  // LE PASO COMO PARAMETRO EL SOCKET DE ESPERA Y ME DEVUELVE EL SOCKET DE LA CONEXION
       perror("[ERROR] TCP SOCKET: Error accepting new connection");                                      // SI LE PASO EL ADRESS ME DEVUELVE LA DIRECCION IP DEL CLIENTE
       close(connection);
     }
@@ -70,8 +70,8 @@ int main(int argc, char *argv[]) {
 
   		close(socket_http);   // Cierro el socket desde el hijo
 
-      strcpy(client_addr, inet_ntoa(address.sin_addr));  // inet_ntoa ME PASA DE IP A ASCII PARA PODER MOSTRARLO
-      client_port = ntohs(address.sin_port);  // ntohs (Network TO Host Short): Para volver a cambiar el endian
+      strcpy(client_addr, inet_ntoa(client_socket_address.sin_addr));  // inet_ntoa ME PASA DE IP A ASCII PARA PODER MOSTRARLO
+      client_port = ntohs(client_socket_address.sin_port);  // ntohs (Network TO Host Short): Para volver a cambiar el endian
       printf("[LOG] TCP SOCKET: Conectado cliente %s:%d\n", client_addr, client_port);
 
       http_server(connection);

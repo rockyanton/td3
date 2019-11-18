@@ -1,5 +1,5 @@
-#include<time.h> 
-#define HTML_SIZE 1000
-#define HTML_FILE "sup/spi.html"
+#include<time.h>
+#define HTML_FILE "./sup/spi.html"
+#define DEVICE_NAME "/dev/td3-spi"
 
 void update_http_file(void);

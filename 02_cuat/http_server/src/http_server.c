@@ -18,6 +18,7 @@ int http_server (int connection){
     rcvd = recv(connection, client_message, CLIENT_MESSAGE_SIZE, 0);
     if (rcvd < 0) {
       perror("[ERROR] HTTP SERVER: Error en recv");
+      return -1;
     } else if (rcvd==0){    // receive socket closed
       printf("[LOG] HTTP SERVER: Client disconnected\n");
       return -1;
