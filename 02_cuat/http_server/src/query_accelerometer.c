@@ -50,7 +50,7 @@ void update_http_file(sem_t *update_semaphore) {
     fprintf(html_file, "<body><h1>Driver de SPI TD3: Aceler&oacute;metro</h1><p><b>Rodrigo Ant&oacute;n - Leg:144.129-2</b></p>");
 
     // Agrego el mensaje
-    fprintf(html_file, "<p>Device ID= 0x%x</p><p>X= 0x%x%x</p><p>Y= 0x%x%x</p><p>Z= 0x%x%x</p></body></html>", measure[6], measure[1], measure[0], measure[3], measure[2], measure[5], measure[4]);
+    fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= 0x%02x%02x</p><p>Y= 0x%02x%02x</p><p>Z= 0x%02x%02x</p></body></html>", measure[6], measure[1], measure[0], measure[3], measure[2], measure[5], measure[4]);
 
     // Agrego la fecha
     fprintf(html_file, "<br><br><p><i>Updated: %d-%d-%d %d:%d:%d</i></p></body></html>", local_time.tm_year + 1900, local_time.tm_mon + 1,local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
