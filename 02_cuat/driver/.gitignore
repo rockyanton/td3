@@ -29,4 +29,5 @@ doc/*.html
 *.ko
 .tmp_versions/*
 *.sh
+*.o.d
 test/*

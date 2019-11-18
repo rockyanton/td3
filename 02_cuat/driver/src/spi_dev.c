@@ -69,7 +69,7 @@ static int spi_init(void) {
 		return -1;
 	}
 
-	spi_device = device_create(spi_class, NULL, spi_dev_t, NULL, "td3_spi_acelerometer");
+	spi_device = device_create(spi_class, NULL, spi_dev_t, NULL, COMPATIBLE);
 	if (spi_device == NULL){
 		printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't create device\n");
 		class_destroy(spi_class);
