@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
   socklen_t client_address_lenght;
   fd_set readfds;
   struct timeval timeout;
+  sem_t *update_semaphore;
 
   // Creamos el socket
   socket_http = socket(AF_INET, SOCK_STREAM,0);   // AF_INET: IPv4 // SOCK_STREAM: TCP // 0: PROTOCOLO NULO
@@ -25,6 +26,8 @@ int main(int argc, char *argv[]) {
   server_address.sin_addr.s_addr = htonl(INADDR_ANY);
   memset(server_address.sin_zero, '\0', sizeof server_address.sin_zero);  // Relleno el buffer sin_zero con null
 
+  setsockopt(socket_http, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+
   // Conecta el socket a la direccion local
   if (bind(socket_http, (struct sockaddr *)&server_address, sizeof(server_address))<0) {
     perror("[ERROR] TCP SOCKET: Can't bind socket");
@@ -38,12 +41,22 @@ int main(int argc, char *argv[]) {
     return(-1);
   }
 
+  // Inicializo el semáforo para poder hacer update del archivo html
+  sem_unlink ("update_semaphore");
+  update_semaphore = sem_open ("update_semaphore", O_CREAT | O_EXCL, 0644, 1);
+  if (update_semaphore < 0){
+    perror("[ERROR] TCP SOCKET: Can't create semaphore");
+    sem_unlink ("update_semaphore");
+    sem_close(update_semaphore);
+    return(-1);
+  }
+
   get_val_child = fork();
 
   if (!get_val_child){  // El proceso hijo va a actualizar los valores cada tanto
     printf("[LOG] TCP SOCKET: Update position demon started\n");
     while (1) {
-      update_http_file();
+      update_http_file(update_semaphore);
       usleep(20000); // Duermo el proceso durante 20000ms
     }
     return 0;
@@ -74,7 +87,7 @@ int main(int argc, char *argv[]) {
       client_port = ntohs(client_socket_address.sin_port);  // ntohs (Network TO Host Short): Para volver a cambiar el endian
       printf("[LOG] TCP SOCKET: Conectado cliente %s:%d\n", client_addr, client_port);
 
-      http_server(connection);
+      http_server(connection, update_semaphore);
       // Cierra la conexion con el cliente actual
       close(connection);
 
@@ -85,6 +98,8 @@ int main(int argc, char *argv[]) {
   }
   // Cierra el servidor
   close(socket_http);
+  sem_unlink ("update_semaphore");
+  sem_close(update_semaphore);
 
   return 0;
 }

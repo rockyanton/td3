@@ -1,6 +1,6 @@
 #include "../inc/http_server.h"
 
-int http_server (int connection){
+int http_server (int connection, sem_t *update_semaphore){
 
   char *client_message, *server_message, *error_message, *filename, *content_type;
   char *method, *uri, *qs, *prot;
@@ -39,6 +39,10 @@ int http_server (int connection){
         if (uri[strlen(uri)-1] == '/')      //Si me pide la raiz, busco el index.html
           getIndex(filename);
 
+        if (!strcmp(filename, "./sup/spi.html")){ // Si me piden el archivo que hago update,
+          sem_wait (update_semaphore); // Tomo el semaforo para mandar el archivo
+        }
+
         requested_file = open (filename, O_RDONLY);  // Abro el archivo solicitado como lectura
 
         if (requested_file != -1) {    // Me fijo si el archivo existe y puedo acceder
@@ -51,10 +55,14 @@ int http_server (int connection){
 
           if (send(connection, server_message, strlen(server_message), 0) == -1) // Envío el header
             perror("[ERROR] HTTP SERVER: Can't send header");
+
           if (sendfile(connection,requested_file,NULL,message_length) == -1)   // Envío el archivo
             perror("[ERROR] HTTP SERVER: Can't send requested file");
           close (requested_file);
 
+          if (!strcmp(filename, "./sup/spi.html")){ // Si me piden el archivo que hago update,
+            sem_post (update_semaphore); // Libero el semafoto cuando termino
+          }
           printf ("[LOG] HTTP SERVER: Sent file: %s --- Content-Type: %s --- Content-Length: %d\n", filename, content_type, (int)message_length);
 
         } else{   // Si el archivo no existe -> 404 (Not Found)
@@ -154,13 +162,7 @@ size_t getFileSize(char *fn){
   int retry=0, sz=0;
   FILE *fp;
 
-  while (retry<50){ // Pruebo abrirlo 50 veces segidas
-    fp = fopen(fn,"r");
-    retry++;
-    if ((fp != NULL)){
-      retry = 100; // Salgo del loop
-    }
-  }
+  fp = fopen(fn,"r");
 
   if (fp == NULL){
     perror("[ERROR] HTTP SERVER: Can't read html file");

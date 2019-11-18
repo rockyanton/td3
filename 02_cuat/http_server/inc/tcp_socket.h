@@ -7,6 +7,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <semaphore.h>
 
 #define PORT 1234  // Puerto para la conexión
 #define MAX_CONN 10 //Nro maximo de conexiones en espera
+
+#define TRUE  1
+#define FALSE 0
