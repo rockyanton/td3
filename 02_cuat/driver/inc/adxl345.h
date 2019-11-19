@@ -40,18 +40,13 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Inicialixación
-uint8_t adxl345_init(void);
+int adxl345_init(void);
 
 // Manejo de registros
 void adxl345_set_register (uint16_t command_to_send);
 void adxl345_get_register (uint16_t query_to_send);
 uint8_t adxl345_read_register (void);
 
-// Manejo de timers
-void is_timeout(unsigned long data);
-void start_timeout(void);
-void stop_timeout(void);
-
 // Interaccion con el acelerometro
-uint8_t adxl345_write (uint8_t register_write, uint8_t register_content);
-uint8_t adxl345_read (uint8_t register_to_read);
+int adxl345_write (uint8_t register_to_write, uint8_t register_value);
+int adxl345_read  (uint8_t register_to_read);

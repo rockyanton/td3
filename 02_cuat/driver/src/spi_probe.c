@@ -119,7 +119,8 @@ static int spi_probe(struct platform_device * spi_platform_device) {
 
 
 	//printk(KERN_DEBUG "SPI_DRIVER: probe: Probe OK\n");
-	adxl345_init();
+	//adxl345_init();
+	//i = adxl345_read(0x00);
 
 	return 0;
 }

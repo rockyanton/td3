@@ -6,7 +6,6 @@
 #define MCSPI_REVISION  0x0
 #define MCSPI_SYSCONFIG 0x110
   #define MCSPI_SYSCONFIG_SET         0x110, 0x0000031B , 0x308 // xx 11 xxx 01 x 0 0
-  //#define MCSPI_SYSCONFIG_SET         0x110, 0x0000031B , 0x30
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit //      Field     //                 Description                 //                                      Set                                                   //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,11 +22,13 @@
     //  0  // RESETDONE // Internal OCP Clock gating strategy. // 1h = Reset completed //
     /////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQSTATUS 0x118
-  #define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0x0
+  //#define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0x00
+  #define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0xFFFFF
   #define MCSPI_IRQSTATUS_CH0_GET             0x118, 0x0002777F
-  #define MCSPI_IRQSTATUS_RX0_FULL_CLEAR      0x118, 0x4, 0x0
+  #define MCSPI_IRQSTATUS_RX0_FULL_STATUS     0x118, 0x04
+  #define MCSPI_IRQSTATUS_RX0_FULL_CLEAR      0x118, 0x04, 0xFFFFF
   #define MCSPI_IRQSTATUS_RX0_FULL_SET        0x4
-  #define MCSPI_IRQSTATUS_TX0_EMPTY_CLEAR     0x118, 0x1, 0x0
+  #define MCSPI_IRQSTATUS_TX0_EMPTY_CLEAR     0x118, 0x01, 0xFFFFF
   #define MCSPI_IRQSTATUS_TX0_EMPTY_SET       0x1
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit//     Field     //                                      Description                                    //                  Set                    //
@@ -49,7 +50,7 @@
     //  0 //    TX0_EMPTY  // Transmitter register empty or almost empty (Channel 0).                             // 0h (W) = Event status bit is unchanged. //
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQENABLE 0x11C
-  #define MCSPI_IRQENABLE_CH0         0x11C, 0x0002777F, 0x5
+  #define MCSPI_IRQENABLE_RX0_FULL    0x11C, 0x0002777F, 0x4
   #define MCSPI_IRQENABLE_DISABLE_ALL 0x11C, 0x0002777F, 0x0
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit//         Field         //                                      Description                                    //           Set               //
@@ -71,19 +72,19 @@
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
-  //#define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // xxx 0 0 000 0 0 1 0
+  //#define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // Opcion Guido
   #define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x01
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Bit //    Field    //                                                    Description                                                              //                                      Set                                                //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  8  //     FDA     // FIFO DMA Address 256 bit aligned                                                                                            // 0h = FIFO data managed by MCSPI_TX(i) and MCSPI_RX(i) registers.                        //
-    //  7  //     MOA     // It allows the system to perform multiple SPI word access for a single 32 bit OCP word access.                               // 0h = Multiple word access disabled                                                      //
-    // 6-4 //   INITDLY   // The controller waits for a delay to transmit the first SPI word after channel enabled and corresponding TX register filled. // 0h = No delay for first SPI transfer                                                    //
-    //  3  // SYSTEM_TEST // Enables the system test mode                                                                                                // 0h = Functional mode                                                                    //
-    //  2  //      MS     // Master/ Slave                                                                                                               // 0h = Master - The module generates the SPICLK and SPIEN[3:0]                            //
-    //  1  //    PIN34    // Pin mode selection.                                                                                                         // 1h = SPIEN is not used. In this mode all related option to chip select have no meaning. //
-    //  0  //   SINGLE    // Single channel / Multi Channel (master mode only).                                                                          // 0h = More than one channel will be used in master mode.                                 //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Bit //    Field    //                                                    Description                                                              //                             Set                                   //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //  8  //     FDA     // FIFO DMA Address 256 bit aligned                                                                                            // 0h = FIFO data managed by MCSPI_TX(i) and MCSPI_RX(i) registers.  //
+    //  7  //     MOA     // It allows the system to perform multiple SPI word access for a single 32 bit OCP word access.                               // 0h = Multiple word access disabled                                //
+    // 6-4 //   INITDLY   // The controller waits for a delay to transmit the first SPI word after channel enabled and corresponding TX register filled. // 0h = No delay for first SPI transfer                              //
+    //  3  // SYSTEM_TEST // Enables the system test mode                                                                                                // 0h = Functional mode                                              //
+    //  2  //      MS     // Master/ Slave                                                                                                               // 0h = Master - The module generates the SPICLK and SPIEN[3:0]      //
+    //  1  //    PIN34    // Pin mode selection.                                                                                                         // 0h = SPIEN is used as a chip select.                              //
+    //  0  //   SINGLE    // Single channel / Multi Channel (master mode only).                                                                          // 1h = Only one channel will be used in master mode.                //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define MCSPI_CH0CONF    0x12C
   #define MCSPI_CH0CONF_STANDBY   0x12C, 0x3FFFFFFF, 0x000107DF // FORCE 0 EPOL1

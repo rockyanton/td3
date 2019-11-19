@@ -1,22 +1,15 @@
 #include "../inc/adxl345.h"
 
-/*
-PINES:
-GND -> 1/2 (GND)
-VCC -> 3/4 (3.3v)
-SCL -> 22
-SDA -> 18
-SD0 -> 21
-CS  -> 1/2 (GND)
-*/
-static struct timer_list timeout_timer;
-static uint8_t is_initializated = 0, timeout;
+static uint8_t is_initializated = 0;
+uint32_t read_buffer;
+
+DEFINE_SEMAPHORE(rw_sem);
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++ ADXL345 Inicalization +++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-uint8_t adxl345_init(void){
+int adxl345_init(void){
   uint8_t init_success1=0, init_success2=0;
 
   if (!is_initializated){ // Si ninca se inializó, lo inicializo
@@ -26,13 +19,15 @@ uint8_t adxl345_init(void){
     //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting POWER_CTL\n");
     init_success2 = adxl345_write (POWER_CTL, MEASURE);
 
-    if (init_success1 && init_success2) { // Si salio todo bien
+    if (!init_success1 && !init_success2) { // Si salio todo bien ambos devuelven 0
       printk(KERN_INFO "SPI_DRIVER: adxl345_init: ADXL345 inicializated\n");
       is_initializated = 1;
       return 1; // Inicializado :1
     } else {
-      printk(KERN_ERR "SPI_DRIVER: adxl345_init: ADXL345 timeout\n");
-      return 0;
+      printk(KERN_ERR "SPI_DRIVER: adxl345_init: ADXL345 could not be inicializated\n");
+      if (init_success1)
+        return init_success1; // Si fallo el primero, retorno el error del primero
+      return init_success2;   // Idem segundo
     }
   }
 
@@ -56,89 +51,75 @@ void adxl345_get_register (uint16_t query_to_send){
 }
 
 uint8_t adxl345_read_register (void){
-  uint32_t received;
-  received = ioread32 (mcspi0_base + MCSPI_RX0);
-  received &= 0xFF;
-  return ((uint8_t) received); // Manda de a 1 bytes
+  return ((uint8_t) read_buffer);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++ ADXL345 FOPS +++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-uint8_t adxl345_write (uint8_t register_write, uint8_t register_content){
-  uint8_t response;
+int adxl345_write (uint8_t register_to_write, uint8_t register_value){
+
   uint16_t command_to_send;
-  timeout = 0;
+  int sem_timeout;
 
-  command_to_send = (register_write << 8) | (register_content & 0xFF);
+  command_to_send = (register_to_write << 8) | (register_value & 0xFF);
+  //printk(KERN_DEBUG "SPI_DRIVER: adxl345_write: Command sent: %x\n", command_to_send);
 
-  printk(KERN_DEBUG "SPI_DRIVER: adxl345_write: Command sent: %x\n", command_to_send);
+  set_registers(mcspi0_base, MCSPI_IRQSTATUS_RX0_FULL_CLEAR); // Bajo el flag de RX0 Full para que no entre
+  set_registers(mcspi0_base, MCSPI_IRQENABLE_RX0_FULL); // Habilito la interupcion de RX0 Full
+
+  sem_timeout = down_trylock(&rw_sem); // Libero el semáforo si llega a estar tomado
+  up(&rw_sem);
 
   set_registers(mcspi0_base, MCSPI_CH0CONF_SENDING); // Bajo CS
   ndelay(10);
   adxl345_set_register (command_to_send);
-  start_timeout();
-  while (!spi_data_is_sent() && !timeout){} // Espero a que se cargue el registro
-  stop_timeout();
-  start_timeout();
-  while (!spi_data_eot() && !timeout){}     // Espero a que termine la transferencia
-  stop_timeout();
-  start_timeout();
-  while (!spi_data_to_read() && !timeout){} // Espero a que se me cargue el buffer con la basura mientras envié
-  stop_timeout();
   ndelay(10);
   set_registers(mcspi0_base, MCSPI_CH0CONF_STANDBY); // Lo vuelvo a subir
-  response = adxl345_read_register();
 
-  return (!timeout); // Si no hubo timeout esta bien (timeout=0 => 1)
+  sem_timeout = down_interruptible(&rw_sem); // Trato de tomarlo de nuevo (Se libera cuando se carga RX).
+  if (sem_timeout < 0){
+    printk(KERN_ERR "SPI_DRIVER: adxl345_read: Can't hold semaphore to receive\n");
+  }
+
+  set_registers(mcspi0_base, MCSPI_IRQENABLE_DISABLE_ALL); // Deshabilito las interupciones
+
+  return (sem_timeout); // Si no hubo timeout esta bien (timeout=0 => 1)
 }
 
-uint8_t adxl345_read (uint8_t register_read){
-  uint8_t response;
-  timeout = 0;
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+int adxl345_read (uint8_t register_to_read){
+
+  int sem_timeout;
+
+  set_registers(mcspi0_base, MCSPI_IRQSTATUS_RX0_FULL_CLEAR); // Bajo el flag de RX0 Full para que no entre
+  set_registers(mcspi0_base, MCSPI_IRQENABLE_RX0_FULL); // Habilito la interupcion de RX0 Full
+
+  sem_timeout = down_trylock(&rw_sem); // Libero el semáforo si llega a estar tomado
+  up(&rw_sem);
+
+  sem_timeout = down_interruptible(&rw_sem); // Tomo el semáforo
+  if (sem_timeout < 0) {
+    printk(KERN_ERR "SPI_DRIVER: adxl345_read: Can't hold semaphore to send\n");
+    return sem_timeout;
+  }
+
   set_registers(mcspi0_base, MCSPI_CH0CONF_SENDING); // Bajo CS
   ndelay(10);
-  adxl345_get_register (register_read << 8);
-  start_timeout();
-  while (!spi_data_is_sent() && !timeout){} // Espero a que se cargue el registro
-  stop_timeout();
-  start_timeout();
-  while (!spi_data_eot() && !timeout){}     // Espero a que termine la transferencia
-  stop_timeout();
-  start_timeout();
-  while (!spi_data_to_read() && !timeout){} // Espero a que se me cargue el buffer con la basura mientras envié
-  stop_timeout();
+  adxl345_get_register (register_to_read << 8);
   ndelay(10);
   set_registers(mcspi0_base, MCSPI_CH0CONF_STANDBY); // Lo vuelvo a subir
-  ndelay(10);
-  response = adxl345_read_register();
 
-  if (!timeout){
-    return response;
-  } else {
-    return 0xFF;
+  sem_timeout = down_interruptible(&rw_sem); // Trato de tomarlo de nuevo (Se libera cuando se carga RX).
+  if (sem_timeout < 0){
+    printk(KERN_ERR "SPI_DRIVER: adxl345_read: Can't hold semaphore to receive\n");
+    return sem_timeout;
   }
-}
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++ Timer related functions +++++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  set_registers(mcspi0_base, MCSPI_IRQENABLE_DISABLE_ALL); // Deshabilito las interupciones
 
-void is_timeout( unsigned long data ) {
-  timeout = 1;
-}
+  return ((int) adxl345_read_register());
 
-void start_timeout(void) {
-  // Le digo al timer que llame a is_timeout cuando termine de contar
-  setup_timer(&timeout_timer, is_timeout, 0);
-  // Le digo que arranque a contar 100ms
-  mod_timer(&timeout_timer, jiffies + msecs_to_jiffies(50));
-  return;
-}
-
-void stop_timeout(void) {
-  // Borro el timer
-  del_timer(&timeout_timer);
-  return;
 }
