@@ -36,9 +36,9 @@ void update_http_file(sem_t *update_semaphore) {
     return;
   }
 
-  x= 100.0 * (float)((measure[1] << 8) | measure[0]) / (float)(0xFFFF);
-  y= 100.0 * (float)((measure[3] << 8) | measure[2]) / (float)(0xFFFF);
-  z= 100.0 * (float)((measure[5] << 8) | measure[4]) / (float)(0xFFFF);
+  x= 100.0 * (float)((measure[2] << 8) | measure[1]) / (float)(0xFFFF);
+  y= 100.0 * (float)((measure[4] << 8) | measure[3]) / (float)(0xFFFF);
+  z= 100.0 * (float)((measure[6] << 8) | measure[5]) / (float)(0xFFFF);
 
   sem_wait (update_semaphore); // Trato de tomar el semaforo para hacer el update
 
@@ -56,7 +56,7 @@ void update_http_file(sem_t *update_semaphore) {
 
     // Agrego el mensaje
     //fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= 0x%02x%02x</p><p>Y= 0x%02x%02x</p><p>Z= 0x%02x%02x</p></body></html>", measure[6], measure[1], measure[0], measure[3], measure[2], measure[5], measure[4]);
-    fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f&#37;</p><p>Y= %f&#37;</p><p>Z= %f&#37;</p></body></html>", measure[6], x, y, z);
+    fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f&#37;</p><p>Y= %f&#37;</p><p>Z= %f&#37;</p></body></html>", measure[0], x, y, z);
 
     // Agrego la fecha
     fprintf(html_file, "<br><br><p><i>Updated: %d-%d-%d %d:%d:%d</i></p></body></html>", local_time.tm_year + 1900, local_time.tm_mon + 1,local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
