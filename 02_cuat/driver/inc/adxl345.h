@@ -25,6 +25,7 @@
 #define INT_SOURCE      0x30
 #define DATA_FORMAT     0x31
   #define FULL_4W       0x08
+  #define NO_FULL_4W    0x00
 #define DATAX0          0x32
 #define DATAX1          0x33
 #define DATAY0          0x34
