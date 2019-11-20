@@ -14,10 +14,12 @@ int adxl345_init(void){
 
   if (!is_initializated){ // Si ninca se inializó, lo inicializo
 
-    //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting DATA_FORMAT\n");
-    init_success1 = adxl345_write (DATA_FORMAT, FULL_4W);
     //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting POWER_CTL\n");
     init_success2 = adxl345_write (POWER_CTL, MEASURE);
+    ndelay(100);
+    //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting DATA_FORMAT\n");
+    init_success1 = adxl345_write (DATA_FORMAT, FULL_4W);
+    ndelay(100);
 
     if (!init_success1 && !init_success2) { // Si salio todo bien ambos devuelven 0
       printk(KERN_INFO "SPI_DRIVER: adxl345_init: ADXL345 inicializated\n");
