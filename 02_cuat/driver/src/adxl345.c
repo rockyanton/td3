@@ -119,6 +119,7 @@ int adxl345_read (uint8_t register_to_read){
     printk(KERN_ERR "SPI_DRIVER: adxl345_read: Can't hold semaphore to receive\n");
     return sem_timeout;
   }
+  up(&rw_sem);
 
   set_registers(mcspi0_base, MCSPI_IRQENABLE_DISABLE_ALL); // Deshabilito las interupciones
 

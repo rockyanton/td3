@@ -8,9 +8,25 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <semaphore.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
 #define PORT 1234  // Puerto para la conexión
-#define MAX_CONN 10 //Nro maximo de conexiones en espera
+#define MEM_SZ 4096 // Memoria shareada
 
 #define TRUE  1
 #define FALSE 0
+
+struct config_parameters_st {
+  int backlog;
+  int max_conn;
+  float query_freq;
+  int prom;
+  int current_conn;
+};
+
+int main(int argc, char *argv[]);
+void handler_SIGUSR1(int signbr);
+void update_configuration ( void );
