@@ -237,20 +237,47 @@ void update_configuration (){
     // Trato de tomar el semáforo que me va a liberar la interrupción
     sem_wait(signal_update);
 
-    config_file = fopen("./sup/server.cfg","r");
-    if (config_file == NULL){
-      perror("[ERROR] TCP SOCKET: Can't read config file");
-      return;
+
+
+    if (getFileSize (CFG_FILE) < 1000) { // Por si hay algún error
+
+      config_file = fopen(CFG_FILE,"r");
+      if (config_file == NULL){
+        perror("[ERROR] TCP SOCKET: Can't read config file");
+        return;
+      }
+
+      printf("[LOG] TCP SOCKET: Updating configuration\n");
+      fclose (config_file);
+
+      sem_wait (config_semaphore);  // Tomo el semaforo de configuracion
+      config_parameters->backlog = backlog;
+      config_parameters->max_conn = max_conn;
+      config_parameters->query_freq = query_freq;
+      config_parameters->prom = prom;
+      sem_post (config_semaphore);
+    } else {
+      printf("[ERROR] TCP SOCKET: Can't read config file: File too big\n");
     }
-
-    printf("[LOG] TCP SOCKET: Updating configuration\n");
-    fclose (config_file);
-
-    sem_wait (config_semaphore);  // Tomo el semaforo de configuracion
-    config_parameters->backlog = backlog;
-    config_parameters->max_conn = max_conn;
-    config_parameters->query_freq = query_freq;
-    config_parameters->prom = prom;
-    sem_post (config_semaphore);
   }
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++ Obtener tamaño de archivo +++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+size_t getFileSize(char *fn){
+  int retry=0, sz=0;
+  FILE *fp;
+
+  fp = fopen(fn,"r");
+
+  if (fp == NULL){
+    perror("[ERROR] HTTP SERVER: Can't read html file");
+  } else {
+    fseek(fp, 0L, SEEK_END);
+    sz = ftell(fp);
+    fclose (fp);
+  }
+
+  return sz;
 }

@@ -26,8 +26,7 @@
 #define PORT 1234  // Puerto para la conexión
 #define MEM_SZ 4096 // Memoria shareada
 
-#define TRUE  1
-#define FALSE 0
+#define CFG_FILE "./sup/server.cfg"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Variables ++++++++++++++++++++++++++++++++++
@@ -46,3 +45,4 @@ struct config_parameters_st {
 int main(int argc, char *argv[]);
 void handler_SIGUSR1(int signbr);
 void update_configuration ( void );
+size_t getFileSize(char *fn);

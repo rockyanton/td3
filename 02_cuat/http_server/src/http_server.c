@@ -169,23 +169,6 @@ char * getMeFileMetaType(char * filename){
   return "application/octet-stream";
 }
 
-size_t getFileSize(char *fn){
-  int retry=0, sz=0;
-  FILE *fp;
-
-  fp = fopen(fn,"r");
-
-  if (fp == NULL){
-    perror("[ERROR] HTTP SERVER: Can't read html file");
-  } else {
-    fseek(fp, 0L, SEEK_END);
-    sz = ftell(fp);
-    fclose (fp);
-  }
-
-  return sz;
-}
-
 int getIndex(char *index_dir){
   char *index_cmd;
 

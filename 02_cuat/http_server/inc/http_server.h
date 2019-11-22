@@ -8,5 +8,4 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int http_server (int connection);
 char * getMeFileMetaType(char *);
-size_t getFileSize(char *fn);
 int getIndex(char *);
