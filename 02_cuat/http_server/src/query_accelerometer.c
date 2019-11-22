@@ -1,15 +1,23 @@
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++ Includes ++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "../inc/query_accelerometer.h"
 
-static uint8_t connect_error_msg = FALSE;
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++ Variables globales +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern struct config_parameters_st *config_parameters;
 extern sem_t *update_semaphore, *config_semaphore;
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++ Levantar datos del SPI ++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void update_http_file(void) {
   float x_p, y_p, z_p, * values, secs_sleep = 0;
   short x_s, y_s, z_s;
   FILE *html_file;
   ssize_t readed;
-  char measure[7], devid;
+  char measure[7], devid, connect_error_msg = FALSE;;
   int acelerometer, prom=0, not_equal=0, index=0, i, first_run=1;
 
   while (1) {

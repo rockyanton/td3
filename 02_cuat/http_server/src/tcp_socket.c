@@ -1,10 +1,19 @@
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++ Includes ++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "../inc/tcp_socket.h"
 #include "http_server.c"
 #include "query_accelerometer.c"
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++ Variables globales +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 sem_t *update_semaphore, *config_semaphore, *signal_update;
 struct config_parameters_st *config_parameters;
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++ Main del TCP Socket +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int main(int argc, char *argv[]) {
 
   int socket_http, connection, nbr_fds, http_child, get_val_child, update_conf_child, listening, max_conn_i, max_conn_aux, current_conn_aux;
@@ -175,7 +184,7 @@ int main(int argc, char *argv[]) {
       client_port = ntohs(client_socket_address.sin_port);  // ntohs (Network TO Host Short): Para volver a cambiar el endian
       printf("[LOG] TCP SOCKET: Conectado cliente %s:%d\n", client_addr, client_port);
 
-      http_server(connection, update_semaphore);
+      http_server(connection);
       // Cierra la conexion con el cliente actual
       close(connection);
 
@@ -200,12 +209,20 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++ Handler de SIGUSR1 +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 void handler_SIGUSR1(int signbr)
 {
   sem_trywait(signal_update);
   sem_post(signal_update);
   return;
 }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++ Actualizar configuracion ++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void update_configuration (){
   int backlog = 2;
