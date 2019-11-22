@@ -22,7 +22,6 @@
     //  0  // RESETDONE // Internal OCP Clock gating strategy. // 1h = Reset completed //
     /////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_IRQSTATUS 0x118
-  //#define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0x00
   #define MCSPI_IRQSTATUS_CH0_CLEAR           0x118, 0x0002777F, 0xFFFFF
   #define MCSPI_IRQSTATUS_CH0_GET             0x118, 0x0002777F
   #define MCSPI_IRQSTATUS_RX0_FULL_STATUS     0x118, 0x04
@@ -72,7 +71,6 @@
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_SYST      0x124
 #define MCSPI_MODULCTRL 0x128
-  //#define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x2 // Opcion Guido
   #define MCSPI_MODULCTRL_SET         0x128, 0x000001FF, 0x01
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Bit //    Field    //                                                    Description                                                              //                             Set                                   //
@@ -89,33 +87,30 @@
 #define MCSPI_CH0CONF    0x12C
   #define MCSPI_CH0CONF_STANDBY   0x12C, 0x3FFFFFFF, 0x000107DF // FORCE 0 EPOL1
   #define MCSPI_CH0CONF_SENDING   0x12C, 0x3FFFFFFF, 0x001107DF // FORCE 1 EPOL1
-  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x0001079F // Opcion Guido
-  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x031007EB // Opcion A
-  //#define MCSPI_CH0CONF_SET       0x12C, 0x3FFFFFFF, 0x011603F3 // Opcion B
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Bit //    Field    //                                                    Description                                                              //                                      Set                                                //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //   29  //   CLKG   // Clock divider granularity.
-    //   28  //   FFER   // FIFO enabled for receive.
-    //   27  //   FFEW   // FIFO enabled for transmit.
-    // 26-25 //    TCS   // Chip select time control.
-    //   24  //   SBPOL  // Start bit polarity.
-    //   23  //    SBE   // Start bit enable for SPI transfer.
-    // 22-21 // SPIENSLV // Channel 0 only and slave mode only: SPI slave select signal detection.
-    //   20  //   FORCE  // Manual SPIEN assertion to keep SPIEN active between SPI words (single channel master mode only).
-    //   19  //   TURBO  // Turbo mode.
-    //   18  //    IS    // Input select
-    //   17  //   DPE1   // Transmission enable for data line 1 (SPIDATAGZEN[1])
-    //   16  //   DPE0   // Transmission enable for data line 0 (SPIDATAGZEN[0])
-    //   15  //   DMAR   // DMA read request.
-    //   14  //   DMAW   // DMA write request.
-    // 13-12 //   TRM    // Transmit/receive modes.
-    // 11-7  //    WL    // SPI word length.
-    //   6   //   EPOL   // SPIEN polarity
-    //  5-2  //   CLKD   // Frequency divider for SPICLK (only when the module is a Master SPI device).
-    //   1   //    POL   // SPICLK polarity
-    //   0   //    PHA   // SPICLK phase
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Bit //    Field    //                               Description                                  //                                    Set                                       //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //   29  //   CLKG   // Clock divider granularity.                                                  // 0h = Clock granularity of power of 2.                                        //
+    //   28  //   FFER   // FIFO enabled for receive.                                                   // 0h = The buffer is not used to receive data.                                 //
+    //   27  //   FFEW   // FIFO enabled for transmit.                                                  // 0h = The buffer is not used to transmit data.                                //
+    // 26-25 //    TCS   // Chip select time control.                                                   // 0h = 0.5 clock cycles.                                                       //
+    //   24  //   SBPOL  // Start bit polarity.                                                         // 0h = Start bit polarity is held to 0 during SPI transfer.                    //
+    //   23  //    SBE   // Start bit enable for SPI transfer.                                          // 0h = Default SPI transfer lenght as specified by WL bit field.               //
+    // 22-21 // SPIENSLV // Channel 0 only and slave mode only: SPI slave select signal detection.      // 0h = Detection enabled only on SPIEN[0].                                     //
+    //   20  //   FORCE  // Manual SPIEN assertion.                                                     // 0h = Drives high SPIEN line (EPOL=1) // 1h = Drives low SPIEN line (EPOL=1)  //
+    //   19  //   TURBO  // Turbo mode.                                                                 // 0h = Turbo mode is deactivated.                                              //
+    //   18  //    IS    // Input select.                                                               // 0h = SPIDAT[0] (21) selected for reception.                                  //
+    //   17  //   DPE1   // Transmission enable for data line 1 (SPIDATAGZEN[1]).                       // 0h = SPIDAT[1] (18) selected for transmission.                               //
+    //   16  //   DPE0   // Transmission enable for data line 0 (SPIDATAGZEN[0]).                       // 1h = No data transmission  on SPIDAT[0] (21).                                //
+    //   15  //   DMAR   // DMA read request.                                                           // 0h = DMA read request is disabled.                                           //
+    //   14  //   DMAW   // DMA write request.                                                          // 0h = DMA write request is disabled.                                          //
+    // 13-12 //   TRM    // Transmit/receive modes.                                                     // 0h = Transmit and receive mode.                                              //
+    // 11-7  //    WL    // SPI word length.                                                            // 0Fh = The SPI word is 16-bits long.                                          //
+    //   6   //   EPOL   // SPIEN polarity.                                                             // 1h = SPIEN is held low during the active state.                              //
+    //  5-2  //   CLKD   // Frequency divider for SPICLK (only when the module is a Master SPI device). // 7h = Divide by 128.                                                          //
+    //   1   //    POL   // SPICLK polarity.                                                            // 1h = SPICLK is held low during the active state.                             //
+    //   0   //    PHA   // SPICLK phase.                                                               // 1h = Data are latched on even numbered edges of SPICLK.                      //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define MCSPI_CH0STAT    0x130
   #define MCSPI_CH0STAT_RXS    0x130, 0x1
   #define MCSPI_CH0STAT_TXS    0x130, 0x2
