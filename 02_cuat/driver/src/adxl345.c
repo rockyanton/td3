@@ -14,11 +14,9 @@ int adxl345_init(void){
 
   if (!is_initializated){ // Si ninca se inializó, lo inicializo
 
-    //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting POWER_CTL\n");
     init_success2 = adxl345_write (POWER_CTL, MEASURE);
     ndelay(100);
-    //printk(KERN_DEBUG "SPI_DRIVER: adxl345_init: Setting DATA_FORMAT\n");
-    init_success1 = adxl345_write (DATA_FORMAT, FULL_4W);
+    init_success1 = adxl345_write (DATA_FORMAT, NO_FULL_4W);
     ndelay(100);
 
     if (!init_success1 && !init_success2) { // Si salio todo bien ambos devuelven 0
@@ -66,7 +64,6 @@ int adxl345_write (uint8_t register_to_write, uint8_t register_value){
   int sem_timeout;
 
   command_to_send = (register_to_write << 8) | (register_value & 0xFF);
-  //printk(KERN_DEBUG "SPI_DRIVER: adxl345_write: Command sent: %x\n", command_to_send);
 
   set_registers(mcspi0_base, MCSPI_IRQSTATUS_RX0_FULL_CLEAR); // Bajo el flag de RX0 Full para que no entre
   set_registers(mcspi0_base, MCSPI_IRQENABLE_RX0_FULL); // Habilito la interupcion de RX0 Full
