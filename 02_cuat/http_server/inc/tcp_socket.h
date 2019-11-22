@@ -46,3 +46,4 @@ int main(int argc, char *argv[]);
 void handler_SIGUSR1(int signbr);
 void update_configuration ( void );
 size_t getFileSize(char *fn);
+int getFileLines (char *fn);

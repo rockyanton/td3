@@ -229,6 +229,10 @@ void update_configuration (){
   int max_conn = 1000;
   float query_freq = 1.0;
   int prom = 5;
+  char config_str[50], *value;
+  char *options_ptr[50];
+  size_t file_size;
+  int cant_lineas, i;
 
   FILE *config_file;
 
@@ -238,8 +242,10 @@ void update_configuration (){
     sem_wait(signal_update);
 
 
+    file_size = getFileSize (CFG_FILE);
+    if (file_size < 50) { // Por si hay algún error
 
-    if (getFileSize (CFG_FILE) < 1000) { // Por si hay algún error
+      cant_lineas = getFileLines(CFG_FILE);
 
       config_file = fopen(CFG_FILE,"r");
       if (config_file == NULL){
@@ -248,7 +254,38 @@ void update_configuration (){
       }
 
       printf("[LOG] TCP SOCKET: Updating configuration\n");
+
+      fread(config_str, sizeof(char), file_size, config_file);
+
       fclose (config_file);
+
+      options_ptr[0] = strtok(config_str,"\r\n");
+      for (i=1; i < cant_lineas; i++){
+        options_ptr[i] = strtok(NULL,"\r\n");
+      }
+
+      for (i=0; i< cant_lineas; i++){
+        if (value = strchr(options_ptr[i], '=')) {  // busco si hay algo despues de '='
+          *value++ = '\0';   // si hay, separo la opcion y el valor
+
+          switch (options_ptr[i][0]) {
+            case 'b':
+              backlog = atoi(value);
+              break;
+            case 'c':
+              max_conn = atoi(value);
+              break;
+            case 'f':
+              query_freq = atof(value);
+              break;
+            case 'p':
+              prom = atoi(value);
+              break;
+          }
+        }
+      }
+
+      //printf("b=%d -- c=%d -- f=%f -- p=%d\n", backlog,max_conn,query_freq, prom);
 
       sem_wait (config_semaphore);  // Tomo el semaforo de configuracion
       config_parameters->backlog = backlog;
@@ -280,4 +317,30 @@ size_t getFileSize(char *fn){
   }
 
   return sz;
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++ Obtener cantidad de lineas de archivo ++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+int getFileLines (char *fn) {
+  FILE *fp;
+  int lines = 0;
+  char ch;
+
+  fp = fopen(fn,"r");
+
+  if (fp == NULL){
+    perror("[ERROR] HTTP SERVER: Can't read config file");
+    return 0;
+  } else {
+    while(!feof(fp))
+    {
+      ch = fgetc(fp);
+      if(ch == '\n')
+      {
+        lines++;
+      }
+    }
+    return lines;
+  }
 }
