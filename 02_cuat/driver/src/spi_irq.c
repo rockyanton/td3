@@ -8,8 +8,6 @@ irqreturn_t spi_irq_handler(int irq, void *dev_id, struct pt_regs *regs) {
   uint32_t flag_irq = get_registers(mcspi0_base, MCSPI_IRQSTATUS_CH0_GET);
 
   if (flag_irq & MCSPI_IRQSTATUS_RX0_FULL_SET){   // Me fijo si es por el flag de RX FULL
-    //printk(KERN_DEBUG "SPI DRIVER: New interrupt RX0_FULL\n");
-    //set_registers(mcspi0_base, MCSPI_IRQSTATUS_RX0_FULL_CLEAR);
 
     received = ioread32 (mcspi0_base + MCSPI_RX0);
 

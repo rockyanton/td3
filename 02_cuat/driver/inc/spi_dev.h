@@ -27,17 +27,18 @@
 //++++++++++++++++++++++++++++++ FUNCTIONS ++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-static int spi_init(void);
-static void spi_exit(void);
+static int spi_init (void);
+static void spi_exit (void);
+static int register_device (void);
 
 //Primitivas de las funciones de file_operations
 static int spi_open (struct inode *, struct file *);
-static int spi_close(struct inode *, struct file *);
+static int spi_close (struct inode *, struct file *);
 static ssize_t spi_read (struct file *, char __user *, size_t, loff_t *);
 static ssize_t spi_write (struct file *, const char __user *, size_t, loff_t *);
-static long spi_ioctl(struct file *, unsigned int, unsigned long);
+static long spi_ioctl (struct file *, unsigned int, unsigned long);
 
 static int spi_probe (struct platform_device *);
 static int spi_remove (struct platform_device *);
 
-static irqreturn_t spi_irq_handler(int, void *, struct pt_regs *);
+static irqreturn_t spi_irq_handler (int, void *, struct pt_regs *);

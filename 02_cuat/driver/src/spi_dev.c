@@ -40,7 +40,6 @@ static struct platform_driver spi_platform_driver = {
 	.driver = {
 		.name = COMPATIBLE,
 		.of_match_table = of_match_ptr(spi_of_device_ids)
-		//.of_match_table = spi_of_device_ids,
 	},
 };
 
@@ -50,11 +49,27 @@ static struct platform_driver spi_platform_driver = {
 
 static int spi_init(void) {
 
-  int result;
+	int result;
 
 	printk(KERN_INFO "SPI_DRIVER: dev_init: Inializating module\n");
 
-  //Primer paso es conseguir el número mayor y en este caso 1 número menor (un solo inodo)
+	result = platform_driver_register(&spi_platform_driver);
+	if (result < 0) {
+		 printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't register platform driver\n");
+		 platform_driver_unregister(&spi_platform_driver);
+		 return result;
+	}
+
+	printk(KERN_INFO "SPI_DRIVER: dev_init: Inicialization complete\n");
+
+  return 0;
+}
+
+static int register_device (void){
+
+	 int result;
+
+	//Primer paso es conseguir el número mayor y en este caso 1 número menor (un solo inodo)
   result = alloc_chrdev_region(&spi_dev_t, FIRST_MINOR, COUNT_MINOR, COMPATIBLE); //Returns zero or a negative rror code
 
   if (result < 0) {
@@ -92,19 +107,10 @@ static int spi_init(void) {
 		 return result;
 	}
 
-	result = platform_driver_register(&spi_platform_driver);
-	if (result < 0) {
-		 printk(KERN_ERR "SPI_DRIVER: dev_init: Couldn't register platform driver\n");
-		 cdev_del(spi_cdev);
-		 device_destroy(spi_class, spi_dev_t);
-		 class_destroy(spi_class);
-		 unregister_chrdev_region(spi_dev_t, COUNT_MINOR);
-		 return result;
-	}
-
 	printk(KERN_INFO "SPI_DRIVER: dev_init: Device created with major number: %d\n", MAJOR(spi_dev_t));
 
-  return 0;
+	return 0;
+
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -118,7 +124,7 @@ static void spi_exit(void) {
 	class_destroy(spi_class);
   unregister_chrdev_region(spi_dev_t, COUNT_MINOR); //Misma cantidad de menores que el alloc
 	platform_driver_unregister(&spi_platform_driver);
-  //printk(KERN_DEBUG "SPI_DRIVER: dev_init: Goodbye, cruel world\n");
+  printk(KERN_DEBUG "SPI_DRIVER: dev_exit: Device unregistered\n");
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
