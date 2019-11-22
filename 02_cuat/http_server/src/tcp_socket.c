@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
   if (!update_conf_child){  // El proceso hijo va a actualizar los valores cada tanto
     printf("[LOG] TCP SOCKET: Update configuration demon started\n");
     update_configuration();
-    return 0;
+    exit (0);
   }
 
   // Forkeo para poder obtener los valores
@@ -113,11 +113,8 @@ int main(int argc, char *argv[]) {
 
   if (!get_val_child){  // El proceso hijo va a actualizar los valores cada tanto
     printf("[LOG] TCP SOCKET: Update position demon started\n");
-    while (1) {
-      update_http_file();
-      usleep(20000); // Duermo el proceso durante 20000ms
-    }
-    return 0;
+    update_http_file();
+    exit (0);
   }
 
   // Asigno la señal SIGUSR1 al handler
@@ -144,7 +141,6 @@ int main(int argc, char *argv[]) {
 
     printf("[LOG] TCP SOCKET: Waiting for new connection\n");
 
-    sem_wait (config_semaphore);
     max_conn_i = 1;
     while (max_conn_i){
       sem_wait (config_semaphore);
@@ -155,6 +151,7 @@ int main(int argc, char *argv[]) {
         max_conn_i = 0;
     }
 
+
     client_address_lenght = sizeof(client_socket_address);
     // La funcion accept rellena la estructura client_socket_address con informacion del cliente y pone en client_address_lenght la longitud de la estructura.
     if ((connection = accept (socket_http, (struct sockaddr *) &client_socket_address, (socklen_t *)&client_address_lenght)) < 0) {  // LE PASO COMO PARAMETRO EL SOCKET DE ESPERA Y ME DEVUELVE EL SOCKET DE LA CONEXION
@@ -164,7 +161,7 @@ int main(int argc, char *argv[]) {
 
     http_child = fork();
 
-    if (http_child == -1) {
+    if (http_child < 0) {
       perror("[ERROR] TCP SOCKET: Error forking");
     } else if (http_child == 0){ // Pregunto si es el hijo
 
@@ -183,11 +180,12 @@ int main(int argc, char *argv[]) {
       close(connection);
 
       sem_wait (config_semaphore);
-      config_parameters->current_conn --;
+      if (config_parameters->current_conn > 0)
+        config_parameters->current_conn --;
       sem_post (config_semaphore);
 
       // Termino el proceso hijo
-      return 0;
+      exit (0);
     }
 
   }
@@ -210,10 +208,10 @@ void handler_SIGUSR1(int signbr)
 }
 
 void update_configuration (){
-  int backlog;
-  int max_conn;
-  float query_freq;
-  int prom;
+  int backlog = 2;
+  int max_conn = 1000;
+  float query_freq = 1.0;
+  int prom = 5;
 
   FILE *config_file;
 
@@ -228,14 +226,14 @@ void update_configuration (){
       return;
     }
 
-    printf("Archivo Leido\n");
+    printf("[LOG] TCP SOCKET: Updating configuration\n");
     fclose (config_file);
 
     sem_wait (config_semaphore);  // Tomo el semaforo de configuracion
     config_parameters->backlog = backlog;
     config_parameters->max_conn = max_conn;
-    config_parameters->backlog = query_freq;
-    config_parameters->backlog = prom;
+    config_parameters->query_freq = query_freq;
+    config_parameters->prom = prom;
     sem_post (config_semaphore);
   }
 }
