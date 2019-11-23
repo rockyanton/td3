@@ -2,29 +2,32 @@
 //+++++++++++++++++++++++++++++++++ Includes ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "../inc/tcp_socket.h"
+#include "file_functions.c"
 #include "http_server.c"
 #include "query_accelerometer.c"
+#include "update_config.c"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++ Variables globales +++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 sem_t *update_semaphore, *config_semaphore, *signal_update;
 struct config_parameters_st *config_parameters;
+int socket_http;
+void *shared_mem_ptr = (void *) 0;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++ Main del TCP Socket +++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int main(int argc, char *argv[]) {
 
-  int socket_http, connection, nbr_fds, http_child, get_val_child, update_conf_child, listening, max_conn_i, max_conn_aux, current_conn_aux;
+  int client_port, connection, listening, max_conn_i, max_conn_aux, current_conn_aux, shared_mem_id;
   struct sockaddr_in server_address, client_socket_address;
   char client_addr[20];
-  int client_port;
   socklen_t client_address_lenght;
-  fd_set readfds;
-  struct timeval timeout;
-  int shared_mem_id;
-  void *shared_mem_ptr = (void *) 0;
+  pid_t server_pid, http_child, get_val_child, update_conf_child;
+
+  server_pid = getpid();
+  printf("[LOG] TCP SOCKET: Server running with pid: %d\n", server_pid);
 
   // Creamos el socket
   socket_http = socket(AF_INET, SOCK_STREAM,0);   // AF_INET: IPv4 // SOCK_STREAM: TCP // 0: PROTOCOLO NULO
@@ -44,6 +47,7 @@ int main(int argc, char *argv[]) {
   // Conecta el socket a la direccion local
   if (bind(socket_http, (struct sockaddr *)&server_address, sizeof(server_address))<0) {
     perror("[ERROR] TCP SOCKET: Can't bind socket");
+    close(socket_http);
     return(-1);
   }
 
@@ -51,15 +55,17 @@ int main(int argc, char *argv[]) {
   shared_mem_id = shmget( (key_t)1234, MEM_SZ, 0666 | IPC_CREAT);
   if (shared_mem_id == -1) {
     perror("[ERROR] TCP SOCKET: shmget failed");
+    close(socket_http);
     return(-1);
   }
 
   shared_mem_ptr = shmat(shared_mem_id, (void *)0, 0);
   if (shared_mem_ptr == (void *)-1) {
     perror("[ERROR] TCP SOCKET: shmat failed");
+    close(socket_http);
     return(-1);
   }
-  printf("[LOG] TCP SOCKET: Memory attached at %p\n", shared_mem_ptr);
+  printf("[LOG] TCP SOCKET: Shared memory attached at %p\n", shared_mem_ptr);
 
   // Inicializo variables
   config_parameters = (struct config_parameters_st *)shared_mem_ptr;
@@ -74,6 +80,7 @@ int main(int argc, char *argv[]) {
   config_semaphore = sem_open ("config_semaphore", O_CREAT | O_EXCL, 0644, 1);
   if (config_semaphore < 0){
     perror("[ERROR] TCP SOCKET: Can't create semaphore");
+    close(socket_http);
     sem_unlink ("config_semaphore");
     sem_close(config_semaphore);
     shmdt(shared_mem_ptr);
@@ -85,6 +92,7 @@ int main(int argc, char *argv[]) {
   update_semaphore = sem_open ("update_semaphore", O_CREAT | O_EXCL, 0644, 1);
   if (update_semaphore < 0){
     perror("[ERROR] TCP SOCKET: Can't create semaphore");
+    close(socket_http);
     sem_unlink ("config_semaphore");
     sem_close(config_semaphore);
     sem_unlink ("update_semaphore");
@@ -98,6 +106,7 @@ int main(int argc, char *argv[]) {
   signal_update = sem_open ("signal_update", O_CREAT | O_EXCL, 0644, 1);
   if (signal_update < 0){
     perror("[ERROR] TCP SOCKET: Can't create semaphore");
+    close(socket_http);
     sem_unlink ("signal_update");
     sem_close(signal_update);
     sem_unlink ("config_semaphore");
@@ -107,6 +116,9 @@ int main(int argc, char *argv[]) {
     shmdt(shared_mem_ptr);
     return(-1);
   }
+
+  // Asigno la señal SIGCHILD al handler del socket
+  signal(SIGCHLD, handler_socket_SIGCHLD);
 
   // Forkeo para poder actualizar los valores
   update_conf_child = fork();
@@ -126,8 +138,8 @@ int main(int argc, char *argv[]) {
     exit (0);
   }
 
-  // Asigno la señal SIGUSR1 al handler
-  signal(SIGUSR1, handler_SIGUSR1);
+  // Asigno la señal SIGUSR1 al handler del socket
+  signal(SIGUSR1, handler_socket_SIGUSR1);
 
   sem_wait (config_semaphore);
   // Indicar que el socket encole hasta backlog pedidos de conexion simultaneas.
@@ -135,6 +147,9 @@ int main(int argc, char *argv[]) {
   sem_post (config_semaphore);
   if (listening < 0) {    // MAX_CONN ES DE LAS QUE ESTAN EN COLA A SER ATENDIDAS, NO CUENTA LAS QUE TENGO ACTIVAS
     perror("[ERROR] TCP SOCKET: Catn't listen");
+    close(socket_http);
+    sem_unlink ("signal_update");
+    sem_close(signal_update);
     sem_unlink ("config_semaphore");
     sem_close(config_semaphore);
     sem_unlink ("update_semaphore");
@@ -144,6 +159,9 @@ int main(int argc, char *argv[]) {
   }
 
   printf("[LOG] TCP SOCKET: Server is online listening on port: %d\n", PORT);
+
+  // Asigno la señal SIGINT al handler del socket
+  signal(SIGINT, handler_socket_SIGINT);
 
   // Permite atender a multiples usuarios
   while (1) {
@@ -182,11 +200,13 @@ int main(int argc, char *argv[]) {
 
       strcpy(client_addr, inet_ntoa(client_socket_address.sin_addr));  // inet_ntoa ME PASA DE IP A ASCII PARA PODER MOSTRARLO
       client_port = ntohs(client_socket_address.sin_port);  // ntohs (Network TO Host Short): Para volver a cambiar el endian
-      printf("[LOG] TCP SOCKET: Conectado cliente %s:%d\n", client_addr, client_port);
+      printf("[LOG] TCP SOCKET: New client connected: %s:%d\n", client_addr, client_port);
 
       http_server(connection);
       // Cierra la conexion con el cliente actual
       close(connection);
+
+      printf("[LOG] TCP SOCKET: Client %s:%d disconnected\n", client_addr, client_port);
 
       sem_wait (config_semaphore);
       if (config_parameters->current_conn > 0)
@@ -200,8 +220,10 @@ int main(int argc, char *argv[]) {
   }
   // Cierra el servidor
   close(socket_http);
-  sem_unlink ("update_semaphore");
-  sem_close(update_semaphore);
+  sem_unlink ("signal_update");
+  sem_close(signal_update);
+  sem_unlink ("config_semaphore");
+  sem_close(config_semaphore);
   sem_unlink ("update_semaphore");
   sem_close(update_semaphore);
   shmdt(shared_mem_ptr);
@@ -209,138 +231,43 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++ Handler de SIGUSR1 +++++++++++++++++++++++++++++++
+//++++++++++++++++++++++ Handler de SIGCHILD (socket) +++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-void handler_SIGUSR1(int signbr)
-{
-  sem_trywait(signal_update);
-  sem_post(signal_update);
+void handler_socket_SIGCHLD (int signbr) {
+  pid_t pid_child;
+  int status_child;
+  while((pid_child = waitpid(-1, &status_child, WNOHANG)) > 0) {
+    //printf("[LOG] TCP SOCKET: PID of dead child: %d\n", pid_child);
+  }
   return;
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++ Actualizar configuracion ++++++++++++++++++++++++++++
+//+++++++++++++++++++++++ Handler de SIGINT (socket) ++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-void update_configuration (){
-  int backlog = 2;
-  int max_conn = 1000;
-  float query_freq = 1.0;
-  int prom = 5;
-  char config_str[50], *value;
-  char *options_ptr[50];
-  size_t file_size;
-  int cant_lineas, i;
-
-  FILE *config_file;
-
-  while (1){
-
-    // Trato de tomar el semáforo que me va a liberar la interrupción
-    sem_wait(signal_update);
-
-
-    file_size = getFileSize (CFG_FILE);
-    if (file_size < 50) { // Por si hay algún error
-
-      cant_lineas = getFileLines(CFG_FILE);
-
-      config_file = fopen(CFG_FILE,"r");
-      if (config_file == NULL){
-        perror("[ERROR] TCP SOCKET: Can't read config file");
-        return;
-      }
-
-      printf("[LOG] TCP SOCKET: Updating configuration\n");
-
-      fread(config_str, sizeof(char), file_size, config_file);
-
-      fclose (config_file);
-
-      options_ptr[0] = strtok(config_str,"\r\n");
-      for (i=1; i < cant_lineas; i++){
-        options_ptr[i] = strtok(NULL,"\r\n");
-      }
-
-      for (i=0; i< cant_lineas; i++){
-        if (value = strchr(options_ptr[i], '=')) {  // busco si hay algo despues de '='
-          *value++ = '\0';   // si hay, separo la opcion y el valor
-
-          switch (options_ptr[i][0]) {
-            case 'b':
-              backlog = atoi(value);
-              break;
-            case 'c':
-              max_conn = atoi(value);
-              break;
-            case 'f':
-              query_freq = atof(value);
-              break;
-            case 'p':
-              prom = atoi(value);
-              break;
-          }
-        }
-      }
-
-      //printf("b=%d -- c=%d -- f=%f -- p=%d\n", backlog,max_conn,query_freq, prom);
-
-      sem_wait (config_semaphore);  // Tomo el semaforo de configuracion
-      config_parameters->backlog = backlog;
-      config_parameters->max_conn = max_conn;
-      config_parameters->query_freq = query_freq;
-      config_parameters->prom = prom;
-      sem_post (config_semaphore);
-    } else {
-      printf("[ERROR] TCP SOCKET: Can't read config file: File too big\n");
-    }
-  }
+void handler_socket_SIGINT (int signbr) {
+  close(socket_http);
+  sem_unlink ("signal_update");
+  sem_close(signal_update);
+  sem_unlink ("config_semaphore");
+  sem_close(config_semaphore);
+  sem_unlink ("update_semaphore");
+  sem_close(update_semaphore);
+  shmdt(shared_mem_ptr);
+  printf("[LOG] TCP SOCKET: Exiting\n");
+  exit(0);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++ Obtener tamaño de archivo +++++++++++++++++++++++++++
+//++++++++++++++++++++++ Handler de SIGUSR1 (socket) ++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-size_t getFileSize(char *fn){
-  int retry=0, sz=0;
-  FILE *fp;
 
-  fp = fopen(fn,"r");
-
-  if (fp == NULL){
-    perror("[ERROR] HTTP SERVER: Can't read html file");
-  } else {
-    fseek(fp, 0L, SEEK_END);
-    sz = ftell(fp);
-    fclose (fp);
-  }
-
-  return sz;
-}
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//++++++++++++++++ Obtener cantidad de lineas de archivo ++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-int getFileLines (char *fn) {
-  FILE *fp;
-  int lines = 0;
-  char ch;
-
-  fp = fopen(fn,"r");
-
-  if (fp == NULL){
-    perror("[ERROR] HTTP SERVER: Can't read config file");
-    return 0;
-  } else {
-    while(!feof(fp))
-    {
-      ch = fgetc(fp);
-      if(ch == '\n')
-      {
-        lines++;
-      }
-    }
-    return lines;
-  }
+void handler_socket_SIGUSR1 (int signbr) {
+  sem_trywait(signal_update);
+  sem_post(signal_update);
+  return;
 }

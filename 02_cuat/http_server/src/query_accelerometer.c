@@ -8,17 +8,21 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern struct config_parameters_st *config_parameters;
 extern sem_t *update_semaphore, *config_semaphore;
+int acelerometer, * values;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++ Levantar datos del SPI ++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void update_http_file(void) {
-  float x_p, y_p, z_p, * values, secs_sleep = 0;
+  float x_p, y_p, z_p, secs_sleep = 0;
   short x_s, y_s, z_s;
   FILE *html_file;
   ssize_t readed;
   char measure[7], devid, connect_error_msg = FALSE;;
-  int acelerometer, prom=0, not_equal=0, index=0, i, first_run=1;
+  int prom=0, not_equal=0, index=0, i, first_run=1;
+
+  // Asigno la señal SIGINT al handler del query
+  signal(SIGINT, handler_query_SIGINT);
 
   while (1) {
 
@@ -59,82 +63,96 @@ void update_http_file(void) {
         perror("[ERROR] QUERY ACCELEROMETER: Can't open device");
       connect_error_msg = TRUE;
       close(acelerometer);
-      return;
-    } else {
-      if (connect_error_msg) // Si hubo error muestro que se normalizó todo
-        printf("[LOG] QUERY ACCELEROMETER: The connection was reestablished");
-      connect_error_msg = FALSE; // Limpio el flag;
-    }
-
-    readed = read(acelerometer, measure, 7);
-    close(acelerometer);
-
-    if (readed < 7){
-      perror("[ERROR] QUERY ACCELEROMETER: Nothing to read");
-      return;
-    }
-
-    devid = measure[0];
-    x_s = (short) ((measure[2] << 8) | measure[1]);
-    y_s = (short) ((measure[4] << 8) | measure[3]);
-    z_s = (short) ((measure[6] << 8) | measure[5]);
-
-    index ++;
-    if (index > prom){
-      index = 1;
-    }
-
-    values[3*index + 0] = (float)(x_s) / (float)(255);
-    values[3*index + 1] = (float)(y_s) / (float)(255);
-    values[3*index + 2] = (float)(z_s) / (float)(255);
-
-    x_p = 0;
-    y_p = 0;
-    z_p = 0;
-
-    for (i=1; i<=prom; i++){
-      x_p += values[3*i + 0];
-      y_p += values[3*i + 1];
-      z_p += values[3*i + 2];
-    }
-
-    x_p /= prom;
-    y_p /= prom;
-    z_p /= prom;
-
-    values[0] = x_p;
-    values[1] = y_p;
-    values[2] = z_p;
-
-    sem_wait (update_semaphore); // Trato de tomar el semaforo para hacer el update
-
-    html_file = fopen(HTML_FILE,"w");
-
-    if (html_file == NULL){
-      perror("[ERROR] QUERY ACCELEROMETER: Can't open html file for editing");
     } else {
 
-      // Agrego los headers
-      fprintf(html_file, "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"1\"><title>TD3 SPI</title></head>");
+      if (connect_error_msg) {// Si hubo error muestro que se normalizó todo
+        printf("[LOG] QUERY ACCELEROMETER: The connection was reestablished\n");
+        connect_error_msg = FALSE; // Limpio el flag;
+      }
 
-      //Agrego el título
-      fprintf(html_file, "<body><h1>Driver de SPI TD3: Aceler&oacute;metro</h1><p><b>Rodrigo Ant&oacute;n - Leg:144.129-2</b></p>");
+      readed = read(acelerometer, measure, 7);
+      close(acelerometer);
 
-      // Agrego el mensaje
-      //fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %d</p><p>Y= %d</p><p>Z= %d</p>", devid, x_s, y_s, z_s);
-      fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f g</p><p>Y= %f g</p><p>Z= %f g</p>", devid, x_p, y_p, z_p);
-      //fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f g</p><p>Y= %f g</p><p>Z= %f g</p>", devid, values[3*index + 0], values[3*index + 1], values[3*index + 2]);
-      // Agrego la fecha
-      fprintf(html_file, "<br><br><p><i>Updated: %d-%d-%d %d:%d:%d</i></p></body></html>", local_time.tm_year + 1900, local_time.tm_mon + 1,local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
+      if (readed < 7){
+        perror("[ERROR] QUERY ACCELEROMETER: Nothing to read");
+        return;
+      }
 
-      fclose (html_file);
+      devid = measure[0];
+      x_s = (short) ((measure[2] << 8) | measure[1]);
+      y_s = (short) ((measure[4] << 8) | measure[3]);
+      z_s = (short) ((measure[6] << 8) | measure[5]);
 
+      index ++;
+      if (index > prom){
+        index = 1;
+      }
+
+      values[3*index + 0] = (float)(x_s) / (float)(255);
+      values[3*index + 1] = (float)(y_s) / (float)(255);
+      values[3*index + 2] = (float)(z_s) / (float)(255);
+
+      x_p = 0;
+      y_p = 0;
+      z_p = 0;
+
+      for (i=1; i<=prom; i++){
+        x_p += values[3*i + 0];
+        y_p += values[3*i + 1];
+        z_p += values[3*i + 2];
+      }
+
+      x_p /= prom;
+      y_p /= prom;
+      z_p /= prom;
+
+      values[0] = x_p;
+      values[1] = y_p;
+      values[2] = z_p;
+
+      sem_wait (update_semaphore); // Trato de tomar el semaforo para hacer el update
+
+      html_file = fopen(HTML_FILE,"w");
+
+      if (html_file == NULL){
+        perror("[ERROR] QUERY ACCELEROMETER: Can't open html file for editing");
+      } else {
+
+        // Agrego los headers
+        fprintf(html_file, "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"1\"><title>TD3 SPI</title></head>");
+
+        //Agrego el título
+        fprintf(html_file, "<body><h1>Driver de SPI TD3: Aceler&oacute;metro</h1><p><b>Rodrigo Ant&oacute;n - Leg:144.129-2</b></p>");
+
+        // Agrego el mensaje
+        fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f g</p><p>Y= %f g</p><p>Z= %f g</p>", devid, x_p, y_p, z_p);
+
+        // Agrego la fecha
+        fprintf(html_file, "<br><br><p><i>Updated: %d-%d-%d %d:%d:%d</i></p></body></html>", local_time.tm_year + 1900, local_time.tm_mon + 1,local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
+
+        fclose (html_file);
+
+        //printf("Device ID= 0x%02x --- X= %d g --- Y= %d g --- Z= %d g\n", devid, x_s, y_s, z_s);
+
+      }
+
+      sem_post (update_semaphore); // Libero el semaforo
     }
-
-    sem_post (update_semaphore); // Libero el semaforo
 
     usleep((useconds_t) (secs_sleep*1000000));
   }
 
   return;
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++ Handler de SIGINT +++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+void handler_query_SIGINT (int signbr) {
+  free(values);
+  close(acelerometer);
+  printf("[LOG] QUERY ACCELEROMETER: Exiting\n");
+  exit(0);
 }

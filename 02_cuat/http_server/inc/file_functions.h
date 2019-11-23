@@ -1,17 +1,11 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++ Defines +++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define HTML_FILE "./sup/spi.html"
-#define DEVICE_NAME "/dev/td3-spi"
 
-#define TRUE  1
-#define FALSE 0
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Funciones ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Daemon de actualizacion de datos del sensor
-void update_http_file(void);
-
-// Handlers de señales
-void handler_query_SIGINT (int signbr);
+// Manejo de archivos
+size_t getFileSize(char *fn);
+int getFileLines (char *fn);

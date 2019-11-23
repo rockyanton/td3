@@ -7,17 +7,24 @@
 //++++++++++++++++++++++++++ Variables globales +++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern sem_t *update_semaphore;
+char *client_message = NULL, *filename = NULL, *index_cmd = NULL;
+int connection_global = 0;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++ Servidor de respuesta HTTP ++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int http_server (int connection){
 
-  char *client_message, *server_message, *error_message, *filename, *content_type;
+  char *server_message, *error_message, *content_type;
   char *method, *uri, *qs, *prot;
   size_t message_length;
   int requested_file;
   int rcvd;
+
+  connection_global = connection;
+
+  // Asigno la señal SIGINT al handler del server
+  signal(SIGINT, handler_server_SIGINT);
 
   client_message = malloc (CLIENT_MESSAGE_SIZE);          // Reservo el espacio en memoria para el mensaje del cliente
   server_message = client_message;                        // Reuso el string
@@ -31,8 +38,7 @@ int http_server (int connection){
       perror("[ERROR] HTTP SERVER: Error en recv");
       return -1;
     } else if (rcvd==0){    // receive socket closed
-      printf("[LOG] HTTP SERVER: Client disconnected\n");
-      return -1;
+      return 0;
     } else {
 
       method = strtok(client_message,  " \t\r\n");  // medodo solicitado ("GET" o "POST")
@@ -60,7 +66,7 @@ int http_server (int connection){
 
           message_length = getFileSize (filename);
 
-          content_type = getMeFileMetaType(filename);
+          content_type = getFileMetaType(filename);
 
           sprintf(server_message, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n", content_type, (int) message_length);
 
@@ -85,6 +91,7 @@ int http_server (int connection){
         }
 
         free (filename);
+        filename = NULL; // Para poder chequear si hay memoria pedida
       } else {    // Si no es GET -> 400 (Bad Request)
         sprintf(error_message,"<!DOCTYPE html>\r\n<head><title>Error 400</title></head><body><h1>Error 400: Bad Request</h1><br>M&eacute;todo &lt;<i>%s</i>&gt; no soportado</body></html>",uri);
         sprintf(server_message, "HTTP/1.1 400 Bad Request\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s",(int)strlen(error_message),error_message);
@@ -94,11 +101,13 @@ int http_server (int connection){
       }
     }
   }
+  usleep(10000000);
   free (client_message);
+  client_message = NULL; // Para poder chequear si hay memoria pedida
   return 0;
 }
 
-char * getMeFileMetaType(char * filename){
+char * getFileMetaType(char * filename){
   char * file_extension = strrchr(filename, '.');    // Me quedo con la extensión
   char extension[6] = "\0";
   if (file_extension != NULL){    // Me fijo si tiene extension
@@ -121,6 +130,8 @@ char * getMeFileMetaType(char * filename){
     return "text/css; charset=UTF-8";
   if(!strcmp(extension,"csv"))
     return "text/csv; charset=UTF-8";
+  if(!strcmp(extension,"cfg"))
+    return "text/plain; charset=UTF-8";
   // IMAGE
   if(!strcmp(extension,"ico"))
     return "image/x-icon";
@@ -170,7 +181,6 @@ char * getMeFileMetaType(char * filename){
 }
 
 int getIndex(char *index_dir){
-  char *index_cmd;
 
   size_t index_size = 2*strlen(index_dir) + 100;
 
@@ -182,6 +192,21 @@ int getIndex(char *index_dir){
   int status = system(index_cmd);
 
   free (index_cmd);
+  index_cmd = NULL; // Para poder chequear si hay memoria pedida
 
   return status;
+}
+
+void handler_server_SIGINT (int signbr){
+  close(connection_global);
+  if (client_message != NULL){
+    free(client_message);
+  }
+  if (filename != NULL){
+    free(filename);
+  }
+  if (index_cmd != NULL){
+    free(index_cmd);
+  }
+  printf("[LOG] HTTP SERVER: Exiting\n");
 }

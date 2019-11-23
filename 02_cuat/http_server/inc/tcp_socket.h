@@ -19,14 +19,13 @@
 #include <sys/sendfile.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++ Defines +++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define PORT 1234  // Puerto para la conexión
+#define PORT 80  // Puerto para la conexión
 #define MEM_SZ 4096 // Memoria shareada
-
-#define CFG_FILE "./sup/server.cfg"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Variables ++++++++++++++++++++++++++++++++++
@@ -42,8 +41,13 @@ struct config_parameters_st {
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Funciones ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Main socket tcp
 int main(int argc, char *argv[]);
-void handler_SIGUSR1(int signbr);
-void update_configuration ( void );
-size_t getFileSize(char *fn);
-int getFileLines (char *fn);
+
+// Handlers de señales
+void handler_socket_SIGCHLD (int signbr);
+void handler_socket_SIGUSR1 (int signbr);
+void handler_socket_SIGINT (int signbr);
+
+// Actualización de parámetros
+void update_configuration (void);

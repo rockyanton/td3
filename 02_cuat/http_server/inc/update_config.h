@@ -1,17 +1,13 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++ Defines +++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define HTML_FILE "./sup/spi.html"
-#define DEVICE_NAME "/dev/td3-spi"
-
-#define TRUE  1
-#define FALSE 0
+#define CFG_FILE "./sup/server.cfg"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++ Funciones ++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Daemon de actualizacion de datos del sensor
-void update_http_file(void);
+void update_configuration(void);
 
 // Handlers de señales
-void handler_query_SIGINT (int signbr);
+void handler_config_SIGINT (int signbr);
