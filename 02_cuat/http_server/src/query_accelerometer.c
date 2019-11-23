@@ -8,7 +8,7 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern struct config_parameters_st *config_parameters;
 extern sem_t *update_semaphore, *config_semaphore;
-int acelerometer, * values;
+int acelerometer = 0, * values;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++ Levantar datos del SPI ++++++++++++++++++++++++++++++
@@ -41,6 +41,7 @@ void update_http_file(void) {
     if (not_equal){
       if (!first_run){
         free(values);
+        values = NULL; // Para poder chequear si hay memoria pedida
       } else {
         first_run = 0;
       }
@@ -72,6 +73,7 @@ void update_http_file(void) {
 
       readed = read(acelerometer, measure, 7);
       close(acelerometer);
+      acelerometer = 0; // Para chequear si fue cerrado o no
 
       if (readed < 7){
         perror("[ERROR] QUERY ACCELEROMETER: Nothing to read");
@@ -151,8 +153,12 @@ void update_http_file(void) {
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 void handler_query_SIGINT (int signbr) {
-  free(values);
-  close(acelerometer);
+  if (values != NULL) {
+    free(values);
+  }
+  if (acelerometer > 0) {
+    close(acelerometer);
+  }
   printf("[LOG] QUERY ACCELEROMETER: Exiting\n");
   exit(0);
 }
