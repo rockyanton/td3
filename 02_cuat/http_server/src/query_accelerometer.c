@@ -8,7 +8,8 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern struct config_parameters_st *config_parameters;
 extern sem_t *update_semaphore, *config_semaphore;
-int acelerometer = 0, * values;
+int acelerometer = 0;
+float *values;
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //+++++++++++++++++++++++ Levantar datos del SPI ++++++++++++++++++++++++++++++
@@ -49,8 +50,6 @@ void update_http_file(void) {
       not_equal=0;
       first_run = 0;
     }
-
-
 
     time_t time_seconds = time(NULL);
     struct tm local_time = *localtime(&time_seconds);
@@ -129,12 +128,16 @@ void update_http_file(void) {
         // Agrego el mensaje
         fprintf(html_file, "<p>Device ID= 0x%02x</p><p>X= %f g</p><p>Y= %f g</p><p>Z= %f g</p>", devid, x_p, y_p, z_p);
 
+        // Agrego el el promedio
+        fprintf(html_file, "<br><p>Los valores estan basados en un promedio de las &uacute;ltimas %d muestras.</p><p>La frecuencia de muestreo es de %f s</p>", prom, secs_sleep);
+
         // Agrego la fecha
         fprintf(html_file, "<br><br><p><i>Updated: %d-%d-%d %d:%d:%d</i></p></body></html>", local_time.tm_year + 1900, local_time.tm_mon + 1,local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
 
         fclose (html_file);
 
-        //printf("Device ID= 0x%02x --- X= %d g --- Y= %d g --- Z= %d g\n", devid, x_s, y_s, z_s);
+        //printf("Device ID= 0x%02x --- X= %d --- Y= %d --- Z= %d\n", devid, x_s, y_s, z_s);
+        //printf("Device ID= 0x%02x --- X= %f g --- Y= %f g --- Z= %f g -- index= %d\n", devid, values[3*index + 0], values[3*index + 1], values[3*index + 2], index);
 
       }
 
@@ -143,6 +146,8 @@ void update_http_file(void) {
 
     usleep((useconds_t) (secs_sleep*1000000));
   }
+
+  printf("Error\n");
 
   return;
 }
